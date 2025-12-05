@@ -1,36 +1,135 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pixyo - AI Social Image Generator
 
-## Getting Started
+A browser-based MVP tool for creating social media images using AI-powered prompt and image generation, combined with a canvas-based editor.
 
-First, run the development server:
+## Features
+
+- **AI Prompt Generation** - Claude generates optimized prompts for image generation
+- **AI Image Generation** - Gemini/Imagen creates images from prompts
+- **Canvas Editor** - react-konva based editor with layers, text, and logos
+- **Multiple Aspect Ratios** - Instagram, Story, YouTube formats
+- **Style Presets** - Cinematic, Editorial, Flat Illustration, etc.
+- **Real-time Editing** - Drag, resize, and style elements
+- **Undo/Redo** - Full history support
+- **High-res Export** - 2x resolution PNG export
+
+## Quick Start
 
 ```bash
+# Install dependencies
+npm install
+
+# Start development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000/editor](http://localhost:3000/editor)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Create a `.env.local` file in the project root:
 
-## Learn More
+```bash
+# API Keys (optional - mock mode works without them)
+ANTHROPIC_API_KEY=sk-ant-api03-...
+GOOGLE_API_KEY=AIzaSy...
 
-To learn more about Next.js, take a look at the following resources:
+# Mock mode (set to 'true' for development without API keys)
+NEXT_PUBLIC_MOCK_AI=true
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Note:** If API keys are not set, the app automatically uses mock mode.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Tech Stack
 
-## Deploy on Vercel
+| Package | Version | Purpose |
+|---------|---------|---------|
+| Next.js | 16.x | Framework |
+| React | 19.x | UI Library |
+| TypeScript | 5.x | Type Safety |
+| Tailwind CSS | 4.x | Styling |
+| Zustand | 5.x | State Management |
+| react-konva | 19.x | Canvas Editor |
+| @anthropic-ai/sdk | latest | Claude API |
+| @google/generative-ai | latest | Gemini API |
+| zundo | 2.x | Undo/Redo |
+| sonner | latest | Toast Notifications |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Keyboard Shortcuts
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Shortcut | Action |
+|----------|--------|
+| `Delete` / `Backspace` | Delete selected layer |
+| `Ctrl/Cmd + Z` | Undo |
+| `Ctrl/Cmd + Shift + Z` | Redo |
+| `Ctrl/Cmd + D` | Duplicate layer |
+| `Escape` | Deselect |
+
+## Project Structure
+
+```
+app/
+├── page.tsx                    # Redirect -> /editor
+├── editor/page.tsx            # Main editor UI
+├── api/
+│   ├── generate-prompt/       # Claude API route
+│   └── generate-image/        # Gemini API route
+├── layout.tsx
+└── globals.css
+
+components/
+├── editor/                    # Editor components
+│   ├── EditorLayout.tsx
+│   ├── PromptPanel.tsx
+│   ├── CanvasStage.tsx
+│   ├── InspectorPanel.tsx
+│   └── ...
+└── ui/                        # Generic UI components
+
+lib/
+├── env.ts                     # Environment validation
+├── stylePresets.ts            # Style definitions
+├── hooks/useCanvasHotkeys.ts  # Keyboard shortcuts
+└── ai/
+    ├── claude.ts              # Anthropic client
+    └── gemini.ts              # Google client
+
+store/
+└── useEditorStore.ts          # Zustand store with undo/redo
+
+types/
+├── layers.ts                  # Layer type definitions
+└── api.ts                     # API types
+```
+
+## Usage
+
+1. **Enter an idea** in the left panel (e.g., "A woman running through a city at sunset")
+2. **Select mode** (Photo or Illustration)
+3. **Choose a style preset** (Cinematic, Editorial, etc.)
+4. **Generate Prompt** - AI creates an optimized image prompt
+5. **Generate Image** - AI creates the image
+6. **Click thumbnail** to set as background
+7. **Add text/logos** using the right panel controls
+8. **Adjust overlay** for text readability
+9. **Export** as high-resolution PNG
+
+## Development
+
+```bash
+# Run development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Run production server
+npm start
+
+# Lint code
+npm run lint
+```
+
+## License
+
+MIT
