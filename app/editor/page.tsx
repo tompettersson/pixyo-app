@@ -13,6 +13,7 @@ import {
   generateOverlay,
   getOverlayBlendMode,
   type OverlayType,
+  type OverlayMode,
   type BlendMode,
 } from "@/lib/overlayEffects";
 
@@ -78,6 +79,7 @@ const COMPOSITION_DIRECTIVE = `Composition: Place the main subject slightly towa
 const blendModeToComposite: Record<BlendMode, GlobalCompositeOperation> = {
   normal: "source-over",
   multiply: "multiply",
+  screen: "screen",
   "soft-light": "soft-light",
   overlay: "overlay",
 };
@@ -86,14 +88,16 @@ const blendModeToComposite: Record<BlendMode, GlobalCompositeOperation> = {
 function OverlayLayer({
   type,
   intensity,
+  mode,
 }: {
   type: OverlayType;
   intensity: number;
+  mode: OverlayMode;
 }) {
   const [overlayImage, setOverlayImage] = useState<HTMLImageElement | null>(
     null
   );
-  const blendMode = getOverlayBlendMode(type);
+  const blendMode = getOverlayBlendMode(type, mode);
 
   useEffect(() => {
     if (type === "none" || intensity <= 0) {
@@ -105,14 +109,15 @@ function OverlayLayer({
       type,
       CANVAS_WIDTH,
       CANVAS_HEIGHT,
-      intensity
+      intensity,
+      mode
     );
     if (canvas) {
       const img = new window.Image();
       img.src = canvas.toDataURL();
       img.onload = () => setOverlayImage(img);
     }
-  }, [type, intensity]);
+  }, [type, intensity, mode]);
 
   if (!overlayImage || !KonvaImage) return null;
 
@@ -170,17 +175,29 @@ export default function EditorPage() {
 
   // Overlay state
   const [overlayType, setOverlayType] = useState<OverlayType>("gradient");
+  const [overlayMode, setOverlayMode] = useState<OverlayMode>("darken");
   const [overlayIntensity, setOverlayIntensity] = useState(0.7);
+  
+  // Text color based on overlay mode
+  const textColor = overlayMode === "darken" ? "#ffffff" : "#111111";
+  const buttonTextColor = overlayMode === "darken" ? (backgroundImage ? "#000000" : bgColor) : "#ffffff";
+  const buttonBgColor = overlayMode === "darken" ? "#ffffff" : "#111111";
 
   // Get presets for current mode
   const presetsForMode = getPresetsByMode(mode);
 
   useEffect(() => {
     setIsClient(true);
-    const img = new window.Image();
-    img.src = "/logos/HanakoKoiLogo-white.svg";
-    img.onload = () => setLogoImage(img);
   }, []);
+
+  // Load logo based on overlay mode
+  useEffect(() => {
+    const img = new window.Image();
+    img.src = overlayMode === "darken" 
+      ? "/logos/HanakoKoiLogo-white.svg" 
+      : "/logos/HanakoKoiLogo.svg";
+    img.onload = () => setLogoImage(img);
+  }, [overlayMode]);
 
   // Handle mode change
   const handleModeChange = (newMode: "photo" | "illustration") => {
@@ -604,7 +621,7 @@ export default function EditorPage() {
               )}
 
               {/* Dynamic Overlay */}
-              <OverlayLayer type={overlayType} intensity={overlayIntensity} />
+              <OverlayLayer type={overlayType} intensity={overlayIntensity} mode={overlayMode} />
 
               {/* Content Container */}
               <Group x={LAYOUT.padding.left} y={LAYOUT.padding.top}>
@@ -616,7 +633,7 @@ export default function EditorPage() {
                   fontFamily="Inter"
                   fontSize={LAYOUT.taglineSize}
                   fontStyle="bold"
-                  fill="#ffffff"
+                  fill={textColor}
                   opacity={0.9}
                 />
                 <Text
@@ -627,7 +644,7 @@ export default function EditorPage() {
                   fontFamily="Inter"
                   fontSize={LAYOUT.headlineSize}
                   fontStyle="bold"
-                  fill="#ffffff"
+                  fill={textColor}
                   lineHeight={LAYOUT.headlineLineHeight}
                   wrap="word"
                 />
@@ -639,7 +656,7 @@ export default function EditorPage() {
                   fontFamily="Inter"
                   fontSize={LAYOUT.bodySize}
                   fontStyle="normal"
-                  fill="#ffffff"
+                  fill={textColor}
                   opacity={0.85}
                   lineHeight={1.5}
                   wrap="word"
@@ -653,7 +670,7 @@ export default function EditorPage() {
                       LAYOUT.buttonPaddingX * 2
                     }
                     height={LAYOUT.buttonSize + LAYOUT.buttonPaddingY * 2}
-                    fill="#ffffff"
+                    fill={buttonBgColor}
                     cornerRadius={LAYOUT.buttonRadius}
                   />
                   <Text
@@ -663,7 +680,7 @@ export default function EditorPage() {
                     fontFamily="Inter"
                     fontSize={LAYOUT.buttonSize}
                     fontStyle="bold"
-                    fill={backgroundImage ? "#000000" : bgColor}
+                    fill={buttonTextColor}
                   />
                 </Group>
               </Group>
@@ -687,7 +704,7 @@ export default function EditorPage() {
                   text={`📷 ${photoCredit.name} / Unsplash`}
                   fontFamily="Inter"
                   fontSize={18}
-                  fill="#ffffff"
+                  fill={textColor}
                   opacity={0.5}
                   align="right"
                   width={300}
@@ -706,6 +723,46 @@ export default function EditorPage() {
           <h3 className="text-xs text-zinc-500 mb-3 uppercase tracking-wider">
             Overlay-Effekt
           </h3>
+          
+          {/* Mode Toggle Pills */}
+          <div className="flex gap-1 mb-4 p-1 bg-zinc-800/50 rounded-lg">
+            <button
+              onClick={() => setOverlayMode("darken")}
+              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-xs font-medium transition-all
+                ${overlayMode === "darken"
+                  ? "bg-zinc-700 text-white shadow-sm"
+                  : "text-zinc-500 hover:text-zinc-300"
+                }`}
+            >
+              {/* Moon Icon */}
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+              </svg>
+              Abdunkeln
+            </button>
+            <button
+              onClick={() => setOverlayMode("lighten")}
+              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-xs font-medium transition-all
+                ${overlayMode === "lighten"
+                  ? "bg-zinc-700 text-white shadow-sm"
+                  : "text-zinc-500 hover:text-zinc-300"
+                }`}
+            >
+              {/* Sun Icon */}
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="5" />
+                <line x1="12" y1="1" x2="12" y2="3" />
+                <line x1="12" y1="21" x2="12" y2="23" />
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                <line x1="1" y1="12" x2="3" y2="12" />
+                <line x1="21" y1="12" x2="23" y2="12" />
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+              </svg>
+              Aufhellen
+            </button>
+          </div>
 
           <div className="grid grid-cols-2 gap-1.5 mb-4">
             {OVERLAY_PRESETS.map((preset) => (
