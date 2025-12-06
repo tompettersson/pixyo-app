@@ -178,6 +178,11 @@ export default function EditorPage() {
   const [overlayMode, setOverlayMode] = useState<OverlayMode>("darken");
   const [overlayIntensity, setOverlayIntensity] = useState(0.7);
   
+  // Background image transformation state
+  const [bgScale, setBgScale] = useState(1);
+  const [bgPositionX, setBgPositionX] = useState(0);
+  const [bgPositionY, setBgPositionY] = useState(0);
+  
   // Text color based on overlay mode
   const textColor = overlayMode === "darken" ? "#ffffff" : "#111111";
   const buttonTextColor = overlayMode === "darken" ? (backgroundImage ? "#000000" : bgColor) : "#ffffff";
@@ -605,10 +610,12 @@ export default function EditorPage() {
               {backgroundImage ? (
                 <KonvaImage
                   image={backgroundImage}
-                  x={0}
-                  y={0}
-                  width={CANVAS_WIDTH}
-                  height={CANVAS_HEIGHT}
+                  x={bgPositionX}
+                  y={bgPositionY}
+                  width={CANVAS_WIDTH * bgScale}
+                  height={CANVAS_HEIGHT * bgScale}
+                  offsetX={(CANVAS_WIDTH * bgScale - CANVAS_WIDTH) / 2}
+                  offsetY={(CANVAS_HEIGHT * bgScale - CANVAS_HEIGHT) / 2}
                 />
               ) : (
                 <Rect
@@ -810,6 +817,88 @@ export default function EditorPage() {
             </div>
           )}
         </div>
+
+        {/* Background Image Controls */}
+        {backgroundImage && (
+          <div className="pt-4 border-t border-zinc-800/50">
+            <h3 className="text-xs text-zinc-500 mb-3 uppercase tracking-wider">
+              Hintergrund-Transformation
+            </h3>
+            
+            {/* Scale Slider */}
+            <div className="mb-3">
+              <div className="flex justify-between text-xs text-zinc-500 mb-1.5">
+                <span>Skalierung</span>
+                <span>{Math.round(bgScale * 100)}%</span>
+              </div>
+              <input
+                type="range"
+                min="0.5"
+                max="2"
+                step="0.05"
+                value={bgScale}
+                onChange={(e) => setBgScale(parseFloat(e.target.value))}
+                className="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer
+                           [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 
+                           [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer
+                           [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-125"
+              />
+            </div>
+
+            {/* Position X Slider */}
+            <div className="mb-3">
+              <div className="flex justify-between text-xs text-zinc-500 mb-1.5">
+                <span>Position X</span>
+                <span>{bgPositionX}px</span>
+              </div>
+              <input
+                type="range"
+                min={-CANVAS_WIDTH / 2}
+                max={CANVAS_WIDTH / 2}
+                step="10"
+                value={bgPositionX}
+                onChange={(e) => setBgPositionX(parseFloat(e.target.value))}
+                className="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer
+                           [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 
+                           [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer
+                           [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-125"
+              />
+            </div>
+
+            {/* Position Y Slider */}
+            <div className="mb-3">
+              <div className="flex justify-between text-xs text-zinc-500 mb-1.5">
+                <span>Position Y</span>
+                <span>{bgPositionY}px</span>
+              </div>
+              <input
+                type="range"
+                min={-CANVAS_HEIGHT / 2}
+                max={CANVAS_HEIGHT / 2}
+                step="10"
+                value={bgPositionY}
+                onChange={(e) => setBgPositionY(parseFloat(e.target.value))}
+                className="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer
+                           [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 
+                           [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer
+                           [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-125"
+              />
+            </div>
+
+            {/* Reset Button */}
+            <button
+              onClick={() => {
+                setBgScale(1);
+                setBgPositionX(0);
+                setBgPositionY(0);
+              }}
+              className="w-full px-3 py-1.5 rounded text-xs font-medium transition-all backdrop-blur
+                bg-zinc-800/50 text-zinc-400 border border-zinc-700/50 hover:bg-zinc-700/50 hover:text-zinc-300"
+            >
+              Zurücksetzen
+            </button>
+          </div>
+        )}
 
         {/* Content Controls */}
         <div className="pt-4 border-t border-zinc-800/50">
