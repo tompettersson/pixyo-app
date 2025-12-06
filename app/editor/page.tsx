@@ -195,7 +195,7 @@ export default function EditorPage() {
     const img = new window.Image();
     img.src = overlayMode === "darken" 
       ? "/logos/HanakoKoiLogo-white.svg" 
-      : "/logos/HanakoKoiLogo.svg";
+      : "/logos/HanakoKoiLogo-black.svg";
     img.onload = () => setLogoImage(img);
   }, [overlayMode]);
 
