@@ -8,6 +8,7 @@ import {
   type StylePreset,
 } from "@/lib/stylePresets";
 import { UnsplashSearch } from "@/components/editor/UnsplashSearch";
+import { AssetLibrary } from "@/components/editor/AssetLibrary";
 import {
   OVERLAY_PRESETS,
   generateOverlay,
@@ -183,6 +184,11 @@ export default function EditorPage() {
   const [bgPositionX, setBgPositionX] = useState(0);
   const [bgPositionY, setBgPositionY] = useState(0);
   
+  // Profile and asset management
+  const [currentProfileId, setCurrentProfileId] = useState<string | null>(null);
+  const [isSavingAsset, setIsSavingAsset] = useState(false);
+  const [currentImageSource, setCurrentImageSource] = useState<"GENERATED" | "UNSPLASH" | null>(null);
+  
   // Text color based on overlay mode
   const textColor = overlayMode === "darken" ? "#ffffff" : "#111111";
   const buttonTextColor = overlayMode === "darken" ? (backgroundImage ? "#000000" : bgColor) : "#ffffff";
@@ -194,6 +200,80 @@ export default function EditorPage() {
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // Load or create a default profile on mount
+  useEffect(() => {
+    const initializeProfile = async () => {
+      try {
+        const response = await fetch("/api/profiles");
+        if (!response.ok) throw new Error("Failed to load profiles");
+        const data = await response.json();
+        
+        if (data.profiles && data.profiles.length > 0) {
+          // Use the most recently updated profile
+          setCurrentProfileId(data.profiles[0].id);
+        } else {
+          // Create a default profile
+          const createResponse = await fetch("/api/profiles", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: "Standard",
+              logo: "/logos/pixyo.svg",
+              colors: {
+                dark: "#111111",
+                light: "#ffffff",
+                accent: "#4f46e5",
+              },
+              fonts: {
+                headline: {
+                  family: "Inter",
+                  size: 112,
+                  weight: "bold",
+                  uppercase: false,
+                },
+                body: {
+                  family: "Inter",
+                  size: 32,
+                  weight: "normal",
+                },
+              },
+              layout: {
+                padding: {
+                  top: 72,
+                  right: 216,
+                  bottom: 72,
+                  left: 72,
+                },
+                gaps: {
+                  taglineToHeadline: 20,
+                  headlineToBody: 24,
+                  bodyToButton: 16,
+                },
+                button: {
+                  radius: 16,
+                  paddingX: 48,
+                  paddingY: 20,
+                },
+              },
+              systemPrompt: "Professional, modern, clean social media graphics",
+            }),
+          });
+          
+          if (createResponse.ok) {
+            const newProfile = await createResponse.json();
+            setCurrentProfileId(newProfile.profile.id);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to initialize profile:", error);
+      }
+    };
+    
+    if (isClient) {
+      initializeProfile();
+    }
+  }, [isClient]);
 
   // Load logo based on overlay mode
   useEffect(() => {
@@ -283,12 +363,18 @@ export default function EditorPage() {
       if (data.imageBase64) {
         const img = new window.Image();
         img.src = `data:image/png;base64,${data.imageBase64}`;
-        img.onload = () => setBackgroundImage(img);
+        img.onload = () => {
+          setBackgroundImage(img);
+          setCurrentImageSource("GENERATED");
+        };
       } else if (data.images && data.images.length > 0) {
         const img = new window.Image();
         img.crossOrigin = "anonymous";
         img.src = data.images[0].url;
-        img.onload = () => setBackgroundImage(img);
+        img.onload = () => {
+          setBackgroundImage(img);
+          setCurrentImageSource("GENERATED");
+        };
       }
     } catch (error) {
       console.error("Image generation error:", error);
@@ -311,6 +397,73 @@ export default function EditorPage() {
     img.onload = () => {
       setBackgroundImage(img);
       setPhotoCredit(credit);
+      setCurrentImageSource("UNSPLASH");
+    };
+  };
+
+  // Save current background image as asset
+  const handleSaveAsset = async () => {
+    if (!backgroundImage || !currentProfileId || !currentImageSource) return;
+    
+    setIsSavingAsset(true);
+    try {
+      const meta: Record<string, any> = {};
+      
+      if (currentImageSource === "GENERATED") {
+        meta.prompt = generatedPrompt || userIdea;
+        meta.styleId = selectedPreset.id;
+      } else if (currentImageSource === "UNSPLASH" && photoCredit) {
+        meta.credit = photoCredit;
+      }
+
+      // For generated images, we need to get the base64 data
+      let imageData: string | undefined;
+      if (currentImageSource === "GENERATED" && backgroundImage.src.startsWith("data:")) {
+        imageData = backgroundImage.src;
+      }
+
+      const response = await fetch("/api/assets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          profileId: currentProfileId,
+          type: currentImageSource,
+          width: CANVAS_WIDTH,
+          height: CANVAS_HEIGHT,
+          meta,
+          imageData,
+          url: currentImageSource === "UNSPLASH" ? backgroundImage.src : undefined,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to save asset");
+      
+      // Success feedback could be added here (toast notification)
+      console.log("Asset saved successfully");
+    } catch (error) {
+      console.error("Failed to save asset:", error);
+    } finally {
+      setIsSavingAsset(false);
+    }
+  };
+
+  // Handle asset selection from library
+  const handleAssetSelect = (
+    url: string,
+    credit?: { name: string; username: string; link: string }
+  ) => {
+    const img = new window.Image();
+    img.crossOrigin = "anonymous";
+    img.src = url;
+    img.onload = () => {
+      setBackgroundImage(img);
+      if (credit) {
+        setPhotoCredit(credit);
+        setCurrentImageSource("UNSPLASH");
+      } else {
+        setPhotoCredit(null);
+        setCurrentImageSource("GENERATED");
+      }
     };
   };
 
@@ -566,18 +719,39 @@ export default function EditorPage() {
 
         {/* Actions */}
         <div className="space-y-2 pt-3 border-t border-zinc-800/50">
+          {backgroundImage && currentProfileId && (
+            <Button
+              variant="secondary"
+              className="w-full text-xs"
+              onClick={handleSaveAsset}
+              disabled={isSavingAsset}
+            >
+              {isSavingAsset ? "Speichert..." : "Bild speichern"}
+            </Button>
+          )}
           <Button
             variant="ghost"
             className="w-full text-xs"
             onClick={() => {
               setBackgroundImage(null);
               setPhotoCredit(null);
+              setCurrentImageSource(null);
             }}
             disabled={!backgroundImage}
           >
             Hintergrundbild entfernen
           </Button>
         </div>
+
+        {/* Asset Library */}
+        {currentProfileId && (
+          <div className="pt-3 border-t border-zinc-800/50">
+            <AssetLibrary
+              profileId={currentProfileId}
+              onSelectAsset={handleAssetSelect}
+            />
+          </div>
+        )}
 
         <div className="pt-3 border-t border-zinc-800/50">
           <a
