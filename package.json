@@ -11,8 +11,11 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.1",
     "@google/generative-ai": "^0.24.1",
+    "@prisma/client": "^7.1.0",
+    "@vercel/blob": "^2.0.0",
     "konva": "^10.0.12",
     "next": "16.0.7",
+    "prisma": "^7.1.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-konva": "^19.2.1",
