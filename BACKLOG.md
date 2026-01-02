@@ -2,54 +2,34 @@
 
 ## 🟡 Ready
 
-### 1. Authentication mit Stack Auth (Neon Auth)
-**Priorität:** Hoch
-**Warum:** API-Kosten entstehen sofort, daher kein anonymer Zugriff
-
-**Tasks:**
-- [ ] Stack Auth SDK installieren (`@stackframe/stack`)
-- [ ] StackProvider in `app/layout.tsx` einrichten
-- [ ] Handler-Route erstellen (`app/handler/[...stack]/page.tsx`)
-- [ ] Editor-Route schützen (nur eingeloggte User)
-- [ ] Login/Signup Links auf Landing Page
-- [ ] User-ID mit Profile verknüpfen (Schema erweitern)
-
-**Referenz:** [Stack Auth Setup](https://docs.stack-auth.com/docs/next/getting-started/setup)
-
----
-
-### 2. User-Profile Verknüpfung
-**Priorität:** Hoch
-**Abhängig von:** #1 Authentication
-
-**Tasks:**
-- [ ] Prisma Schema erweitern: `userId` auf Profile Model
-- [ ] Migration erstellen
-- [ ] API Routes anpassen (nur eigene Profiles laden/bearbeiten)
-- [ ] Automatisch erstes Profile für neuen User erstellen
-
----
-
-### 3. Landing Page
+### 1. Landing Page verbessern
 **Priorität:** Mittel
 
 **Tasks:**
 - [ ] Ansprechende Landing Page mit Feature-Übersicht
-- [ ] Login/Signup CTAs
 - [ ] Beispiel-Bilder zeigen
 - [ ] Pricing-Sektion (auch wenn erstmal nur Free)
 
 ---
 
-### 4. Usage Tracking & Limits
+### 2. Usage Tracking & Limits
 **Priorität:** Mittel
-**Abhängig von:** #1, #2
+**Abhängig von:** Authentication ✅
 
 **Tasks:**
 - [ ] Generierungen pro User tracken
 - [ ] Free Tier Limit definieren (z.B. 10 Bilder/Monat)
 - [ ] UI-Feedback wenn Limit erreicht
 - [ ] Später: Upgrade-Option
+
+---
+
+### 3. Erstes Profile automatisch erstellen
+**Priorität:** Niedrig
+
+**Tasks:**
+- [ ] Bei erstem Editor-Besuch automatisch ein Default-Profile erstellen
+- [ ] Welcome-Flow für neue User
 
 ---
 
@@ -60,6 +40,17 @@
 ---
 
 ## ✅ Done
+
+### 2026-01-02: Authentication mit Stack Auth
+- Stack Auth SDK installiert (`@stackframe/stack`)
+- StackProvider in `app/layout.tsx` eingerichtet
+- Handler-Route erstellt (`app/handler/[...stack]/page.tsx`)
+- Editor-Route geschützt (nur eingeloggte User)
+- Login/Signup Links auf Landing Page
+- User-ID mit Profile verknüpft (Schema erweitert)
+- API Routes mit User-Ownership Checks
+- E2E Tests: 4/4 passed
+- Commit: 18a238f
 
 ### 2026-01-02: Datenbank Setup
 - Prisma & Neon PostgreSQL konfiguriert
