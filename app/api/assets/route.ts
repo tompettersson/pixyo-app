@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { stackServerApp } from '@/lib/stack';
 import { prisma } from '@/lib/db';
 import { put } from '@vercel/blob';
 import { z } from 'zod';
@@ -16,16 +17,34 @@ const assetSchema = z.object({
   url: z.string().url().optional(),
 });
 
-// GET assets for a profile
+// GET assets for a profile (only if profile is owned by current user)
 export async function GET(request: NextRequest) {
   try {
+    const user = await stackServerApp.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const profileId = searchParams.get('profileId');
     const type = searchParams.get('type');
 
-    const where: any = {};
+    // Verify profile ownership
+    if (profileId) {
+      const profile = await prisma.profile.findFirst({
+        where: { id: profileId, userId: user.id },
+      });
+      if (!profile) {
+        return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+      }
+    }
+
+    const where: Record<string, unknown> = {};
     if (profileId) where.profileId = profileId;
     if (type) where.type = type;
+
+    // Only get assets for profiles owned by this user
+    where.profile = { userId: user.id };
 
     const assets = await prisma.asset.findMany({
       where,
@@ -42,11 +61,24 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST create new asset
+// POST create new asset (only if profile is owned by current user)
 export async function POST(request: NextRequest) {
   try {
+    const user = await stackServerApp.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const validatedData = assetSchema.parse(body);
+
+    // Verify profile ownership
+    const profile = await prisma.profile.findFirst({
+      where: { id: validatedData.profileId, userId: user.id },
+    });
+    if (!profile) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    }
 
     let finalUrl = validatedData.url || '';
 
@@ -54,7 +86,7 @@ export async function POST(request: NextRequest) {
     if (validatedData.imageData) {
       const base64Data = validatedData.imageData.split(',')[1] || validatedData.imageData;
       const buffer = Buffer.from(base64Data, 'base64');
-      
+
       const blob = await put(
         `assets/${Date.now()}-${Math.random().toString(36).substring(7)}.png`,
         buffer,
@@ -63,7 +95,7 @@ export async function POST(request: NextRequest) {
           contentType: 'image/png',
         }
       );
-      
+
       finalUrl = blob.url;
     }
 
@@ -82,7 +114,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid asset data', details: error.errors },
+        { error: 'Invalid asset data', details: error.issues },
         { status: 400 }
       );
     }
@@ -94,14 +126,29 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// DELETE asset
+// DELETE asset (only if owned via profile by current user)
 export async function DELETE(request: NextRequest) {
   try {
+    const user = await stackServerApp.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
     if (!id) {
       return NextResponse.json({ error: 'Asset ID required' }, { status: 400 });
+    }
+
+    // Verify ownership via profile
+    const asset = await prisma.asset.findFirst({
+      where: { id },
+      include: { profile: true },
+    });
+
+    if (!asset || asset.profile.userId !== user.id) {
+      return NextResponse.json({ error: 'Asset not found' }, { status: 404 });
     }
 
     await prisma.asset.delete({
@@ -117,4 +164,5 @@ export async function DELETE(request: NextRequest) {
     );
   }
 }
+
 

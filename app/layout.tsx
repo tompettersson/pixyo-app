@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display, Poppins, Space_Grotesk, Bebas_Neue, Lora, Oswald } from "next/font/google";
+import { StackProvider, StackTheme } from "@stackframe/stack";
+import { stackServerApp } from "@/lib/stack";
 import { Toaster } from 'sonner';
 import "./globals.css";
 
@@ -55,9 +57,9 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body
         className={`
-          ${inter.variable} 
-          ${playfair.variable} 
-          ${poppins.variable} 
+          ${inter.variable}
+          ${playfair.variable}
+          ${poppins.variable}
           ${spaceGrotesk.variable}
           ${bebasNeue.variable}
           ${lora.variable}
@@ -65,12 +67,16 @@ export default function RootLayout({
           font-sans antialiased
         `}
       >
-        {children}
-        <Toaster 
-          position="bottom-right"
-          theme="dark"
-          richColors
-        />
+        <StackProvider app={stackServerApp}>
+          <StackTheme>
+            {children}
+            <Toaster
+              position="bottom-right"
+              theme="dark"
+              richColors
+            />
+          </StackTheme>
+        </StackProvider>
       </body>
     </html>
   );

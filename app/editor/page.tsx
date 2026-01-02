@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useUser } from "@stackframe/stack";
 import { Button } from "@/components/ui";
 import {
   STYLE_PRESETS,
@@ -136,6 +137,9 @@ function OverlayLayer({
 }
 
 export default function EditorPage() {
+  // Protect this route - redirects to sign-in if not logged in
+  const user = useUser({ or: "redirect" });
+
   const stageRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isClient, setIsClient] = useState(false);
@@ -182,20 +186,27 @@ export default function EditorPage() {
   const [overlayType, setOverlayType] = useState<OverlayType>("gradient");
   const [overlayMode, setOverlayMode] = useState<OverlayMode>("darken");
   const [overlayIntensity, setOverlayIntensity] = useState(0.7);
-  
+
   // Background image transformation state
   const [bgScale, setBgScale] = useState(1);
   const [bgPositionX, setBgPositionX] = useState(0);
   const [bgPositionY, setBgPositionY] = useState(0);
-  
+
   // Profile and asset management
   const [currentProfileId, setCurrentProfileId] = useState<string | null>(null);
   const [isSavingAsset, setIsSavingAsset] = useState(false);
-  const [currentImageSource, setCurrentImageSource] = useState<"GENERATED" | "UNSPLASH" | null>(null);
-  
+  const [currentImageSource, setCurrentImageSource] = useState<
+    "GENERATED" | "UNSPLASH" | null
+  >(null);
+
   // Text color based on overlay mode
   const textColor = overlayMode === "darken" ? "#ffffff" : "#111111";
-  const buttonTextColor = overlayMode === "darken" ? (backgroundImage ? "#000000" : bgColor) : "#ffffff";
+  const buttonTextColor =
+    overlayMode === "darken"
+      ? backgroundImage
+        ? "#000000"
+        : bgColor
+      : "#ffffff";
   const buttonBgColor = overlayMode === "darken" ? "#ffffff" : "#111111";
 
   // Get presets for current mode
@@ -212,7 +223,7 @@ export default function EditorPage() {
         const response = await fetch("/api/profiles");
         if (!response.ok) throw new Error("Failed to load profiles");
         const data = await response.json();
-        
+
         if (data.profiles && data.profiles.length > 0) {
           // Use the most recently updated profile
           setCurrentProfileId(data.profiles[0].id);
@@ -263,7 +274,7 @@ export default function EditorPage() {
               systemPrompt: "Professional, modern, clean social media graphics",
             }),
           });
-          
+
           if (createResponse.ok) {
             const newProfile = await createResponse.json();
             setCurrentProfileId(newProfile.profile.id);
@@ -273,7 +284,7 @@ export default function EditorPage() {
         console.error("Failed to initialize profile:", error);
       }
     };
-    
+
     if (isClient) {
       initializeProfile();
     }
@@ -282,9 +293,10 @@ export default function EditorPage() {
   // Load logo based on overlay mode
   useEffect(() => {
     const img = new window.Image();
-    img.src = overlayMode === "darken" 
-      ? "/logos/HanakoKoiLogo-white.svg" 
-      : "/logos/HanakoKoiLogo-black.svg";
+    img.src =
+      overlayMode === "darken"
+        ? "/logos/HanakoKoiLogo-white.svg"
+        : "/logos/HanakoKoiLogo-black.svg";
     img.onload = () => setLogoImage(img);
   }, [overlayMode]);
 
@@ -408,11 +420,11 @@ export default function EditorPage() {
   // Save current background image as asset
   const handleSaveAsset = async () => {
     if (!backgroundImage || !currentProfileId || !currentImageSource) return;
-    
+
     setIsSavingAsset(true);
     try {
       const meta: Record<string, any> = {};
-      
+
       if (currentImageSource === "GENERATED") {
         meta.prompt = generatedPrompt || userIdea;
         meta.styleId = selectedPreset.id;
@@ -422,7 +434,10 @@ export default function EditorPage() {
 
       // For generated images, we need to get the base64 data
       let imageData: string | undefined;
-      if (currentImageSource === "GENERATED" && backgroundImage.src.startsWith("data:")) {
+      if (
+        currentImageSource === "GENERATED" &&
+        backgroundImage.src.startsWith("data:")
+      ) {
         imageData = backgroundImage.src;
       }
 
@@ -436,12 +451,13 @@ export default function EditorPage() {
           height: CANVAS_HEIGHT,
           meta,
           imageData,
-          url: currentImageSource === "UNSPLASH" ? backgroundImage.src : undefined,
+          url:
+            currentImageSource === "UNSPLASH" ? backgroundImage.src : undefined,
         }),
       });
 
       if (!response.ok) throw new Error("Failed to save asset");
-      
+
       // Success feedback could be added here (toast notification)
       console.log("Asset saved successfully");
     } catch (error) {
@@ -545,9 +561,24 @@ export default function EditorPage() {
             className="p-2 rounded text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 transition-all"
             title="Profil-Einstellungen"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
             </svg>
           </button>
         </div>
@@ -816,7 +847,11 @@ export default function EditorPage() {
               )}
 
               {/* Dynamic Overlay */}
-              <OverlayLayer type={overlayType} intensity={overlayIntensity} mode={overlayMode} />
+              <OverlayLayer
+                type={overlayType}
+                intensity={overlayIntensity}
+                mode={overlayMode}
+              />
 
               {/* Content Container */}
               <Group x={LAYOUT.padding.left} y={LAYOUT.padding.top}>
@@ -918,19 +953,28 @@ export default function EditorPage() {
           <h3 className="text-xs text-zinc-500 mb-3 uppercase tracking-wider">
             Overlay-Effekt
           </h3>
-          
+
           {/* Mode Toggle Pills */}
           <div className="flex gap-1 mb-4 p-1 bg-zinc-800/50 rounded-lg">
             <button
               onClick={() => setOverlayMode("darken")}
               className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-xs font-medium transition-all
-                ${overlayMode === "darken"
-                  ? "bg-zinc-700 text-white shadow-sm"
-                  : "text-zinc-500 hover:text-zinc-300"
+                ${
+                  overlayMode === "darken"
+                    ? "bg-zinc-700 text-white shadow-sm"
+                    : "text-zinc-500 hover:text-zinc-300"
                 }`}
             >
               {/* Moon Icon */}
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                className="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
               </svg>
               Abdunkeln
@@ -938,13 +982,22 @@ export default function EditorPage() {
             <button
               onClick={() => setOverlayMode("lighten")}
               className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-xs font-medium transition-all
-                ${overlayMode === "lighten"
-                  ? "bg-zinc-700 text-white shadow-sm"
-                  : "text-zinc-500 hover:text-zinc-300"
+                ${
+                  overlayMode === "lighten"
+                    ? "bg-zinc-700 text-white shadow-sm"
+                    : "text-zinc-500 hover:text-zinc-300"
                 }`}
             >
               {/* Sun Icon */}
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                className="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <circle cx="12" cy="12" r="5" />
                 <line x1="12" y1="1" x2="12" y2="3" />
                 <line x1="12" y1="21" x2="12" y2="23" />
@@ -1012,7 +1065,7 @@ export default function EditorPage() {
             <h3 className="text-xs text-zinc-500 mb-3 uppercase tracking-wider">
               Hintergrund-Transformation
             </h3>
-            
+
             {/* Scale Slider */}
             <div className="mb-3">
               <div className="flex justify-between text-xs text-zinc-500 mb-1.5">

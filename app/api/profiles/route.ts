@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { stackServerApp } from '@/lib/stack';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
 
@@ -45,10 +46,16 @@ const profileSchema = z.object({
   systemPrompt: z.string(),
 });
 
-// GET all profiles
+// GET all profiles for current user
 export async function GET() {
   try {
+    const user = await stackServerApp.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const profiles = await prisma.profile.findMany({
+      where: { userId: user.id },
       orderBy: { updatedAt: 'desc' },
     });
     return NextResponse.json({ profiles });
@@ -61,14 +68,20 @@ export async function GET() {
   }
 }
 
-// POST create new profile
+// POST create new profile for current user
 export async function POST(request: NextRequest) {
   try {
+    const user = await stackServerApp.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const validatedData = profileSchema.parse(body);
 
     const profile = await prisma.profile.create({
       data: {
+        userId: user.id,
         name: validatedData.name,
         logo: validatedData.logo,
         colors: validatedData.colors,
@@ -93,4 +106,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
 

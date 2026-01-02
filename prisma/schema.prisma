@@ -15,6 +15,7 @@ datasource db {
 
 model Profile {
   id           String   @id @default(cuid())
+  userId       String   // Stack Auth user ID
   name         String
   logo         String
   colors       Json     // { dark: string, light: string, accent: string }
@@ -23,8 +24,10 @@ model Profile {
   systemPrompt String   @db.Text
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  
+
   assets       Asset[]
+
+  @@index([userId])
 }
 
 enum AssetType {

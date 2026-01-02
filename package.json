@@ -12,6 +12,7 @@
     "@anthropic-ai/sdk": "^0.71.1",
     "@google/generative-ai": "^0.24.1",
     "@prisma/client": "^7.1.0",
+    "@stackframe/stack": "^2.8.56",
     "@vercel/blob": "^2.0.0",
     "konva": "^10.0.12",
     "next": "16.0.7",
@@ -26,6 +27,7 @@
     "zustand": "^5.0.9"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

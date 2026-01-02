@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { stackServerApp } from '@/lib/stack';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
 
@@ -45,14 +46,20 @@ const profileUpdateSchema = z.object({
   systemPrompt: z.string().optional(),
 });
 
-// GET single profile
+// GET single profile (only if owned by current user)
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const profile = await prisma.profile.findUnique({
-      where: { id: params.id },
+    const user = await stackServerApp.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id } = await params;
+    const profile = await prisma.profile.findFirst({
+      where: { id, userId: user.id },
       include: { assets: true },
     });
 
@@ -70,17 +77,32 @@ export async function GET(
   }
 }
 
-// PATCH update profile
+// PATCH update profile (only if owned by current user)
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = await stackServerApp.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id } = await params;
+
+    // Check ownership
+    const existing = await prisma.profile.findFirst({
+      where: { id, userId: user.id },
+    });
+    if (!existing) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    }
+
     const body = await request.json();
     const validatedData = profileUpdateSchema.parse(body);
 
     const profile = await prisma.profile.update({
-      where: { id: params.id },
+      where: { id },
       data: validatedData,
     });
 
@@ -88,7 +110,7 @@ export async function PATCH(
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid profile data', details: error.errors },
+        { error: 'Invalid profile data', details: error.issues },
         { status: 400 }
       );
     }
@@ -100,14 +122,29 @@ export async function PATCH(
   }
 }
 
-// DELETE profile
+// DELETE profile (only if owned by current user)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = await stackServerApp.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id } = await params;
+
+    // Check ownership
+    const existing = await prisma.profile.findFirst({
+      where: { id, userId: user.id },
+    });
+    if (!existing) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    }
+
     await prisma.profile.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ success: true });
@@ -119,4 +156,5 @@ export async function DELETE(
     );
   }
 }
+
 
