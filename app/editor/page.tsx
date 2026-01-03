@@ -381,6 +381,7 @@ export default function EditorPage() {
         img.src = `data:image/png;base64,${data.imageBase64}`;
         img.onload = () => {
           setBackgroundImage(img);
+          setPhotoCredit(null);
           setCurrentImageSource("GENERATED");
         };
       } else if (data.images && data.images.length > 0) {
@@ -389,6 +390,7 @@ export default function EditorPage() {
         img.src = data.images[0].url;
         img.onload = () => {
           setBackgroundImage(img);
+          setPhotoCredit(null);
           setCurrentImageSource("GENERATED");
         };
       }

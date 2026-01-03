@@ -41,7 +41,7 @@ export const STYLE_PRESETS: StylePreset[] = [
     id: 'lifestyle',
     label: 'Lifestyle',
     mode: 'photo',
-    promptDirectives: 'natural lifestyle photography, warm golden hour lighting, authentic candid moments, soft focus background, warm color palette',
+    promptDirectives: 'natural lifestyle photography, warm golden hour lighting, authentic candid moments, shallow depth of field with distant background, warm color palette',
     typography: {
       defaultFont: 'Poppins',
       headingSizePx: 48,
