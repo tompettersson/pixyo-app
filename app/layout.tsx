@@ -54,7 +54,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="de" className="dark">
       <body
         className={`
           ${inter.variable}
@@ -67,7 +67,7 @@ export default function RootLayout({
           font-sans antialiased
         `}
       >
-        <StackProvider app={stackServerApp}>
+        <StackProvider app={stackServerApp} lang="de-DE">
           <StackTheme>
             {children}
             <Toaster
