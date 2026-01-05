@@ -10,7 +10,7 @@ const assetSchema = z.object({
   type: z.enum(['GENERATED', 'UNSPLASH']),
   width: z.number(),
   height: z.number(),
-  meta: z.record(z.any()),
+  meta: z.record(z.string(), z.any()),
   // For base64 image data
   imageData: z.string().optional(),
   // Or for URL (like Unsplash)

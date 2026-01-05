@@ -17,7 +17,7 @@
     "@stackframe/stack": "^2.8.56",
     "@vercel/blob": "^2.0.0",
     "konva": "^10.0.12",
-    "next": "16.0.7",
+    "next": "^16.1.1",
     "prisma": "^7.1.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",

@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     if (!validationResult.success) {
       const error: ApiError = {
         error: 'Validation Error',
-        message: validationResult.error.errors.map((e) => e.message).join(', '),
+        message: validationResult.error.issues.map((e) => e.message).join(', '),
         code: 'VALIDATION_ERROR',
       };
       return NextResponse.json(error, { status: 400 });

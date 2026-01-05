@@ -136,7 +136,7 @@ export const useEditorStore = create<EditorState & EditorActions>()(
       updateLayer: (id: string, updates: Partial<Layer>) => {
         set((state) => ({
           layers: state.layers.map((layer) =>
-            layer.id === id ? { ...layer, ...updates } : layer
+            layer.id === id ? ({ ...layer, ...updates } as Layer) : layer
           ),
         }));
       },
