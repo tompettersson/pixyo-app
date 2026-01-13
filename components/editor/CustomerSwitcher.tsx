@@ -158,12 +158,17 @@ export function CustomerSwitcher({ onCustomerChange, onSaveBeforeSwitch }: Custo
     };
 
     loadDesignsAndAutoLoad();
+  }, [activeCustomerId, createNewDesign, loadDesignIntoEditor]);
+
+  // Notify parent when active customer changes (separate effect to avoid stale closure)
+  useEffect(() => {
+    if (!activeCustomerId || customers.length === 0) return;
 
     const activeCustomer = customers.find(c => c.id === activeCustomerId);
     if (activeCustomer && onCustomerChange) {
       onCustomerChange(activeCustomer);
     }
-  }, [activeCustomerId, createNewDesign, loadDesignIntoEditor]);
+  }, [activeCustomerId, customers, onCustomerChange]);
 
   const handleCustomerClick = useCallback(async (customerId: string) => {
     if (customerId !== activeCustomerId) {
