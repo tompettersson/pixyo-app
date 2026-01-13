@@ -1082,7 +1082,6 @@ export default function EditorPage() {
                     credit: credit || undefined,
                     transform: { scale: 1, positionX: 0, positionY: 0, flipX: false },
                   });
-                  setPhotoCredit(credit || null);
                 };
                 img.src = url;
               }}
