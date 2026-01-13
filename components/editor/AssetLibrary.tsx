@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui";
+import * as HoverCard from "@radix-ui/react-hover-card";
 
 interface Asset {
   id: string;
@@ -95,42 +95,49 @@ export function AssetLibrary({ profileId, onSelectAsset }: AssetLibraryProps) {
           Bilder gespeichert
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto">
+        <div className="grid grid-cols-3 gap-1.5 max-h-48 overflow-y-auto">
           {filteredAssets.map((asset) => (
-            <button
-              key={asset.id}
-              onClick={() => handleAssetClick(asset)}
-              className="relative aspect-square rounded overflow-hidden border border-zinc-700/50 
-                         hover:border-zinc-500 transition-all hover:scale-105 group"
-              title={asset.meta?.prompt || "Bild"}
-            >
-              <img
-                src={asset.url}
-                alt=""
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <svg
-                  className="w-6 h-6 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+            <HoverCard.Root key={asset.id} openDelay={200} closeDelay={100}>
+              <HoverCard.Trigger asChild>
+                <button
+                  onClick={() => handleAssetClick(asset)}
+                  className="relative aspect-square rounded overflow-hidden border border-zinc-700/50
+                             hover:border-fuchsia-500 transition-all group"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  <img
+                    src={asset.url}
+                    alt=""
+                    className="w-full h-full object-cover"
                   />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </button>
+              </HoverCard.Trigger>
+              <HoverCard.Portal>
+                <HoverCard.Content
+                  side="right"
+                  sideOffset={12}
+                  className="z-[100] bg-zinc-900 rounded-lg shadow-2xl p-2 border border-zinc-700
+                             animate-in fade-in-0 zoom-in-95 duration-200"
+                >
+                  <img
+                    src={asset.url}
+                    alt=""
+                    className="w-72 h-72 object-cover rounded"
                   />
-                </svg>
-              </div>
-            </button>
+                  {asset.meta?.prompt && (
+                    <p className="text-xs text-zinc-400 mt-2 line-clamp-2 max-w-72">
+                      {asset.meta.prompt}
+                    </p>
+                  )}
+                  {asset.meta?.credit && (
+                    <p className="text-xs text-zinc-500 mt-1">
+                      📷 {asset.meta.credit.name}
+                    </p>
+                  )}
+                  <HoverCard.Arrow className="fill-zinc-900" />
+                </HoverCard.Content>
+              </HoverCard.Portal>
+            </HoverCard.Root>
           ))}
         </div>
       )}

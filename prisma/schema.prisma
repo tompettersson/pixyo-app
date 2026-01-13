@@ -16,8 +16,10 @@ datasource db {
 model Profile {
   id           String   @id @default(cuid())
   userId       String   // Stack Auth user ID
+  slug         String   @unique // 'hanako-koi', '1001frucht', 'elforyn'
   name         String
   logo         String
+  logoVariants Json?    // { dark: string, light: string }
   colors       Json     // { dark: string, light: string, accent: string }
   fonts        Json     // { headline: {...}, body: {...} }
   layout       Json     // { padding: {...}, gaps: {...}, etc. }
@@ -26,8 +28,10 @@ model Profile {
   updatedAt    DateTime @updatedAt
 
   assets       Asset[]
+  designs      Design[]
 
   @@index([userId])
+  @@index([slug])
 }
 
 enum AssetType {
@@ -39,14 +43,39 @@ model Asset {
   id        String    @id @default(cuid())
   profileId String
   profile   Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  
+
   type      AssetType
   url       String
   width     Int
   height    Int
   meta      Json      // { prompt?, credit?, etc. }
-  
+
   createdAt DateTime  @default(now())
-  
+
+  @@index([profileId])
+}
+
+model Design {
+  id             String   @id @default(cuid())
+  profileId      String
+  profile        Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  name           String   @default("Unbenannt")
+  thumbnailUrl   String?
+
+  // Canvas state
+  canvasState    Json     // { width, height, aspectRatio, backgroundColor }
+  layers         Json     // Layer[] array
+  overlayOpacity Int      @default(0)
+  content        Json?    // { tagline, headline, body, buttonText, showButton }
+
+  // Complete visual state for proper design isolation
+  backgroundImage Json?   // { url, source, credit?, transform: { scale, positionX, positionY, flipX } }
+  overlay         Json?   // { type, mode, intensity }
+  productImage    Json?   // { data: base64, mimeType } - for Gemini Image-to-Image
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
   @@index([profileId])
 }

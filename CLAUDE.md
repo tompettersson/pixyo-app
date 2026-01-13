@@ -68,7 +68,78 @@ All routes use Zod for request validation.
 **Profile**: Customer configurations (colors, fonts, logo, system prompt)
 **Asset**: Saved images (generated or Unsplash) linked to profiles
 
-## Environment Variables
+## Deployment
+
+### Production URL
+https://pixyo-app.vercel.app
+
+### Vercel Project
+- **Project Name**: pixyo-app
+- **Framework**: Next.js (auto-detected)
+- **Region**: Frankfurt (fra1)
+- **Build Command**: `prisma generate && next build`
+
+### Environment Variables (Vercel Dashboard)
+
+All environment variables must be added manually in Vercel Dashboard → Settings → Environment Variables:
+
+```bash
+# AI Services
+ANTHROPIC_API_KEY=sk-ant-...      # Claude API for prompt generation
+GOOGLE_API_KEY=AIzaSy...           # Gemini API for image generation
+UNSPLASH_ACCESS_KEY=...            # Unsplash image search
+
+# Stack Auth
+NEXT_PUBLIC_STACK_PROJECT_ID=...
+NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=pck_...
+STACK_SECRET_SERVER_KEY=ssk_...
+
+# Optional
+NEXT_PUBLIC_MOCK_AI=false          # Set to true to bypass AI APIs
+
+# Auto-configured by Vercel
+POSTGRES_URL=...                   # Vercel Postgres (Neon)
+BLOB_READ_WRITE_TOKEN=...          # Vercel Blob Storage
+```
+
+**Note**: Vercel's "Import .env" button may not work reliably. Enter variables manually one by one.
+
+### Deployment Triggers
+- Push to `main` branch → automatic deployment
+- Manual redeploy via Vercel Dashboard
+
+## Authentication (Stack Auth)
+
+### Configuration
+- **Provider**: Stack Auth (@stackframe/stack v2.8.56)
+- **Project ID**: 0a35349f-ad83-4c29-aad5-35356d0458a2
+- **Registration**: Disabled (login only)
+- **Auth Method**: Email + Password
+
+### User Management via API
+
+Create users with password using the Stack Auth Server API:
+
+```bash
+curl -X POST "https://api.stack-auth.com/api/v1/users" \
+  -H "Content-Type: application/json" \
+  -H "X-Stack-Access-Type: server" \
+  -H "X-Stack-Project-Id: <project-id>" \
+  -H "X-Stack-Secret-Server-Key: <server-key>" \
+  -d '{
+    "primary_email": "user@example.com",
+    "password": "securepassword",
+    "primary_email_verified": true,
+    "primary_email_auth_enabled": true,
+    "display_name": "User Name"
+  }'
+```
+
+### Current Users
+- tom@actualize.de (Admin)
+- susan@actualize.de
+
+## Environment Variables (Local Development)
 
 ```bash
 # Required for AI (optional with mock mode)

@@ -17,20 +17,12 @@ export default async function Home() {
       {/* Header */}
       <header className="px-6 py-4 flex items-center justify-between border-b border-zinc-800/50">
         <img src="/logos/pixyo.svg" alt="Pixyo" className="h-8" />
-        <div className="flex items-center gap-4">
-          <Link
-            href="/handler/sign-in"
-            className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors"
-          >
-            Anmelden
-          </Link>
-          <Link
-            href="/handler/sign-up"
-            className="px-4 py-2 bg-white text-zinc-900 rounded-lg text-sm font-medium hover:bg-zinc-200 transition-colors"
-          >
-            Kostenlos starten
-          </Link>
-        </div>
+        <Link
+          href="/handler/sign-in"
+          className="px-4 py-2 bg-white text-zinc-900 rounded-lg text-sm font-medium hover:bg-zinc-200 transition-colors"
+        >
+          Anmelden
+        </Link>
       </header>
 
       {/* Hero */}
@@ -43,20 +35,12 @@ export default async function Home() {
             Generiere professionelle Grafiken für Instagram, LinkedIn und mehr.
             KI-gestützte Bildgenerierung trifft auf einen intuitiven Canvas-Editor.
           </p>
-          <div className="flex items-center justify-center gap-4">
-            <Link
-              href="/handler/sign-up"
-              className="px-6 py-3 bg-white text-zinc-900 rounded-lg font-medium hover:bg-zinc-200 transition-colors"
-            >
-              Jetzt starten
-            </Link>
-            <Link
-              href="/handler/sign-in"
-              className="px-6 py-3 border border-zinc-700 rounded-lg font-medium hover:bg-zinc-800 transition-colors"
-            >
-              Anmelden
-            </Link>
-          </div>
+          <Link
+            href="/handler/sign-in"
+            className="px-6 py-3 bg-white text-zinc-900 rounded-lg font-medium hover:bg-zinc-200 transition-colors"
+          >
+            Anmelden
+          </Link>
         </div>
       </main>
 

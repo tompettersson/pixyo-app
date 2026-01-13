@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display, Poppins, Space_Grotesk, Bebas_Neue, Lora, Oswald } from "next/font/google";
+import localFont from "next/font/local";
 import { StackProvider, StackTheme } from "@stackframe/stack";
 import { stackServerApp } from "@/lib/stack";
 import { Toaster } from 'sonner';
@@ -43,6 +44,16 @@ const oswald = Oswald({
   subsets: ["latin"],
 });
 
+// Local font: Cera Pro (for 1001Frucht and elforyn)
+const ceraPro = localFont({
+  src: [
+    { path: "../public/fonts/CeraPro-Regular.woff", weight: "400", style: "normal" },
+    { path: "../public/fonts/CeraPro-Bold.woff", weight: "700", style: "normal" },
+  ],
+  variable: "--font-cera-pro",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Pixyo - AI Social Image Generator",
   description: "Create stunning social media images with AI-powered generation and a powerful editor",
@@ -64,6 +75,7 @@ export default function RootLayout({
           ${bebasNeue.variable}
           ${lora.variable}
           ${oswald.variable}
+          ${ceraPro.variable}
           font-sans antialiased
         `}
       >

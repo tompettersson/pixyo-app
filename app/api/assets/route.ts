@@ -29,10 +29,16 @@ export async function GET(request: NextRequest) {
     const profileId = searchParams.get('profileId');
     const type = searchParams.get('type');
 
-    // Verify profile ownership
+    // Verify profile ownership (allow system-seed-user for demo profiles)
     if (profileId) {
       const profile = await prisma.profile.findFirst({
-        where: { id: profileId, userId: user.id },
+        where: {
+          id: profileId,
+          OR: [
+            { userId: user.id },
+            { userId: 'system-seed-user' },
+          ],
+        },
       });
       if (!profile) {
         return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
@@ -43,8 +49,13 @@ export async function GET(request: NextRequest) {
     if (profileId) where.profileId = profileId;
     if (type) where.type = type;
 
-    // Only get assets for profiles owned by this user
-    where.profile = { userId: user.id };
+    // Only get assets for profiles owned by this user or system-seed-user
+    where.profile = {
+      OR: [
+        { userId: user.id },
+        { userId: 'system-seed-user' },
+      ],
+    };
 
     const assets = await prisma.asset.findMany({
       where,
@@ -72,9 +83,15 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = assetSchema.parse(body);
 
-    // Verify profile ownership
+    // Verify profile ownership (allow system-seed-user for demo profiles)
     const profile = await prisma.profile.findFirst({
-      where: { id: validatedData.profileId, userId: user.id },
+      where: {
+        id: validatedData.profileId,
+        OR: [
+          { userId: user.id },
+          { userId: 'system-seed-user' },
+        ],
+      },
     });
     if (!profile) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });

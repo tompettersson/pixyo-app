@@ -2,7 +2,6 @@
 
 export type OverlayType =
   | "gradient"
-  | "vignette"
   | "halftone"
   | "grain"
   | "duotone"
@@ -85,13 +84,6 @@ export const OVERLAY_PRESETS: OverlayPreset[] = [
     id: "gradient",
     label: "Gradient",
     description: "Linearer Verlauf für Tiefe und Kontrast",
-    darkenBlendMode: "multiply",
-    lightenBlendMode: "screen",
-  },
-  {
-    id: "vignette",
-    label: "Vignette",
-    description: "Radiale Effekt von den Ecken zur Mitte",
     darkenBlendMode: "multiply",
     lightenBlendMode: "screen",
   },
@@ -212,27 +204,27 @@ export function generateHalftoneOverlay(
   canvas.height = height;
   const ctx = canvas.getContext("2d")!;
 
-  // First, add gradient base
+  // Stärkere Gradient-Basis
   const gradient = ctx.createLinearGradient(0, 0, width, height);
-  const baseAlpha = intensity * 0.5;
-  gradient.addColorStop(0, modeRgba(mode, 0.6 * baseAlpha));
-  gradient.addColorStop(0.5, modeRgba(mode, 0.3 * baseAlpha));
-  gradient.addColorStop(1, modeRgba(mode, 0));
+  const baseAlpha = intensity * 0.7;
+  gradient.addColorStop(0, modeRgba(mode, 0.7 * baseAlpha));
+  gradient.addColorStop(0.5, modeRgba(mode, 0.4 * baseAlpha));
+  gradient.addColorStop(1, modeRgba(mode, 0.05));
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, width, height);
 
-  // Then add halftone dots
-  const dotSpacing = 6;
-  const maxDotRadius = 2.5;
-  ctx.fillStyle = modeRgba(mode, intensity * 0.4);
+  // Größere, auffälligere Halftone-Punkte
+  const dotSpacing = 8;
+  const maxDotRadius = 4;
+  ctx.fillStyle = modeRgba(mode, intensity * 0.7);
 
   for (let y = 0; y < height; y += dotSpacing) {
     for (let x = 0; x < width; x += dotSpacing) {
       const distFromTopLeft =
         Math.sqrt(x * x + y * y) / Math.sqrt(width * width + height * height);
-      const dotRadius = maxDotRadius * (1 - distFromTopLeft * 0.8);
+      const dotRadius = maxDotRadius * (1 - distFromTopLeft * 0.7);
 
-      if (dotRadius > 0.3) {
+      if (dotRadius > 0.5) {
         ctx.beginPath();
         ctx.arc(x, y, dotRadius, 0, Math.PI * 2);
         ctx.fill();
@@ -258,22 +250,24 @@ export function generateGrainOverlay(
   const color = getColor(mode);
   const imageData = ctx.createImageData(width, height);
   const data = imageData.data;
-  const grainIntensity = intensity * 50;
+  // Deutlich höhere Grain-Intensität für sichtbareren Effekt
+  const grainIntensity = intensity * 120;
 
   for (let i = 0; i < data.length; i += 4) {
     const noise = (Math.random() - 0.5) * grainIntensity;
     data[i] = color.r;
     data[i + 1] = color.g;
     data[i + 2] = color.b;
-    data[i + 3] = Math.max(0, noise);
+    // Höherer Alpha-Wert für mehr Sichtbarkeit
+    data[i + 3] = Math.max(0, Math.abs(noise) * 1.5);
   }
 
   ctx.putImageData(imageData, 0, 0);
 
-  // Add subtle gradient on top
+  // Stärkerer Gradient für mehr Tiefe
   const gradient = ctx.createLinearGradient(0, 0, width, height);
-  gradient.addColorStop(0, modeRgba(mode, 0.3 * intensity));
-  gradient.addColorStop(0.6, modeRgba(mode, 0.12 * intensity));
+  gradient.addColorStop(0, modeRgba(mode, 0.45 * intensity));
+  gradient.addColorStop(0.6, modeRgba(mode, 0.2 * intensity));
   gradient.addColorStop(1, modeRgba(mode, 0));
 
   ctx.globalCompositeOperation = "source-over";
@@ -380,19 +374,21 @@ export function generateScanlinesOverlay(
   canvas.height = height;
   const ctx = canvas.getContext("2d")!;
 
-  const lineHeight = 2;
-  const lineGap = 3;
+  // Dickere Linien, weniger Abstand für deutlicheren Effekt
+  const lineHeight = 3;
+  const lineGap = 4;
 
   for (let y = 0; y < height; y += lineHeight + lineGap) {
-    const positionFactor = 1 - (y / height) * 0.5;
-    ctx.fillStyle = modeRgba(mode, 0.35 * intensity * positionFactor);
+    const positionFactor = 1 - (y / height) * 0.3;
+    // Deutlich höhere Deckkraft
+    ctx.fillStyle = modeRgba(mode, 0.65 * intensity * positionFactor);
     ctx.fillRect(0, y, width, lineHeight);
   }
 
-  // Add subtle gradient overlay
+  // Stärkerer Gradient
   const gradient = ctx.createLinearGradient(0, 0, width * 0.7, height);
-  gradient.addColorStop(0, modeRgba(mode, 0.25 * intensity));
-  gradient.addColorStop(0.6, modeRgba(mode, 0.08 * intensity));
+  gradient.addColorStop(0, modeRgba(mode, 0.4 * intensity));
+  gradient.addColorStop(0.6, modeRgba(mode, 0.15 * intensity));
   gradient.addColorStop(1, modeRgba(mode, 0));
 
   ctx.globalCompositeOperation = "source-over";
@@ -496,8 +492,6 @@ export function generateOverlay(
   switch (type) {
     case "gradient":
       return generateGradientOverlay(width, height, intensity, mode);
-    case "vignette":
-      return generateVignetteOverlay(width, height, intensity, mode);
     case "halftone":
       return generateHalftoneOverlay(width, height, intensity, mode);
     case "grain":

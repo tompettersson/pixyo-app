@@ -4,6 +4,8 @@ export { CanvasStage } from './CanvasStage';
 export { InspectorPanel } from './InspectorPanel';
 export { StylePresetSelector } from './StylePresetSelector';
 export { ExportControls } from './ExportControls';
+export { CustomerSwitcher } from './CustomerSwitcher';
+export { DesignThumbnails } from './DesignThumbnails';
 
 
 

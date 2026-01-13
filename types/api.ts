@@ -11,12 +11,19 @@ export interface GeneratePromptResponse {
   reasoning?: string;
 }
 
+// Product image for Image-to-Image generation
+export interface ProductImageData {
+  data: string;      // Base64 encoded image
+  mimeType: string;  // image/png, image/jpeg, image/webp
+}
+
 // Image generation types
 export interface GenerateImageRequest {
   prompt: string;
   aspectRatio?: '1:1' | '4:5' | '16:9' | '9:16';
   mode: 'photo' | 'illustration';
   variationSeed?: number;
+  productImage?: ProductImageData; // For Gemini Image-to-Image
 }
 
 export interface GeneratedImage {

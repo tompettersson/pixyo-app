@@ -9,8 +9,15 @@ import {
   type StylePreset,
 } from "@/lib/stylePresets";
 import { UnsplashSearch } from "@/components/editor/UnsplashSearch";
-import { AssetLibrary } from "@/components/editor/AssetLibrary";
 import { ProfileSettings } from "@/components/editor/ProfileSettings";
+import { CustomerSwitcher } from "@/components/editor/CustomerSwitcher";
+import { DesignThumbnails } from "@/components/editor/DesignThumbnails";
+import { AssetLibrary } from "@/components/editor/AssetLibrary";
+import { SystemStatus } from "@/components/editor/SystemStatus";
+import { useSaveDesign } from "@/hooks/useSaveDesign";
+import { useEditorStore } from "@/store/useEditorStore";
+import type { Customer } from "@/types/customer";
+import type Konva from "konva";
 import {
   OVERLAY_PRESETS,
   generateOverlay,
@@ -70,10 +77,9 @@ interface TemplateContent {
   buttonText: string;
 }
 
-// Logo dimensions
-const LOGO_WIDTH = CANVAS_WIDTH * 0.375;
-const LOGO_ASPECT_RATIO = 306 / 102;
-const LOGO_HEIGHT = LOGO_WIDTH / LOGO_ASPECT_RATIO;
+// Logo max dimensions - actual size determined by image aspect ratio
+const LOGO_MAX_WIDTH = CANVAS_WIDTH * 0.35;
+const LOGO_MAX_HEIGHT = CANVAS_HEIGHT * 0.15;
 
 // Composition hint for AI
 const COMPOSITION_DIRECTIVE = `Composition: Place the main subject slightly towards the bottom-right. IMPORTANT: Do NOT include any text, letters, words, watermarks, or typography in the image. The image must be completely text-free.`;
@@ -140,22 +146,54 @@ export default function EditorPage() {
   // Protect this route - redirects to sign-in if not logged in
   const user = useUser({ or: "redirect" });
 
-  const stageRef = useRef<any>(null);
+  const stageRef = useRef<Konva.Stage | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const productImageInputRef = useRef<HTMLInputElement>(null);
+
+  // Get state from store
+  const content = useEditorStore((state) => state.content);
+  const setContent = useEditorStore((state) => state.setContent);
+  const canvas = useEditorStore((state) => state.canvas);
+  const setBackgroundColor = useEditorStore((state) => state.setBackgroundColor);
+  // NEW: Get visual state from store (per-design isolation)
+  const backgroundImageState = useEditorStore((state) => state.backgroundImageState);
+  const setBackgroundImageState = useEditorStore((state) => state.setBackgroundImageState);
+  const updateBackgroundTransform = useEditorStore((state) => state.updateBackgroundTransform);
+  const designOverlay = useEditorStore((state) => state.designOverlay);
+  const setDesignOverlay = useEditorStore((state) => state.setDesignOverlay);
+  // Product image for Gemini Image-to-Image
+  const productImageState = useEditorStore((state) => state.productImageState);
+  const setProductImage = useEditorStore((state) => state.setProductImage);
+  // Active design ID for background image upload
+  const activeDesignId = useEditorStore((state) => state.design.activeDesignId);
+
+  // Initialize manual save with stage reference (no auto-save)
+  const { save: saveDesign, isSaving, isDirty } = useSaveDesign({
+    stageRef,
+  });
+
+  // Warn user about unsaved changes on page leave
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = "Du hast ungespeicherte Änderungen. Möchtest du wirklich die Seite verlassen?";
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty]);
   const [isClient, setIsClient] = useState(false);
   const [scale, setScale] = useState(1);
   const [stageSize, setStageSize] = useState({ width: 0, height: 0 });
   const [logoImage, setLogoImage] = useState<HTMLImageElement | null>(null);
+  const [logoSize, setLogoSize] = useState({ width: 0, height: 0 });
+  const [currentCustomer, setCurrentCustomer] = useState<Customer | null>(null);
+  // Local HTMLImageElement loaded from store's backgroundImageState.url
   const [backgroundImage, setBackgroundImage] =
     useState<HTMLImageElement | null>(null);
-
-  // Content state
-  const [content, setContent] = useState<TemplateContent>({
-    tagline: "JETZT NEU",
-    headline: "Deine große Überschrift hier",
-    body: "Hier kommt dein Fließtext. Er kann mehrere Zeilen umfassen und wird automatisch umgebrochen.",
-    buttonText: "MEHR ERFAHREN",
-  });
 
   // Image generation state
   const [userIdea, setUserIdea] = useState("");
@@ -168,36 +206,38 @@ export default function EditorPage() {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [generationError, setGenerationError] = useState<string | null>(null);
 
-  // Fallback background color
-  const [bgColor, setBgColor] = useState("#4f46e5");
 
   // Unsplash state
   const [isUnsplashOpen, setIsUnsplashOpen] = useState(false);
-  const [photoCredit, setPhotoCredit] = useState<{
-    name: string;
-    username: string;
-    link: string;
-  } | null>(null);
 
   // Profile settings state
   const [isProfileSettingsOpen, setIsProfileSettingsOpen] = useState(false);
 
-  // Overlay state
-  const [overlayType, setOverlayType] = useState<OverlayType>("gradient");
-  const [overlayMode, setOverlayMode] = useState<OverlayMode>("darken");
-  const [overlayIntensity, setOverlayIntensity] = useState(0.7);
-
-  // Background image transformation state
-  const [bgScale, setBgScale] = useState(1);
-  const [bgPositionX, setBgPositionX] = useState(0);
-  const [bgPositionY, setBgPositionY] = useState(0);
-
   // Profile and asset management
   const [currentProfileId, setCurrentProfileId] = useState<string | null>(null);
   const [isSavingAsset, setIsSavingAsset] = useState(false);
-  const [currentImageSource, setCurrentImageSource] = useState<
-    "GENERATED" | "UNSPLASH" | null
-  >(null);
+
+  // Export state
+  const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+
+  // Text generation state
+  const [textBrief, setTextBrief] = useState("");
+  const [isGeneratingText, setIsGeneratingText] = useState(false);
+  const [textGenerationError, setTextGenerationError] = useState<string | null>(null);
+
+  // DERIVED from store: overlay settings
+  const overlayType = designOverlay.type;
+  const overlayMode = designOverlay.mode;
+  const overlayIntensity = designOverlay.intensity;
+
+  // DERIVED from store: background transform
+  const bgScale = backgroundImageState?.transform.scale ?? 1;
+  const bgPositionX = backgroundImageState?.transform.positionX ?? 0;
+  const bgPositionY = backgroundImageState?.transform.positionY ?? 0;
+  const bgFlipX = backgroundImageState?.transform.flipX ?? false;
+
+  // DERIVED from store: photo credit
+  const photoCredit = backgroundImageState?.credit ?? null;
 
   // Text color based on overlay mode
   const textColor = overlayMode === "darken" ? "#ffffff" : "#111111";
@@ -205,7 +245,7 @@ export default function EditorPage() {
     overlayMode === "darken"
       ? backgroundImage
         ? "#000000"
-        : bgColor
+        : canvas.backgroundColor
       : "#ffffff";
   const buttonBgColor = overlayMode === "darken" ? "#ffffff" : "#111111";
 
@@ -215,6 +255,23 @@ export default function EditorPage() {
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // Load background image from store URL when design changes
+  useEffect(() => {
+    if (!backgroundImageState?.url) {
+      setBackgroundImage(null);
+      return;
+    }
+
+    const img = new window.Image();
+    img.crossOrigin = "anonymous";
+    img.src = backgroundImageState.url;
+    img.onload = () => setBackgroundImage(img);
+    img.onerror = () => {
+      console.error("Failed to load background image:", backgroundImageState.url);
+      setBackgroundImage(null);
+    };
+  }, [backgroundImageState?.url]);
 
   // Load or create a default profile on mount
   useEffect(() => {
@@ -290,15 +347,36 @@ export default function EditorPage() {
     }
   }, [isClient]);
 
-  // Load logo based on overlay mode
+  // Load logo based on current customer and overlay mode
   useEffect(() => {
+    if (!currentCustomer) return;
+
+    // Select appropriate logo variant based on overlay mode
+    // Naming: "dark" = logo FOR dark backgrounds (white logo), "light" = logo FOR light backgrounds (black logo)
+    // darken mode = dark background = use "dark" variant (white logo)
+    // lighten mode = light background = use "light" variant (black logo)
+    const logoSrc = overlayMode === "darken"
+      ? (currentCustomer.logoVariants?.dark || currentCustomer.logo)
+      : (currentCustomer.logoVariants?.light || currentCustomer.logo);
+
     const img = new window.Image();
-    img.src =
-      overlayMode === "darken"
-        ? "/logos/HanakoKoiLogo-white.svg"
-        : "/logos/HanakoKoiLogo-black.svg";
-    img.onload = () => setLogoImage(img);
-  }, [overlayMode]);
+    img.src = logoSrc;
+    img.onload = () => {
+      // Calculate dimensions preserving aspect ratio
+      const aspectRatio = img.naturalWidth / img.naturalHeight;
+      let width = LOGO_MAX_WIDTH;
+      let height = width / aspectRatio;
+
+      // If height exceeds max, scale down
+      if (height > LOGO_MAX_HEIGHT) {
+        height = LOGO_MAX_HEIGHT;
+        width = height * aspectRatio;
+      }
+
+      setLogoSize({ width, height });
+      setLogoImage(img);
+    };
+  }, [currentCustomer, overlayMode]);
 
   // Handle mode change
   const handleModeChange = (newMode: "photo" | "illustration") => {
@@ -359,7 +437,7 @@ export default function EditorPage() {
     }
   };
 
-  // Generate image
+  // Generate image - NOW SAVES TO STORE for per-design isolation
   const handleGenerateImage = async () => {
     const promptToUse = generatedPrompt || userIdea;
     if (!promptToUse.trim()) return;
@@ -369,30 +447,66 @@ export default function EditorPage() {
       ? promptToUse
       : `${promptToUse}\n\n${selectedPreset.promptDirectives}\n\n${COMPOSITION_DIRECTIVE}`;
     try {
+      // Build request body with optional product image
+      const requestBody: {
+        prompt: string;
+        aspectRatio: string;
+        productImage?: { data: string; mimeType: string };
+      } = {
+        prompt: finalPrompt,
+        aspectRatio: "1:1",
+      };
+
+      // Include product image if uploaded (for Gemini Image-to-Image)
+      if (productImageState) {
+        requestBody.productImage = productImageState;
+      }
+
       const response = await fetch("/api/generate-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: finalPrompt, aspectRatio: "1:1" }),
+        body: JSON.stringify(requestBody),
       });
       if (!response.ok) throw new Error("Failed to generate image");
       const data = await response.json();
+
+      let imageUrl: string | null = null;
       if (data.imageBase64) {
-        const img = new window.Image();
-        img.src = `data:image/png;base64,${data.imageBase64}`;
-        img.onload = () => {
-          setBackgroundImage(img);
-          setPhotoCredit(null);
-          setCurrentImageSource("GENERATED");
-        };
+        imageUrl = `data:image/png;base64,${data.imageBase64}`;
       } else if (data.images && data.images.length > 0) {
-        const img = new window.Image();
-        img.crossOrigin = "anonymous";
-        img.src = data.images[0].url;
-        img.onload = () => {
-          setBackgroundImage(img);
-          setPhotoCredit(null);
-          setCurrentImageSource("GENERATED");
-        };
+        imageUrl = data.images[0].url;
+      }
+
+      if (imageUrl) {
+        // If we have an active design and the image is base64, upload to Blob first
+        let finalUrl = imageUrl;
+        if (activeDesignId && imageUrl.startsWith('data:')) {
+          try {
+            const uploadResponse = await fetch(`/api/designs/${activeDesignId}/background`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                imageData: imageUrl,
+                source: 'GENERATED',
+              }),
+            });
+            if (uploadResponse.ok) {
+              const uploadData = await uploadResponse.json();
+              finalUrl = uploadData.url;
+            } else {
+              console.warn('Failed to upload to Blob, using data URL as fallback');
+            }
+          } catch (uploadError) {
+            console.warn('Blob upload error, using data URL as fallback:', uploadError);
+          }
+        }
+
+        // Save to store for per-design isolation
+        setBackgroundImageState({
+          url: finalUrl,
+          source: 'GENERATED',
+          transform: { scale: 1, positionX: 0, positionY: 0, flipX: false },
+        });
       }
     } catch (error) {
       console.error("Image generation error:", error);
@@ -404,40 +518,114 @@ export default function EditorPage() {
     }
   };
 
-  // Handle Unsplash image selection
+  // Handle Unsplash image selection - NOW SAVES TO STORE
   const handleUnsplashSelect = (
     imageUrl: string,
     credit: { name: string; username: string; link: string }
   ) => {
-    const img = new window.Image();
-    img.crossOrigin = "anonymous";
-    img.src = imageUrl;
-    img.onload = () => {
-      setBackgroundImage(img);
-      setPhotoCredit(credit);
-      setCurrentImageSource("UNSPLASH");
-    };
+    // Save to store for per-design isolation
+    setBackgroundImageState({
+      url: imageUrl,
+      source: 'UNSPLASH',
+      credit,
+      transform: { scale: 1, positionX: 0, positionY: 0, flipX: false },
+    });
   };
+
+  // Generate text with Claude AI
+  const handleGenerateText = async () => {
+    if (!textBrief.trim()) return;
+    setIsGeneratingText(true);
+    setTextGenerationError(null);
+    try {
+      const response = await fetch("/api/generate-text", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: textBrief.trim(),
+          customerName: currentCustomer?.name,
+          systemPrompt: currentCustomer?.systemPrompt,
+        }),
+      });
+      if (!response.ok) throw new Error("Failed to generate text");
+      const data = await response.json();
+
+      // Update content with generated text
+      setContent({
+        tagline: data.tagline,
+        headline: data.headline,
+        body: data.body,
+      });
+    } catch (error) {
+      console.error("Text generation error:", error);
+      setTextGenerationError("Textgenerierung fehlgeschlagen. Bitte versuche es erneut.");
+    } finally {
+      setIsGeneratingText(false);
+    }
+  };
+
+  // Handle product image upload for Gemini Image-to-Image
+  const handleProductImageUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/png', 'image/jpeg', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      setGenerationError('Nur PNG, JPEG oder WebP Bilder erlaubt');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setGenerationError('Bild darf maximal 5MB groß sein');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64 = e.target?.result as string;
+      // Extract just the base64 data without the data URL prefix
+      const base64Data = base64.split(',')[1];
+      setProductImage({
+        data: base64Data,
+        mimeType: file.type,
+      });
+    };
+    reader.readAsDataURL(file);
+
+    // Reset input so same file can be selected again
+    event.target.value = '';
+  }, [setProductImage]);
+
+  // Clear product image
+  const handleClearProductImage = useCallback(() => {
+    setProductImage(null);
+    if (productImageInputRef.current) {
+      productImageInputRef.current.value = '';
+    }
+  }, [setProductImage]);
 
   // Save current background image as asset
   const handleSaveAsset = async () => {
-    if (!backgroundImage || !currentProfileId || !currentImageSource) return;
+    const imageSource = backgroundImageState?.source;
+    if (!backgroundImage || !currentProfileId || !imageSource) return;
 
     setIsSavingAsset(true);
     try {
       const meta: Record<string, any> = {};
 
-      if (currentImageSource === "GENERATED") {
+      if (imageSource === "GENERATED") {
         meta.prompt = generatedPrompt || userIdea;
         meta.styleId = selectedPreset.id;
-      } else if (currentImageSource === "UNSPLASH" && photoCredit) {
+      } else if (imageSource === "UNSPLASH" && photoCredit) {
         meta.credit = photoCredit;
       }
 
       // For generated images, we need to get the base64 data
       let imageData: string | undefined;
       if (
-        currentImageSource === "GENERATED" &&
+        imageSource === "GENERATED" &&
         backgroundImage.src.startsWith("data:")
       ) {
         imageData = backgroundImage.src;
@@ -448,13 +636,13 @@ export default function EditorPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           profileId: currentProfileId,
-          type: currentImageSource,
+          type: imageSource,
           width: CANVAS_WIDTH,
           height: CANVAS_HEIGHT,
           meta,
           imageData,
           url:
-            currentImageSource === "UNSPLASH" ? backgroundImage.src : undefined,
+            imageSource === "UNSPLASH" ? backgroundImage.src : undefined,
         }),
       });
 
@@ -469,35 +657,53 @@ export default function EditorPage() {
     }
   };
 
-  // Handle asset selection from library
+  // Handle asset selection from library - NOW SAVES TO STORE
   const handleAssetSelect = (
     url: string,
     credit?: { name: string; username: string; link: string }
   ) => {
-    const img = new window.Image();
-    img.crossOrigin = "anonymous";
-    img.src = url;
-    img.onload = () => {
-      setBackgroundImage(img);
-      if (credit) {
-        setPhotoCredit(credit);
-        setCurrentImageSource("UNSPLASH");
-      } else {
-        setPhotoCredit(null);
-        setCurrentImageSource("GENERATED");
-      }
-    };
+    // Save to store for per-design isolation
+    if (credit) {
+      setBackgroundImageState({
+        url,
+        source: 'UNSPLASH',
+        credit,
+        transform: { scale: 1, positionX: 0, positionY: 0, flipX: false },
+      });
+    } else {
+      setBackgroundImageState({
+        url,
+        source: 'GENERATED',
+        transform: { scale: 1, positionX: 0, positionY: 0, flipX: false },
+      });
+    }
   };
 
-  // Export function
-  const handleExport = async () => {
+  // Export function with format support
+  const handleExport = useCallback((format: "jpeg" | "png") => {
     if (!stageRef.current) return;
-    const dataUrl = stageRef.current.toDataURL({ pixelRatio: 2 });
-    const link = document.createElement("a");
-    link.download = "social-post.png";
-    link.href = dataUrl;
-    link.click();
-  };
+
+    const stage = stageRef.current;
+    const mimeType = format === "jpeg" ? "image/jpeg" : "image/png";
+    const quality = format === "jpeg" ? 0.85 : 1;
+    const extension = format === "jpeg" ? "jpg" : "png";
+
+    stage.toBlob({
+      mimeType,
+      quality,
+      pixelRatio: 2, // 2x for Retina = 2400×2400
+      callback: (blob: Blob | null) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.download = `social-post-2400x2400.${extension}`;
+        link.href = url;
+        link.click();
+        URL.revokeObjectURL(url);
+        setExportDropdownOpen(false);
+      }
+    });
+  }, []);
 
   // Content area dimensions
   const contentWidth =
@@ -518,14 +724,16 @@ export default function EditorPage() {
     estimatedHeadlineLines * LAYOUT.headlineSize * LAYOUT.headlineLineHeight;
   yPos += headlineHeight + LAYOUT.gapHeadlineToBody;
   const bodyY = yPos;
+  const hasBody = content.body.trim().length > 0;
   const estimatedBodyLines = Math.ceil(
     (content.body.length * LAYOUT.bodySize * 0.5) / contentWidth
   );
-  const bodyHeight = Math.max(
-    estimatedBodyLines * LAYOUT.bodySize * 1.4,
-    LAYOUT.bodySize * 1.4 * 3
-  );
-  yPos += bodyHeight + LAYOUT.gapBodyToButton;
+  // Wenn Body leer ist, keine min-height - Button wandert nach oben
+  const bodyHeight = hasBody
+    ? Math.max(estimatedBodyLines * LAYOUT.bodySize * 1.4, LAYOUT.bodySize * 1.4)
+    : 0;
+  // Gap nur wenn Body vorhanden
+  yPos += bodyHeight + (hasBody ? LAYOUT.gapBodyToButton : 0);
   const buttonY = yPos;
 
   if (
@@ -544,8 +752,15 @@ export default function EditorPage() {
     );
   }
 
+  // Handle customer change to update profile-dependent state
+  const handleCustomerChange = (customer: Customer) => {
+    setCurrentProfileId(customer.id);
+    setCurrentCustomer(customer);
+    // Logo will be loaded by the useEffect that depends on currentCustomer
+  };
+
   return (
-    <div className="h-screen bg-zinc-950 text-zinc-100 flex overflow-hidden relative">
+    <div className="h-screen bg-zinc-950 text-zinc-100 flex flex-col overflow-hidden relative">
       {/* Grain overlay for entire editor */}
       <div
         className="absolute inset-0 opacity-[0.012] pointer-events-none z-50"
@@ -554,35 +769,43 @@ export default function EditorPage() {
         }}
       />
 
-      {/* Left Panel - Image Generation */}
-      <aside className="w-80 bg-zinc-900/80 backdrop-blur-xl border-r border-zinc-800/50 p-4 space-y-4 overflow-y-auto relative z-10">
+      {/* Main Editor Area */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Panel - Image Generation */}
+        <aside className="w-80 bg-zinc-900 border-r border-zinc-800/50 p-4 pt-6 space-y-4 overflow-y-auto relative z-10">
         <div className="flex items-center justify-between gap-3 pb-3 border-b border-zinc-800/50">
-          <img src="/logos/pixyo.svg" alt="Pixyo" className="h-8" />
-          <button
-            onClick={() => setIsProfileSettingsOpen(true)}
-            className="p-2 rounded text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 transition-all"
-            title="Profil-Einstellungen"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          <img src="/logos/pixyo.svg" alt="Pixyo" className="h-9" />
+          <div className="flex items-center gap-1">
+            <CustomerSwitcher
+              onCustomerChange={handleCustomerChange}
+              onSaveBeforeSwitch={saveDesign}
+            />
+            <button
+              onClick={() => setIsProfileSettingsOpen(true)}
+              className="p-2 rounded text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 transition-all"
+              title="Profil-Einstellungen"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-            </svg>
-          </button>
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* User Idea */}
@@ -594,11 +817,62 @@ export default function EditorPage() {
             value={userIdea}
             onChange={(e) => setUserIdea(e.target.value)}
             rows={3}
-            className="w-full px-3 py-2 rounded bg-zinc-800/50 backdrop-blur border border-zinc-700/50 text-zinc-100 
+            className="w-full px-3 py-2 rounded bg-zinc-800/50 backdrop-blur border border-zinc-700/50 text-zinc-100
                        focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/50 text-sm resize-none
                        placeholder:text-zinc-600"
             placeholder="z.B. Ein Koi-Fisch in einem Teich bei Sonnenuntergang..."
           />
+        </div>
+
+        {/* Product Image Upload (optional) */}
+        <div>
+          <label className="block text-xs text-zinc-500 mb-1.5 uppercase tracking-wider">
+            Produktbild (optional)
+          </label>
+          <input
+            ref={productImageInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            onChange={handleProductImageUpload}
+            className="hidden"
+          />
+          {productImageState ? (
+            <div className="relative group">
+              <div className="w-full aspect-square rounded bg-zinc-800/50 border border-zinc-700/50 overflow-hidden">
+                <img
+                  src={`data:${productImageState.mimeType};base64,${productImageState.data}`}
+                  alt="Produktbild"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <button
+                onClick={handleClearProductImage}
+                className="absolute top-2 right-2 p-1.5 rounded bg-zinc-900/80 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+                title="Produktbild entfernen"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => productImageInputRef.current?.click()}
+              className="w-full px-4 py-6 rounded bg-zinc-800/50 border border-dashed border-zinc-700/50
+                         text-zinc-500 hover:text-zinc-300 hover:border-zinc-600 transition-all
+                         flex flex-col items-center justify-center gap-2"
+            >
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span className="text-xs">Bild hochladen</span>
+              <span className="text-xs text-zinc-600">PNG, JPEG, WebP • max. 5MB</span>
+            </button>
+          )}
+          <p className="mt-1.5 text-xs text-zinc-600">
+            Das Produkt wird unten rechts im generierten Bild platziert.
+          </p>
         </div>
 
         {/* Mode Toggle */}
@@ -717,9 +991,9 @@ export default function EditorPage() {
               ].map((color) => (
                 <button
                   key={color}
-                  onClick={() => setBgColor(color)}
+                  onClick={() => setBackgroundColor(color)}
                   className={`w-7 h-7 rounded border transition-all ${
-                    bgColor === color
+                    canvas.backgroundColor === color
                       ? "border-white/50 scale-110"
                       : "border-zinc-700/50"
                   }`}
@@ -780,9 +1054,7 @@ export default function EditorPage() {
             variant="ghost"
             className="w-full text-xs"
             onClick={() => {
-              setBackgroundImage(null);
-              setPhotoCredit(null);
-              setCurrentImageSource(null);
+              setBackgroundImageState(null);
             }}
             disabled={!backgroundImage}
           >
@@ -790,12 +1062,30 @@ export default function EditorPage() {
           </Button>
         </div>
 
-        {/* Asset Library */}
+        {/* Meine Bilder - Asset Library */}
         {currentProfileId && (
-          <div className="pt-3 border-t border-zinc-800/50">
+          <div className="pt-4 border-t border-zinc-800/50">
+            <label className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-3 block">
+              Meine Bilder
+            </label>
             <AssetLibrary
               profileId={currentProfileId}
-              onSelectAsset={handleAssetSelect}
+              onSelectAsset={(url, credit) => {
+                // Bild laden
+                const img = new window.Image();
+                img.crossOrigin = "anonymous";
+                img.onload = () => {
+                  setBackgroundImage(img);
+                  setBackgroundImageState({
+                    url,
+                    source: credit ? "UNSPLASH" : "GENERATED",
+                    credit: credit || undefined,
+                    transform: { scale: 1, positionX: 0, positionY: 0, flipX: false },
+                  });
+                  setPhotoCredit(credit || null);
+                };
+                img.src = url;
+              }}
             />
           </div>
         )}
@@ -831,11 +1121,14 @@ export default function EditorPage() {
               {backgroundImage ? (
                 <KonvaImage
                   image={backgroundImage}
-                  x={bgPositionX}
+                  x={bgFlipX ? CANVAS_WIDTH - bgPositionX : bgPositionX}
                   y={bgPositionY}
                   width={CANVAS_WIDTH * bgScale}
                   height={CANVAS_HEIGHT * bgScale}
-                  offsetX={(CANVAS_WIDTH * bgScale - CANVAS_WIDTH) / 2}
+                  scaleX={bgFlipX ? -1 : 1}
+                  offsetX={bgFlipX
+                    ? -(CANVAS_WIDTH * bgScale - CANVAS_WIDTH) / 2
+                    : (CANVAS_WIDTH * bgScale - CANVAS_WIDTH) / 2}
                   offsetY={(CANVAS_HEIGHT * bgScale - CANVAS_HEIGHT) / 2}
                 />
               ) : (
@@ -844,7 +1137,7 @@ export default function EditorPage() {
                   y={0}
                   width={CANVAS_WIDTH}
                   height={CANVAS_HEIGHT}
-                  fill={bgColor}
+                  fill={canvas.backgroundColor}
                 />
               )}
 
@@ -893,38 +1186,40 @@ export default function EditorPage() {
                   lineHeight={1.5}
                   wrap="word"
                 />
-                <Group x={0} y={buttonY}>
-                  <Rect
-                    x={0}
-                    y={0}
-                    width={
-                      content.buttonText.length * LAYOUT.buttonSize * 0.7 +
-                      LAYOUT.buttonPaddingX * 2
-                    }
-                    height={LAYOUT.buttonSize + LAYOUT.buttonPaddingY * 2}
-                    fill={buttonBgColor}
-                    cornerRadius={LAYOUT.buttonRadius}
-                  />
-                  <Text
-                    x={LAYOUT.buttonPaddingX}
-                    y={LAYOUT.buttonPaddingY}
-                    text={content.buttonText.toUpperCase()}
-                    fontFamily="Inter"
-                    fontSize={LAYOUT.buttonSize}
-                    fontStyle="bold"
-                    fill={buttonTextColor}
-                  />
-                </Group>
+                {content.showButton && (
+                  <Group x={0} y={buttonY}>
+                    <Rect
+                      x={0}
+                      y={0}
+                      width={
+                        content.buttonText.length * LAYOUT.buttonSize * 0.7 +
+                        LAYOUT.buttonPaddingX * 2
+                      }
+                      height={LAYOUT.buttonSize + LAYOUT.buttonPaddingY * 2}
+                      fill={buttonBgColor}
+                      cornerRadius={LAYOUT.buttonRadius}
+                    />
+                    <Text
+                      x={LAYOUT.buttonPaddingX}
+                      y={LAYOUT.buttonPaddingY}
+                      text={content.buttonText.toUpperCase()}
+                      fontFamily="Inter"
+                      fontSize={LAYOUT.buttonSize}
+                      fontStyle="bold"
+                      fill={buttonTextColor}
+                    />
+                  </Group>
+                )}
               </Group>
 
               {/* Logo */}
-              {logoImage && (
+              {logoImage && logoSize.width > 0 && (
                 <KonvaImage
                   image={logoImage}
                   x={LAYOUT.padding.left}
-                  y={CANVAS_HEIGHT - LOGO_HEIGHT - LAYOUT.padding.bottom}
-                  width={LOGO_WIDTH}
-                  height={LOGO_HEIGHT}
+                  y={CANVAS_HEIGHT - logoSize.height - LAYOUT.padding.bottom}
+                  width={logoSize.width}
+                  height={logoSize.height}
                 />
               )}
 
@@ -949,7 +1244,7 @@ export default function EditorPage() {
       </div>
 
       {/* Right Panel - Content & Overlay Controls */}
-      <aside className="w-80 bg-zinc-900/80 backdrop-blur-xl border-l border-zinc-800/50 p-4 space-y-4 overflow-y-auto relative z-10">
+      <aside className="w-80 bg-zinc-900 border-l border-zinc-800/50 p-4 space-y-4 overflow-y-auto overflow-x-hidden relative z-10">
         {/* Overlay Controls */}
         <div>
           <h3 className="text-xs text-zinc-500 mb-3 uppercase tracking-wider">
@@ -959,7 +1254,7 @@ export default function EditorPage() {
           {/* Mode Toggle Pills */}
           <div className="flex gap-1 mb-4 p-1 bg-zinc-800/50 rounded-lg">
             <button
-              onClick={() => setOverlayMode("darken")}
+              onClick={() => setDesignOverlay({ mode: "darken" })}
               className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-xs font-medium transition-all
                 ${
                   overlayMode === "darken"
@@ -982,7 +1277,7 @@ export default function EditorPage() {
               Abdunkeln
             </button>
             <button
-              onClick={() => setOverlayMode("lighten")}
+              onClick={() => setDesignOverlay({ mode: "lighten" })}
               className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-xs font-medium transition-all
                 ${
                   overlayMode === "lighten"
@@ -1018,7 +1313,7 @@ export default function EditorPage() {
             {OVERLAY_PRESETS.map((preset) => (
               <button
                 key={preset.id}
-                onClick={() => setOverlayType(preset.id)}
+                onClick={() => setDesignOverlay({ type: preset.id })}
                 title={preset.description}
                 className={`px-3 py-2 rounded text-xs font-medium transition-all text-left backdrop-blur relative group
                   ${
@@ -1050,7 +1345,7 @@ export default function EditorPage() {
                 step="0.05"
                 value={overlayIntensity}
                 onChange={(e) =>
-                  setOverlayIntensity(parseFloat(e.target.value))
+                  setDesignOverlay({ intensity: parseFloat(e.target.value) })
                 }
                 className="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer
                            [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 
@@ -1080,7 +1375,7 @@ export default function EditorPage() {
                 max="2"
                 step="0.05"
                 value={bgScale}
-                onChange={(e) => setBgScale(parseFloat(e.target.value))}
+                onChange={(e) => updateBackgroundTransform({ scale: parseFloat(e.target.value) })}
                 className="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer
                            [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 
                            [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer
@@ -1100,7 +1395,7 @@ export default function EditorPage() {
                 max={CANVAS_WIDTH / 2}
                 step="10"
                 value={bgPositionX}
-                onChange={(e) => setBgPositionX(parseFloat(e.target.value))}
+                onChange={(e) => updateBackgroundTransform({ positionX: parseFloat(e.target.value) })}
                 className="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer
                            [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 
                            [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer
@@ -1120,7 +1415,7 @@ export default function EditorPage() {
                 max={CANVAS_HEIGHT / 2}
                 step="10"
                 value={bgPositionY}
-                onChange={(e) => setBgPositionY(parseFloat(e.target.value))}
+                onChange={(e) => updateBackgroundTransform({ positionY: parseFloat(e.target.value) })}
                 className="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer
                            [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 
                            [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer
@@ -1128,12 +1423,30 @@ export default function EditorPage() {
               />
             </div>
 
+            {/* Flip Button */}
+            <button
+              onClick={() => updateBackgroundTransform({ flipX: !bgFlipX })}
+              className={`w-full px-3 py-1.5 mb-2 rounded text-xs font-medium transition-all backdrop-blur flex items-center justify-center gap-2
+                ${bgFlipX
+                  ? 'bg-white/10 text-white border border-white/20'
+                  : 'bg-zinc-800/50 text-zinc-400 border border-zinc-700/50 hover:bg-zinc-700/50 hover:text-zinc-300'
+                }`}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+              </svg>
+              Horizontal spiegeln
+            </button>
+
             {/* Reset Button */}
             <button
               onClick={() => {
-                setBgScale(1);
-                setBgPositionX(0);
-                setBgPositionY(0);
+                updateBackgroundTransform({
+                  scale: 1,
+                  positionX: 0,
+                  positionY: 0,
+                  flipX: false,
+                });
               }}
               className="w-full px-3 py-1.5 rounded text-xs font-medium transition-all backdrop-blur
                 bg-zinc-800/50 text-zinc-400 border border-zinc-700/50 hover:bg-zinc-700/50 hover:text-zinc-300"
@@ -1142,6 +1455,55 @@ export default function EditorPage() {
             </button>
           </div>
         )}
+
+        {/* AI Text Generator */}
+        <div className="pt-4 border-t border-zinc-800/50">
+          <h3 className="text-xs text-zinc-500 mb-3 uppercase tracking-wider flex items-center gap-2">
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
+            </svg>
+            KI-Textgenerator
+          </h3>
+          <div className="space-y-2">
+            <textarea
+              value={textBrief}
+              onChange={(e) => setTextBrief(e.target.value)}
+              rows={2}
+              className="w-full px-3 py-2 rounded bg-zinc-800/50 backdrop-blur border border-zinc-700/50 text-zinc-100
+                         focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/50 text-sm resize-none
+                         placeholder:text-zinc-600"
+              placeholder="Beschreibe kurz deine Grafik, z.B. 'Neue Sommerkollektion, Sale 30%'"
+            />
+            <button
+              onClick={handleGenerateText}
+              disabled={!textBrief.trim() || isGeneratingText}
+              className="w-full px-3 py-2 rounded text-sm font-medium transition-all backdrop-blur
+                bg-gradient-to-r from-violet-600 to-indigo-600 text-white border border-violet-500/30
+                hover:from-violet-500 hover:to-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed
+                flex items-center justify-center gap-2"
+            >
+              {isGeneratingText ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Generiere...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                  </svg>
+                  Texte generieren
+                </>
+              )}
+            </button>
+            {textGenerationError && (
+              <p className="text-xs text-red-400/80">{textGenerationError}</p>
+            )}
+          </div>
+        </div>
 
         {/* Content Controls */}
         <div className="pt-4 border-t border-zinc-800/50">
@@ -1158,9 +1520,9 @@ export default function EditorPage() {
                 type="text"
                 value={content.tagline}
                 onChange={(e) =>
-                  setContent({ ...content, tagline: e.target.value })
+                  setContent({ tagline: e.target.value })
                 }
-                className="w-full px-3 py-2 rounded bg-zinc-800/50 backdrop-blur border border-zinc-700/50 text-zinc-100 
+                className="w-full px-3 py-2 rounded bg-zinc-800/50 backdrop-blur border border-zinc-700/50 text-zinc-100
                            focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/50 text-sm"
                 placeholder="z.B. JETZT NEU"
               />
@@ -1173,7 +1535,7 @@ export default function EditorPage() {
               <textarea
                 value={content.headline}
                 onChange={(e) =>
-                  setContent({ ...content, headline: e.target.value })
+                  setContent({ headline: e.target.value })
                 }
                 rows={2}
                 className="w-full px-3 py-2 rounded bg-zinc-800/50 backdrop-blur border border-zinc-700/50 text-zinc-100 
@@ -1189,7 +1551,7 @@ export default function EditorPage() {
               <textarea
                 value={content.body}
                 onChange={(e) =>
-                  setContent({ ...content, body: e.target.value })
+                  setContent({ body: e.target.value })
                 }
                 rows={3}
                 className="w-full px-3 py-2 rounded bg-zinc-800/50 backdrop-blur border border-zinc-700/50 text-zinc-100 
@@ -1199,33 +1561,149 @@ export default function EditorPage() {
             </div>
 
             <div>
-              <label className="block text-xs text-zinc-500 mb-1.5 uppercase tracking-wider">
-                Button-Text
-              </label>
-              <input
-                type="text"
-                value={content.buttonText}
-                onChange={(e) =>
-                  setContent({ ...content, buttonText: e.target.value })
-                }
-                className="w-full px-3 py-2 rounded bg-zinc-800/50 backdrop-blur border border-zinc-700/50 text-zinc-100 
-                           focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/50 text-sm"
-                placeholder="z.B. MEHR ERFAHREN"
-              />
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs text-zinc-500 uppercase tracking-wider">
+                  CTA-Button
+                </label>
+                <button
+                  onClick={() => setContent({ showButton: !content.showButton })}
+                  className={`relative w-10 h-5 rounded-full transition-colors ${
+                    content.showButton ? 'bg-emerald-500' : 'bg-zinc-700'
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+                      content.showButton ? 'translate-x-5' : ''
+                    }`}
+                  />
+                </button>
+              </div>
+              {content.showButton && (
+                <input
+                  type="text"
+                  value={content.buttonText}
+                  onChange={(e) =>
+                    setContent({ buttonText: e.target.value })
+                  }
+                  className="w-full px-3 py-2 rounded bg-zinc-800/50 backdrop-blur border border-zinc-700/50 text-zinc-100
+                             focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/50 text-sm"
+                  placeholder="z.B. MEHR ERFAHREN"
+                />
+              )}
             </div>
           </div>
         </div>
 
-        {/* Export */}
+        {/* Save Button */}
         <div className="pt-4 border-t border-zinc-800/50">
-          <Button variant="primary" className="w-full" onClick={handleExport}>
-            Export PNG
-          </Button>
+          <button
+            onClick={() => saveDesign()}
+            disabled={!isDirty || isSaving}
+            className={`w-full px-4 py-2.5 rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2
+              ${isDirty
+                ? 'bg-emerald-600 text-white hover:bg-emerald-500'
+                : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+              }
+              ${isSaving ? 'opacity-75' : ''}
+            `}
+          >
+            {isSaving ? (
+              <>
+                <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                Speichern...
+              </>
+            ) : isDirty ? (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                </svg>
+                Speichern
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Gespeichert
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Export Split-Button */}
+        <div className="pt-4 border-t border-zinc-800/50">
+          <div className="relative">
+            <div className="flex">
+              {/* Main Export Button (JPEG) */}
+              <button
+                onClick={() => handleExport("jpeg")}
+                className="flex-1 px-4 py-2.5 rounded-l-lg bg-white text-zinc-900 font-medium text-sm
+                           hover:bg-zinc-100 transition-colors"
+              >
+                Exportieren
+              </button>
+              {/* Dropdown Toggle */}
+              <button
+                onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
+                className="px-3 py-2.5 rounded-r-lg bg-white text-zinc-900 border-l border-zinc-200
+                           hover:bg-zinc-100 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Dropdown Menu */}
+            {exportDropdownOpen && (
+              <>
+                {/* Backdrop to close dropdown */}
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setExportDropdownOpen(false)}
+                />
+                <div className="absolute bottom-full left-0 right-0 mb-1 bg-zinc-800 rounded-lg border border-zinc-700 overflow-hidden shadow-xl z-50">
+                  <button
+                    onClick={() => handleExport("jpeg")}
+                    className="w-full px-4 py-2.5 text-left text-sm text-zinc-100 hover:bg-zinc-700 transition-colors flex items-center justify-between"
+                  >
+                    <span>JPEG</span>
+                    <span className="text-xs text-zinc-500">~200-500 KB</span>
+                  </button>
+                  <button
+                    onClick={() => handleExport("png")}
+                    className="w-full px-4 py-2.5 text-left text-sm text-zinc-100 hover:bg-zinc-700 transition-colors flex items-center justify-between border-t border-zinc-700"
+                  >
+                    <span>PNG</span>
+                    <span className="text-xs text-zinc-500">~1-2 MB</span>
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
           <p className="text-xs text-zinc-600 mt-2 text-center">
-            2160 × 2160 px
+            2400 × 2400 px (Retina)
           </p>
         </div>
       </aside>
+      </div>
+
+      {/* Design Thumbnails - Bottom Bar */}
+      <div className="bg-zinc-900 flex">
+        {/* Linker Spacer mit System Status */}
+        <div className="w-80 flex-shrink-0 flex items-center pl-4">
+          <SystemStatus />
+        </div>
+        {/* Thumbnails in der Mitte */}
+        <div className="flex-1">
+          <DesignThumbnails />
+        </div>
+        {/* Rechter Spacer (gleiche Breite wie rechtes Panel) */}
+        <div className="w-80 flex-shrink-0" />
+      </div>
 
       {/* Unsplash Search Modal */}
       <UnsplashSearch
@@ -1241,6 +1719,7 @@ export default function EditorPage() {
         currentProfileId={currentProfileId}
         onProfileChange={setCurrentProfileId}
       />
+
     </div>
   );
 }

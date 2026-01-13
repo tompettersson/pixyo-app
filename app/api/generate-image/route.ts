@@ -9,6 +9,13 @@ const requestSchema = z.object({
   mode: z.enum(["photo", "illustration"]).optional().default("photo"),
   aspectRatio: z.enum(["1:1", "4:5", "16:9", "9:16"]).optional(),
   variationSeed: z.number().optional(),
+  // Product image for Image-to-Image generation
+  productImage: z
+    .object({
+      data: z.string(), // Base64 encoded image
+      mimeType: z.string(), // image/png, image/jpeg, image/webp
+    })
+    .optional(),
 });
 
 export async function POST(request: NextRequest) {

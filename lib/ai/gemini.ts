@@ -41,14 +41,34 @@ export async function generateImage(request: GenerateImageRequest): Promise<Gene
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GOOGLE_API_KEY}`;
 
   // Build the prompt with style hints
-  const styleHint = request.mode === 'illustration' 
+  const styleHint = request.mode === 'illustration'
     ? 'Create as a digital illustration or artwork.'
     : 'Create as a photorealistic image.';
 
-  const fullPrompt = `${request.prompt}\n\n${styleHint}`;
+  // Add product positioning instructions if product image is provided
+  const productPositioning = request.productImage
+    ? '\n\nIMPORTANT: The provided product image should be prominently featured in the bottom-right area of the composition. Create a background that complements and enhances the product while keeping the product clearly visible.'
+    : '';
+
+  const fullPrompt = `${request.prompt}\n\n${styleHint}${productPositioning}`;
 
   // Map aspect ratio to API format (default to 1:1 if not specified)
   const aspectRatio = request.aspectRatio || '1:1';
+
+  // Build parts array - text first, then optional product image
+  const parts: Array<{ text: string } | { inline_data: { mime_type: string; data: string } }> = [
+    { text: fullPrompt }
+  ];
+
+  // Add product image if provided (Image-to-Image mode)
+  if (request.productImage) {
+    parts.push({
+      inline_data: {
+        mime_type: request.productImage.mimeType,
+        data: request.productImage.data,
+      }
+    });
+  }
 
   try {
     const response = await fetch(endpoint, {
@@ -59,9 +79,7 @@ export async function generateImage(request: GenerateImageRequest): Promise<Gene
       body: JSON.stringify({
         contents: [
           {
-            parts: [
-              { text: fullPrompt }
-            ]
+            parts
           }
         ],
         generationConfig: {
