@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint"
   },
@@ -14,6 +14,7 @@
     "@neondatabase/serverless": "^1.0.2",
     "@prisma/adapter-neon": "^7.2.0",
     "@prisma/client": "^7.1.0",
+    "@radix-ui/react-hover-card": "^1.1.15",
     "@stackframe/stack": "^2.8.56",
     "@vercel/blob": "^2.0.0",
     "konva": "^10.0.12",
@@ -28,6 +29,9 @@
     "zundo": "^2.3.0",
     "zustand": "^5.0.9"
   },
+  "prisma": {
+    "seed": "npx tsx prisma/seed.ts"
+  },
   "devDependencies": {
     "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4",
@@ -38,6 +42,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.0.7",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }
