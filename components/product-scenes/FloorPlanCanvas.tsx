@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Stage, Layer, Rect, Group, Text, Line, Circle } from 'react-konva';
 import { useFloorPlanStore } from '@/store/useFloorPlanStore';
 import { FloorPlanElement } from '@/types/floorplan';
@@ -81,7 +81,7 @@ export function FloorPlanCanvas({ width, height }: FloorPlanCanvasProps) {
   );
 
   // Grid lines
-  const gridLines: JSX.Element[] = [];
+  const gridLines: React.ReactNode[] = [];
   if (gridEnabled) {
     const gridSizePixels = metersToPixels(GRID_SIZE_METERS);
 
