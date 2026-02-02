@@ -499,16 +499,8 @@ ${floorPlanNote}`;
       console.log("Added reference image to request");
     }
 
-    // Add floor plan image if provided (from Raumplaner)
-    if (floorPlanImage) {
-      parts.push({
-        inline_data: {
-          mime_type: floorPlanImage.mimeType,
-          data: floorPlanImage.data,
-        },
-      });
-      console.log("Added floor plan image to request");
-    }
+    // Floor plan: Only using text description (image was too large for API limits)
+    // The floorPlanDescription is already included in the prompt via floorPlanNote
 
     // Build the request with images
     const requestBody = {

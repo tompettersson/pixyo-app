@@ -230,18 +230,11 @@ export default function ProductScenesPage() {
         };
       }
 
-      // Include floor plan if available (from Raumplaner mode)
-      if (floorPlanImage && floorPlanLayout) {
-        const base64Data = floorPlanImage.split(',')[1];
-        // Detect mimeType from data URL
-        const mimeMatch = floorPlanImage.match(/^data:([^;]+);/);
-        const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
-        requestBody.floorPlanImage = {
-          data: base64Data,
-          mimeType: mimeType,
-        };
+      // Include floor plan layout description (text only - image was too large for API)
+      // The text description contains room dimensions, furniture, camera position
+      if (floorPlanLayout) {
         requestBody.floorPlanDescription = floorPlanLayout;
-        console.log('Including floor plan in generation, size:', Math.round(base64Data.length / 1024), 'KB');
+        console.log('Including floor plan description (text only)');
       }
 
       console.log(`Generating scene with ${productImages.length} product image(s)${floorPlanImage ? ' + floor plan' : ''}`);
