@@ -52,6 +52,21 @@ Two AI services, both with automatic mock mode fallback:
 
 Mock mode activates when `NEXT_PUBLIC_MOCK_AI=true` or API keys are missing.
 
+### Product Scenes Tool
+
+Background replacement for product photos with AI. Key documentation:
+
+**`docs/product-scene-prompting-research.md`** - Identity preservation:
+- Google's official prompting principles
+- Working prompt templates for product fidelity
+- Technical limitations and alternatives
+
+**`docs/photorealism-prompting-guide.md`** - Photorealistic output:
+- "Think like a photographer" approach (camera + lens + aperture)
+- Terms to AVOID: "hyperrealistic", "ultra-detailed", "perfect"
+- Terms that WORK: specific camera models, film stocks, natural imperfections
+- Lighting terminology: "three-point softbox", "golden hour", etc.
+
 ### API Routes
 
 - `POST /api/generate-prompt` - Claude prompt generation
@@ -88,6 +103,12 @@ All environment variables must be added manually in Vercel Dashboard → Setting
 ANTHROPIC_API_KEY=sk-ant-...      # Claude API for prompt generation
 GOOGLE_API_KEY=AIzaSy...           # Gemini API for image generation
 UNSPLASH_ACCESS_KEY=...            # Unsplash image search
+
+# Vertex AI (optional - enables imagen-product-recontext for better product fidelity)
+# Requires: Google Cloud project with Vertex AI API enabled + Service Account
+GOOGLE_CLOUD_PROJECT=pixyo-app    # Your GCP project ID
+GOOGLE_CLOUD_LOCATION=europe-west1 # Vertex AI region (default: europe-west1)
+# Authentication: Set GOOGLE_APPLICATION_CREDENTIALS or deploy to GCP environment
 
 # Stack Auth
 NEXT_PUBLIC_STACK_PROJECT_ID=...

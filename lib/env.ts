@@ -4,6 +4,10 @@ const envSchema = z.object({
   ANTHROPIC_API_KEY: z.string().min(1, 'ANTHROPIC_API_KEY is required'),
   GOOGLE_API_KEY: z.string().min(1, 'GOOGLE_API_KEY is required'),
   UNSPLASH_ACCESS_KEY: z.string().optional(),
+  // Vertex AI configuration (optional - falls back to Gemini API if not set)
+  GOOGLE_CLOUD_PROJECT: z.string().optional(),
+  GOOGLE_CLOUD_LOCATION: z.string().default('europe-west1'),
+  VERTEX_AI_API_KEY: z.string().optional(),
 });
 
 const clientEnvSchema = z.object({
@@ -16,6 +20,9 @@ export function getServerEnv() {
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
     GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
     UNSPLASH_ACCESS_KEY: process.env.UNSPLASH_ACCESS_KEY,
+    GOOGLE_CLOUD_PROJECT: process.env.GOOGLE_CLOUD_PROJECT,
+    GOOGLE_CLOUD_LOCATION: process.env.GOOGLE_CLOUD_LOCATION,
+    VERTEX_AI_API_KEY: process.env.VERTEX_AI_API_KEY,
   });
 
   if (!parsed.success) {

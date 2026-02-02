@@ -1,17 +1,111 @@
 import { stackServerApp } from "@/lib/stack";
-import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
+// Tool card component for the dashboard
+function ToolCard({
+  href,
+  icon,
+  title,
+  description,
+  badge,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  badge?: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group relative flex flex-col p-6 bg-zinc-900 border border-zinc-800/50 rounded-2xl
+                 hover:border-zinc-700 hover:bg-zinc-900/80 transition-all duration-200
+                 hover:shadow-lg hover:shadow-black/20"
+    >
+      {badge && (
+        <span className="absolute top-4 right-4 px-2 py-0.5 text-xs font-medium bg-violet-500/20 text-violet-300 rounded-full">
+          {badge}
+        </span>
+      )}
+      <div className="w-12 h-12 mb-4 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-400 group-hover:text-white group-hover:bg-zinc-700 transition-colors">
+        {icon}
+      </div>
+      <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
+      <p className="text-sm text-zinc-400 leading-relaxed">{description}</p>
+    </Link>
+  );
+}
+
 export default async function Home() {
-  // Check if user is already logged in
+  // Check if user is logged in
   const user = await stackServerApp.getUser();
 
+  // Logged-in users see the tool selection dashboard
   if (user) {
-    // Logged in users go directly to the editor
-    redirect('/editor');
+    return (
+      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col">
+        {/* Header */}
+        <header className="px-6 py-4 flex items-center justify-between border-b border-zinc-800/50">
+          <img src="/logos/pixyo.svg" alt="Pixyo" className="h-8" />
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-zinc-400">{user.primaryEmail}</span>
+            <Link
+              href="/handler/sign-out"
+              className="px-3 py-1.5 text-sm text-zinc-400 hover:text-white transition-colors"
+            >
+              Abmelden
+            </Link>
+          </div>
+        </header>
+
+        {/* Tool Selection */}
+        <main className="flex-1 flex flex-col items-center justify-center px-6 py-12">
+          <div className="max-w-3xl w-full">
+            <div className="text-center mb-10">
+              <h1 className="text-3xl font-bold mb-3">Willkommen bei Pixyo</h1>
+              <p className="text-zinc-400">Wähle ein Tool, um zu starten</p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Social Graphics Tool */}
+              <ToolCard
+                href="/tools/social-graphics"
+                title="Social Graphics"
+                description="Erstelle professionelle Grafiken für Instagram, LinkedIn und mehr mit KI-generierten Bildern und Text-Overlays."
+                icon={
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                }
+              />
+
+              {/* Product Scenes Tool */}
+              <ToolCard
+                href="/tools/product-scenes"
+                title="Product Scenes"
+                description="Platziere deine Produktfotos in neuen Szenen. Der weiße Hintergrund wird durch eine KI-generierte Umgebung ersetzt."
+                badge="Neu"
+                icon={
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                          d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                }
+              />
+            </div>
+          </div>
+        </main>
+
+        {/* Footer */}
+        <footer className="px-6 py-4 text-center text-sm text-zinc-600 border-t border-zinc-800/50">
+          &copy; 2025 Pixyo. Alle Rechte vorbehalten.
+        </footer>
+      </div>
+    );
   }
 
-  // Show landing page for non-logged-in users
+  // Non-logged-in users see the landing page
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col">
       {/* Header */}
