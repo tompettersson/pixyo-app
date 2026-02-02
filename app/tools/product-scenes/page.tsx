@@ -233,12 +233,15 @@ export default function ProductScenesPage() {
       // Include floor plan if available (from Raumplaner mode)
       if (floorPlanImage && floorPlanLayout) {
         const base64Data = floorPlanImage.split(',')[1];
+        // Detect mimeType from data URL
+        const mimeMatch = floorPlanImage.match(/^data:([^;]+);/);
+        const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
         requestBody.floorPlanImage = {
           data: base64Data,
-          mimeType: 'image/png',
+          mimeType: mimeType,
         };
         requestBody.floorPlanDescription = floorPlanLayout;
-        console.log('Including floor plan in generation');
+        console.log('Including floor plan in generation, size:', Math.round(base64Data.length / 1024), 'KB');
       }
 
       console.log(`Generating scene with ${productImages.length} product image(s)${floorPlanImage ? ' + floor plan' : ''}`);
@@ -250,8 +253,16 @@ export default function ProductScenesPage() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Generierung fehlgeschlagen');
+        // Handle both JSON and text error responses
+        const contentType = response.headers.get('content-type');
+        if (contentType?.includes('application/json')) {
+          const error = await response.json();
+          throw new Error(error.error || error.message || 'Generierung fehlgeschlagen');
+        } else {
+          const errorText = await response.text();
+          console.error('API error (non-JSON):', errorText);
+          throw new Error(`Server-Fehler: ${response.status}`);
+        }
       }
 
       const data = await response.json();

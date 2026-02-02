@@ -32,6 +32,7 @@ export function FloorPlanCanvas({ width, height }: FloorPlanCanvasProps) {
   const rotateCamera = useFloorPlanStore((s) => s.rotateCamera);
 
   // Export canvas as image (for AI integration)
+  // Using pixelRatio 1 to keep file size reasonable for API
   useEffect(() => {
     (window as any).__exportFloorPlanImage = () => {
       if (!stageRef.current) return null;
@@ -40,7 +41,12 @@ export function FloorPlanCanvas({ width, height }: FloorPlanCanvasProps) {
       // Small delay to let deselection render
       return new Promise<string>((resolve) => {
         setTimeout(() => {
-          const dataUrl = stageRef.current?.toDataURL({ pixelRatio: 2 });
+          // Export as JPEG with quality 0.8 to reduce size
+          const dataUrl = stageRef.current?.toDataURL({
+            pixelRatio: 1,
+            mimeType: 'image/jpeg',
+            quality: 0.8,
+          });
           resolve(dataUrl || '');
         }, 50);
       });
