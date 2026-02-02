@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { Stage, Layer, Rect, Group, Text, Line, Circle } from 'react-konva';
+import { Stage, Layer, Rect, Group, Text, Line, Circle, Wedge, Arrow } from 'react-konva';
 import { useFloorPlanStore } from '@/store/useFloorPlanStore';
-import { FloorPlanElement } from '@/types/floorplan';
+import { FloorPlanElement, CameraPosition } from '@/types/floorplan';
 import Konva from 'konva';
 
 const CANVAS_PADDING = 40;
@@ -23,10 +23,13 @@ export function FloorPlanCanvas({ width, height }: FloorPlanCanvasProps) {
   const selectedElementId = useFloorPlanStore((s) => s.selectedElementId);
   const gridEnabled = useFloorPlanStore((s) => s.gridEnabled);
   const showLabels = useFloorPlanStore((s) => s.showLabels);
+  const camera = useFloorPlanStore((s) => s.camera);
 
   const selectElement = useFloorPlanStore((s) => s.selectElement);
   const updateElement = useFloorPlanStore((s) => s.updateElement);
   const removeElement = useFloorPlanStore((s) => s.removeElement);
+  const updateCamera = useFloorPlanStore((s) => s.updateCamera);
+  const rotateCamera = useFloorPlanStore((s) => s.rotateCamera);
 
   // Export canvas as image (for AI integration)
   useEffect(() => {
@@ -194,6 +197,17 @@ export function FloorPlanCanvas({ width, height }: FloorPlanCanvasProps) {
             onUpdate={(updates) => updateElement(element.id, updates)}
           />
         ))}
+
+        {/* Camera */}
+        {camera && (
+          <CameraComponent
+            camera={camera}
+            normalizedToPixel={normalizedToPixel}
+            pixelToNormalized={pixelToNormalized}
+            onUpdate={updateCamera}
+            onRotate={() => rotateCamera(45)}
+          />
+        )}
       </Layer>
     </Stage>
   );
@@ -340,6 +354,104 @@ function FloorPlanElementComponent({
           />
         </>
       )}
+    </Group>
+  );
+}
+
+// Camera component - shows photographer's viewpoint
+interface CameraComponentProps {
+  camera: CameraPosition;
+  normalizedToPixel: (n: number, d: 'x' | 'y') => number;
+  pixelToNormalized: (p: number, d: 'x' | 'y') => number;
+  onUpdate: (updates: Partial<CameraPosition>) => void;
+  onRotate: () => void;
+}
+
+function CameraComponent({
+  camera,
+  normalizedToPixel,
+  pixelToNormalized,
+  onUpdate,
+  onRotate,
+}: CameraComponentProps) {
+  const pixelX = normalizedToPixel(camera.x, 'x');
+  const pixelY = normalizedToPixel(camera.y, 'y');
+  const cameraSize = 24;
+
+  const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
+    const newX = pixelToNormalized(e.target.x(), 'x');
+    const newY = pixelToNormalized(e.target.y(), 'y');
+    onUpdate({ x: newX, y: newY });
+  };
+
+  // Calculate view cone end points
+  const viewDistance = 60; // pixels
+  const viewAngle = 60; // degrees (field of view)
+  const rotationRad = (camera.rotation - 90) * (Math.PI / 180); // -90 because 0 should point up
+  const leftAngle = rotationRad - (viewAngle / 2) * (Math.PI / 180);
+  const rightAngle = rotationRad + (viewAngle / 2) * (Math.PI / 180);
+
+  return (
+    <Group
+      x={pixelX}
+      y={pixelY}
+      draggable
+      onDragEnd={handleDragEnd}
+      onClick={onRotate}
+      onTap={onRotate}
+    >
+      {/* View cone (field of view) */}
+      <Wedge
+        x={0}
+        y={0}
+        radius={viewDistance}
+        angle={viewAngle}
+        rotation={camera.rotation - 90 - viewAngle / 2}
+        fill="#f59e0b20"
+        stroke="#f59e0b"
+        strokeWidth={1}
+        dash={[4, 4]}
+      />
+
+      {/* Camera body */}
+      <Circle
+        x={0}
+        y={0}
+        radius={cameraSize / 2}
+        fill="#f59e0b"
+        stroke="#ffffff"
+        strokeWidth={2}
+      />
+
+      {/* Camera icon */}
+      <Text
+        x={-8}
+        y={-8}
+        text="📷"
+        fontSize={16}
+      />
+
+      {/* Direction indicator arrow */}
+      <Arrow
+        points={[0, 0, Math.cos(rotationRad) * 35, Math.sin(rotationRad) * 35]}
+        stroke="#f59e0b"
+        strokeWidth={3}
+        fill="#f59e0b"
+        pointerLength={8}
+        pointerWidth={8}
+      />
+
+      {/* Label */}
+      <Text
+        x={-25}
+        y={cameraSize / 2 + 4}
+        text="Kamera"
+        fontSize={10}
+        fill="#f59e0b"
+        width={50}
+        align="center"
+        fontStyle="bold"
+      />
     </Group>
   );
 }

@@ -2,6 +2,35 @@
 
 export type ElementCategory = 'speaker' | 'furniture' | 'decor' | 'architecture';
 
+// Camera position for photo perspective
+export interface CameraPosition {
+  x: number;       // 0-1 normalized position
+  y: number;       // 0-1 normalized position
+  rotation: number; // 0-360 degrees, 0 = looking up (towards y=0)
+}
+
+// Helper to describe camera position in natural language
+export function describeCameraPosition(camera: CameraPosition, roomWidth: number, roomHeight: number): string {
+  // Position description
+  const posX = camera.x < 0.33 ? 'left side' : camera.x > 0.66 ? 'right side' : 'center';
+  const posY = camera.y < 0.33 ? 'front' : camera.y > 0.66 ? 'back' : 'middle';
+
+  // Direction description (0 = up/north, 90 = right/east, 180 = down/south, 270 = left/west)
+  const normalizedRotation = ((camera.rotation % 360) + 360) % 360;
+  let direction: string;
+  if (normalizedRotation >= 315 || normalizedRotation < 45) {
+    direction = 'towards the front wall';
+  } else if (normalizedRotation >= 45 && normalizedRotation < 135) {
+    direction = 'towards the right wall';
+  } else if (normalizedRotation >= 135 && normalizedRotation < 225) {
+    direction = 'towards the back wall';
+  } else {
+    direction = 'towards the left wall';
+  }
+
+  return `Camera positioned at ${posX}-${posY} of room, looking ${direction}`;
+}
+
 export type SpeakerType = 'floor-speaker' | 'subwoofer' | 'center-speaker' | 'bookshelf-speaker';
 export type FurnitureType = 'lowboard' | 'sideboard' | 'couch' | 'armchair' | 'coffee-table' | 'dining-table' | 'floor-lamp';
 export type DecorType = 'plant-large' | 'plant-small' | 'wall-art' | 'rug';

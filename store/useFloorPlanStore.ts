@@ -2,7 +2,9 @@ import { create } from 'zustand';
 import {
   FloorPlanElement,
   ElementSubType,
-  createFloorPlanElement
+  CameraPosition,
+  createFloorPlanElement,
+  describeCameraPosition
 } from '@/types/floorplan';
 
 interface FloorPlanState {
@@ -15,6 +17,9 @@ interface FloorPlanState {
 
   // Currently selected element
   selectedElementId: string | null;
+
+  // Camera position (photographer's viewpoint)
+  camera: CameraPosition | null;
 
   // View settings
   gridEnabled: boolean;
@@ -35,6 +40,13 @@ interface FloorPlanActions {
 
   // Selection
   selectElement: (id: string | null) => void;
+
+  // Camera
+  setCamera: (camera: CameraPosition | null) => void;
+  updateCamera: (updates: Partial<CameraPosition>) => void;
+  addCamera: () => void;
+  removeCamera: () => void;
+  rotateCamera: (degrees: number) => void;
 
   // View
   toggleGrid: () => void;
@@ -57,6 +69,7 @@ const initialState: FloorPlanState = {
   roomHeight: 4,
   elements: [],
   selectedElementId: null,
+  camera: null,
   gridEnabled: true,
   showLabels: true,
   zoom: 1,
@@ -112,6 +125,31 @@ export const useFloorPlanStore = create<FloorPlanState & FloorPlanActions>((set,
 
   selectElement: (id) => set({ selectedElementId: id }),
 
+  // Camera actions
+  setCamera: (camera) => set({ camera }),
+
+  updateCamera: (updates) => {
+    set((state) => ({
+      camera: state.camera ? { ...state.camera, ...updates } : null,
+    }));
+  },
+
+  addCamera: () => {
+    set({
+      camera: { x: 0.5, y: 0.9, rotation: 0 }, // Default: bottom center, looking up
+    });
+  },
+
+  removeCamera: () => set({ camera: null }),
+
+  rotateCamera: (degrees) => {
+    set((state) => ({
+      camera: state.camera
+        ? { ...state.camera, rotation: (state.camera.rotation + degrees) % 360 }
+        : null,
+    }));
+  },
+
   toggleGrid: () => set((state) => ({ gridEnabled: !state.gridEnabled })),
 
   toggleLabels: () => set((state) => ({ showLabels: !state.showLabels })),
@@ -137,9 +175,9 @@ export const useFloorPlanStore = create<FloorPlanState & FloorPlanActions>((set,
   },
 
   exportAsPromptDescription: () => {
-    const { roomWidth, roomHeight, elements } = get();
+    const { roomWidth, roomHeight, elements, camera } = get();
 
-    if (elements.length === 0) {
+    if (elements.length === 0 && !camera) {
       return '';
     }
 
@@ -147,6 +185,13 @@ export const useFloorPlanStore = create<FloorPlanState & FloorPlanActions>((set,
     const otherElements = elements.filter((el) => !el.isProductPosition);
 
     let description = `Room layout (${roomWidth}m × ${roomHeight}m viewed from above):\n`;
+
+    // Camera/photographer position - IMPORTANT for perspective
+    if (camera) {
+      description += `\n**CAMERA POSITION (photographer's viewpoint):**\n`;
+      description += `${describeCameraPosition(camera, roomWidth, roomHeight)}\n`;
+      description += `The final photograph should be taken from this camera position.\n`;
+    }
 
     if (productElement) {
       const posX = productElement.x < 0.33 ? 'left' : productElement.x > 0.66 ? 'right' : 'center';
