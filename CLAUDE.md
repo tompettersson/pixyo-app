@@ -86,7 +86,7 @@ All routes use Zod for request validation.
 ## Deployment
 
 ### Production URL
-https://pixyo-app.vercel.app
+https://pixyo.de (Custom Domain via Vercel)
 
 ### Vercel Project
 - **Project Name**: pixyo-app
