@@ -247,39 +247,8 @@ function extractImageFromResponse(result: Record<string, unknown>): { data: stri
   return null;
 }
 
-// =============================================================================
-// FEEDBACK LOOP PROMPT - Based on Research Documents
-// Key: Explicit comparison, positive formulations, photography language
-// =============================================================================
-const FEEDBACK_LOOP_PROMPT = `You are performing quality control on a product photograph.
-
-**Image 1** = The ORIGINAL product (this is the REFERENCE - the product must look EXACTLY like this)
-**Image 2** = The generated lifestyle scene that needs verification
-
-**IMPORTANT:** This may be a new/unreleased product. Do NOT substitute details from your knowledge of other products by this brand. Use ONLY Image 1 as reference.
-
-**YOUR TASK:**
-
-Compare the product in Image 2 against Image 1 and verify:
-
-1. **Shape & Silhouette**: The product outline matches exactly
-2. **Surface Details**: All markings, branding, and surface features match exactly as shown
-3. **Colors & Materials**: Surface colors, textures, and finishes match precisely
-4. **Viewing Angle**: The perspective and camera angle are preserved
-5. **Proportions**: The product's dimensions and aspect ratio are correct
-
-**IF ANY DIFFERENCES EXIST:**
-Regenerate the image with the product EXACTLY matching Image 1. The scene, lighting, and background from Image 2 remain unchanged - only correct the product to match the reference perfectly.
-
-**IF ALREADY IDENTICAL:**
-Return Image 2 unchanged.
-
-**CRITICAL CONSTRAINTS:**
-- The product remains exactly as shown in Image 1
-- All surface details and markings match the reference exactly
-- The product's viewing angle stays the same as the reference
-- Maintain natural, photographic quality - avoid over-processed or CGI appearance`;
-
+// NOTE: Feedback loop was removed - inconsistent results, doubled API costs
+// If needed in future, see git history for the implementation
 
 export async function POST(request: NextRequest) {
   try {
@@ -311,7 +280,7 @@ export async function POST(request: NextRequest) {
     }
 
     const imageCount = normalizedImages.length;
-    const primaryImage = normalizedImages[0]; // First image is primary for feedback loop
+    const primaryImage = normalizedImages[0]; // First image is primary (used for Vertex AI)
     console.log(`Processing ${imageCount} product image(s)`);
 
     // Build product context for intelligent placement
@@ -528,100 +497,43 @@ ${floorPlanNote}`;
         responseModalities: ["TEXT", "IMAGE"],
         imageConfig: {
           aspectRatio: aspectRatio,
-          imageSize: "4K", // High resolution output for production quality
+          imageSize: "2K", // 2K for faster generation and lower cost (can upgrade to 4K for production)
         },
       },
     };
 
     // =======================================================
-    // TURN 1: Initial Generation (4K output)
+    // Generate Scene (single pass, no feedback loop)
+    // Feedback loop was removed: inconsistent results, doubles cost
     // =======================================================
-    console.log("Generating scene in 4K...");
+    console.log("Generating scene in 2K...");
 
-    const response1 = await fetch(endpoint, {
+    const response = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(requestBody),
       signal: AbortSignal.timeout(120000),
     });
 
-    if (!response1.ok) {
-      const errorText = await response1.text();
-      console.error("API error:", response1.status, errorText);
-      throw new Error(`API request failed: ${response1.status}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("API error:", response.status, errorText);
+      throw new Error(`API request failed: ${response.status}`);
     }
 
-    const result1 = await response1.json();
-    const initialImage = extractImageFromResponse(result1);
+    const result = await response.json();
+    const generatedImage = extractImageFromResponse(result);
 
-    if (!initialImage) {
-      console.warn("No image generated", JSON.stringify(result1, null, 2));
-      if (result1.candidates?.[0]?.finishReason === "SAFETY") {
+    if (!generatedImage) {
+      console.warn("No image generated", JSON.stringify(result, null, 2));
+      if (result.candidates?.[0]?.finishReason === "SAFETY") {
         throw new Error("Bild konnte aus Sicherheitsgründen nicht generiert werden.");
       }
       throw new Error("Keine Bilddaten in der Antwort erhalten");
     }
 
-    // =======================================================
-    // TURN 2: Automatic Feedback Loop - Compare & Correct
-    // Based on Research: 2-turn approach for better product fidelity
-    // =======================================================
-    console.log("Turn 2: Running automatic feedback loop...");
-
-    const feedbackParts: Array<{ text: string } | { inline_data: { mime_type: string; data: string } }> = [
-      { text: FEEDBACK_LOOP_PROMPT },
-      // Image 1: Original product (reference) - use primary image from multi-view set
-      {
-        inline_data: {
-          mime_type: primaryImage.mimeType,
-          data: primaryImage.data,
-        },
-      },
-      // Image 2: Generated result to verify
-      {
-        inline_data: {
-          mime_type: initialImage.mimeType,
-          data: initialImage.data,
-        },
-      },
-    ];
-
-    const feedbackRequestBody = {
-      contents: [{ parts: feedbackParts }],
-      generationConfig: {
-        responseModalities: ["TEXT", "IMAGE"],
-        imageConfig: {
-          aspectRatio: aspectRatio,
-          imageSize: "4K",
-        },
-      },
-    };
-
-    const response2 = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(feedbackRequestBody),
-      signal: AbortSignal.timeout(120000),
-    });
-
-    let finalImageUrl: string;
-
-    if (response2.ok) {
-      const result2 = await response2.json();
-      const correctedImage = extractImageFromResponse(result2);
-
-      if (correctedImage) {
-        console.log("Turn 2: Feedback loop completed - using corrected image");
-        finalImageUrl = `data:${correctedImage.mimeType};base64,${correctedImage.data}`;
-      } else {
-        console.log("Turn 2: No correction made - using initial image");
-        finalImageUrl = `data:${initialImage.mimeType};base64,${initialImage.data}`;
-      }
-    } else {
-      // Feedback loop failed, use initial image
-      console.warn("Turn 2 failed, using initial result");
-      finalImageUrl = `data:${initialImage.mimeType};base64,${initialImage.data}`;
-    }
+    const finalImageUrl = `data:${generatedImage.mimeType};base64,${generatedImage.data}`;
+    console.log("Scene generated successfully");
 
     return NextResponse.json({
       image: { url: finalImageUrl },

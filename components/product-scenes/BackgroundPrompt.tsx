@@ -3,6 +3,51 @@
 import { useCallback, useState } from 'react';
 import { useProductScenesStore } from '@/store/useProductScenesStore';
 
+// =============================================================================
+// INTERIOR DESIGN STYLE PRESETS
+// These add atmosphere/style keywords to the user's prompt
+// =============================================================================
+const STYLE_PRESETS = [
+  {
+    id: 'none',
+    label: 'Neutral',
+    icon: '○',
+    prompt: '', // No additional style
+  },
+  {
+    id: 'mediterranean',
+    label: 'Mediterran',
+    icon: '🌊',
+    prompt: 'Mediterranean style with warm terracotta tones, natural stone textures, olive wood accents, soft linen fabrics, and warm sunlight streaming through arched windows',
+  },
+  {
+    id: 'scandinavian',
+    label: 'Skandinavisch',
+    icon: '🌲',
+    prompt: 'Scandinavian style with light oak wood, white walls, minimal decor, cozy hygge atmosphere, natural textiles, and soft diffused daylight',
+  },
+  {
+    id: 'industrial',
+    label: 'Industrial',
+    icon: '🏭',
+    prompt: 'Industrial loft style with exposed brick walls, metal accents, polished concrete floors, Edison bulb lighting, and raw urban textures',
+  },
+  {
+    id: 'midcentury',
+    label: 'Mid-Century',
+    icon: '🪑',
+    prompt: 'Mid-century modern style with walnut furniture, organic curved shapes, muted earth tones, iconic statement lighting, and warm retro atmosphere',
+  },
+  {
+    id: 'luxury',
+    label: 'Luxus',
+    icon: '✨',
+    prompt: 'Luxury hotel style with high-end marble finishes, velvet textures, subtle gold accents, dramatic mood lighting, and sophisticated elegance',
+  },
+] as const;
+
+type StylePresetId = typeof STYLE_PRESETS[number]['id'];
+
 // Generated prompt type
 interface GeneratedPrompt {
   title: string;
@@ -26,12 +71,31 @@ export function BackgroundPrompt({ onGenerate }: BackgroundPromptProps) {
   const [generatedPrompts, setGeneratedPrompts] = useState<GeneratedPrompt[]>([]);
   const [promptError, setPromptError] = useState<string | null>(null);
 
+  // Selected interior design style
+  const [selectedStyle, setSelectedStyle] = useState<StylePresetId>('none');
+
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (productImage && backgroundPrompt.trim()) {
-      onGenerate();
+      // Combine user prompt with style preset
+      const stylePreset = STYLE_PRESETS.find(s => s.id === selectedStyle);
+      const stylePrompt = stylePreset?.prompt || '';
+
+      if (stylePrompt) {
+        // Temporarily set combined prompt for generation
+        const combinedPrompt = `${backgroundPrompt.trim()}. ${stylePrompt}`;
+        setBackgroundPrompt(combinedPrompt);
+        // Use timeout to ensure state update before generation
+        setTimeout(() => {
+          onGenerate();
+          // Restore original prompt after a short delay
+          setTimeout(() => setBackgroundPrompt(backgroundPrompt.trim()), 100);
+        }, 10);
+      } else {
+        onGenerate();
+      }
     }
-  }, [productImage, backgroundPrompt, onGenerate]);
+  }, [productImage, backgroundPrompt, selectedStyle, setBackgroundPrompt, onGenerate]);
 
   // Generate 3 optimized prompts via Claude
   const handleGeneratePrompts = useCallback(async () => {
@@ -80,6 +144,35 @@ export function BackgroundPrompt({ onGenerate }: BackgroundPromptProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Interior Design Style Selector */}
+      <div>
+        <label className="block text-xs text-zinc-500 mb-2 uppercase tracking-wider">
+          Innenarchitektur-Stil
+        </label>
+        <div className="flex flex-wrap gap-1.5">
+          {STYLE_PRESETS.map((style) => (
+            <button
+              key={style.id}
+              type="button"
+              onClick={() => setSelectedStyle(style.id)}
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5
+                ${selectedStyle === style.id
+                  ? 'bg-violet-500/20 text-violet-300 border border-violet-500/50'
+                  : 'bg-zinc-800/50 text-zinc-400 border border-zinc-700/50 hover:bg-zinc-700/50 hover:text-zinc-300'
+                }`}
+            >
+              <span>{style.icon}</span>
+              <span>{style.label}</span>
+            </button>
+          ))}
+        </div>
+        {selectedStyle !== 'none' && (
+          <p className="mt-1.5 text-[10px] text-zinc-500">
+            {STYLE_PRESETS.find(s => s.id === selectedStyle)?.prompt.slice(0, 60)}...
+          </p>
+        )}
+      </div>
+
       {/* Custom prompt input */}
       <div>
         <label className="block text-xs text-zinc-500 mb-2 uppercase tracking-wider">
