@@ -284,6 +284,7 @@ export async function POST(request: NextRequest) {
     console.log(`Processing ${imageCount} product image(s)`);
 
     // Build product context for intelligent placement
+    // Supports all product categories: audio, electronics, kitchen, furniture, fashion, sports, other
     let productContext = '';
     if (productAnalysis) {
       const { product, placement } = productAnalysis;
@@ -297,17 +298,56 @@ export async function POST(request: NextRequest) {
       };
       const placementHint = placementMap[placement.vertical_position] || 'in a natural position';
 
+      // Get category-specific guidance
+      const getCategoryGuidance = (category: string, type: string): string => {
+        // Audio-specific guidance
+        if (category === 'audio') {
+          if (type === 'subwoofer') {
+            return '- Subwoofers are ALWAYS placed on the floor, typically near a sofa, next to TV furniture, or in a corner.\n- NEVER place a subwoofer on a table, shelf, or elevated surface.';
+          }
+          if (type === 'floor_standing_speaker') {
+            return '- Floor-standing speakers are placed on the floor, flanking a TV or entertainment center.';
+          }
+          if (type === 'bookshelf_speaker') {
+            return '- Bookshelf speakers go on shelves, stands, or desks - NOT directly on the floor.';
+          }
+          return '- Audio equipment should be placed naturally in the listening environment.';
+        }
+        // Kitchen products (bowls, spices, etc.)
+        if (category === 'kitchen') {
+          return '- Kitchen items should look natural and inviting.\n- Consider contextual elements like wooden cutting boards, fresh ingredients, or table settings.\n- Food products look best on clean, food-safe surfaces.';
+        }
+        // Electronics
+        if (category === 'electronics') {
+          return '- Electronics should be on stable, clean surfaces.\n- Consider realistic details like subtle cable hints or ventilation space.';
+        }
+        // Furniture
+        if (category === 'furniture') {
+          return '- Furniture should be properly grounded with realistic shadows.\n- Show the piece in a natural room context.';
+        }
+        // Fashion
+        if (category === 'fashion') {
+          return '- Fashion items benefit from lifestyle contexts or clean settings.\n- Consider natural fabric draping and texture details.';
+        }
+        // Sports & Outdoor
+        if (category === 'sports') {
+          return '- Sports equipment looks best in active or lifestyle contexts.\n- Outdoor and natural settings often work well.';
+        }
+        // Default
+        return '- Place the product in a context that highlights its function and appeal.';
+      };
+
+      const categoryGuidance = getCategoryGuidance(product.category, product.type);
+
       productContext = `
 **PRODUCT IDENTIFICATION:**
 This is a ${product.type_german}${product.brand && product.brand !== 'unknown' ? ` (${product.brand})` : ''}.
 
 **PLACEMENT LOGIC (VERY IMPORTANT):**
 A ${product.type_german} belongs ${placementHint}.
-${product.type === 'subwoofer' ? '- Subwoofers are ALWAYS placed on the floor, typically near a sofa, next to TV furniture, or in a corner of the room.\n- NEVER place a subwoofer on a table, shelf, or elevated surface.' : ''}
-${product.type === 'floor_standing_speaker' ? '- Floor-standing speakers are placed on the floor, flanking a TV or entertainment center.' : ''}
-${product.type === 'bookshelf_speaker' ? '- Bookshelf speakers go on shelves, stands, or desks - NOT directly on the floor.' : ''}
+${categoryGuidance}
 `;
-      console.log('Using product analysis:', product.type_german, 'placement:', placement.vertical_position);
+      console.log('Using product analysis:', product.type_german, 'category:', product.category, 'placement:', placement.vertical_position);
     }
 
     // Check for mock mode or missing API key
