@@ -16,6 +16,7 @@ interface ProfileSelectorProps {
 export function ProfileSelector({ selectedProfileId, onProfileChange }: ProfileSelectorProps) {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -26,8 +27,12 @@ export function ProfileSelector({ selectedProfileId, onProfileChange }: ProfileS
     const loadProfiles = async () => {
       try {
         const response = await fetch('/api/profiles');
-        if (!response.ok) throw new Error('Failed to load profiles');
+        if (!response.ok) {
+          console.error('Profile API error:', response.status, response.statusText);
+          throw new Error('Failed to load profiles');
+        }
         const data = await response.json();
+        console.log('Loaded profiles:', data.profiles?.length || 0);
 
         if (data.profiles && data.profiles.length > 0) {
           setProfiles(data.profiles);
@@ -35,9 +40,13 @@ export function ProfileSelector({ selectedProfileId, onProfileChange }: ProfileS
           if (!selectedProfileId) {
             onProfileChange(data.profiles[0].id);
           }
+        } else {
+          console.warn('No profiles found in API response');
+          setLoadError('Keine Profile gefunden');
         }
       } catch (error) {
         console.error('Failed to load profiles:', error);
+        setLoadError('Profile konnten nicht geladen werden');
       } finally {
         setIsLoading(false);
       }
@@ -89,6 +98,10 @@ export function ProfileSelector({ selectedProfileId, onProfileChange }: ProfileS
 
         {isLoading ? (
           <div className="w-3 h-3 border-2 border-zinc-500 border-t-transparent rounded-full animate-spin" />
+        ) : loadError ? (
+          <span className="truncate max-w-32 text-red-400">
+            {loadError}
+          </span>
         ) : (
           <span className="truncate max-w-32">
             {selectedProfile?.name || 'Profil wählen'}

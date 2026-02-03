@@ -85,6 +85,31 @@ const CUSTOMERS = [
     systemPrompt:
       'Sustainable materials, ivory alternative, eco-friendly luxury, natural textures, ethical craftsmanship, premium quality, musical instruments',
   },
+  {
+    slug: 'canton',
+    name: 'Canton',
+    logo: '/logos/canton.svg',
+    logoVariants: {
+      dark: '/logos/canton-white.svg',
+      light: '/logos/canton-black.svg',
+    },
+    colors: {
+      dark: '#1a1a1a',
+      light: '#ffffff',
+      accent: '#e63946', // Canton red
+    },
+    fonts: {
+      headline: { family: 'Inter', weight: 'bold', uppercase: false },
+      body: { family: 'Inter', weight: 'normal' },
+    },
+    layout: {
+      padding: { top: 60, right: 60, bottom: 60, left: 60 },
+      gaps: { taglineToHeadline: 20, headlineToBody: 30, bodyToButton: 40 },
+      button: { radius: 8, paddingX: 24, paddingY: 12 },
+    },
+    systemPrompt:
+      'High-end audio equipment, premium speakers, subwoofers, home cinema, living room ambiance, modern interior design, audiophile lifestyle',
+  },
 ];
 
 async function main() {
