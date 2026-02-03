@@ -48,6 +48,57 @@ const STYLE_PRESETS = [
 
 type StylePresetId = typeof STYLE_PRESETS[number]['id'];
 
+// =============================================================================
+// ROOM TYPE PRESETS
+// Common room types - can be combined with style presets
+// =============================================================================
+const ROOM_PRESETS = [
+  {
+    id: 'none',
+    label: 'Keiner',
+    icon: '○',
+    prompt: '', // No room specified - user defines in prompt
+  },
+  {
+    id: 'living',
+    label: 'Wohnzimmer',
+    icon: '🛋️',
+    prompt: 'in a modern living room',
+  },
+  {
+    id: 'kitchen',
+    label: 'Küche',
+    icon: '🍳',
+    prompt: 'in a bright kitchen',
+  },
+  {
+    id: 'dining',
+    label: 'Esszimmer',
+    icon: '🍽️',
+    prompt: 'in an elegant dining room',
+  },
+  {
+    id: 'terrace',
+    label: 'Terrasse',
+    icon: '☀️',
+    prompt: 'on a sunny terrace',
+  },
+  {
+    id: 'garden',
+    label: 'Garten',
+    icon: '🌳',
+    prompt: 'in a beautiful garden setting',
+  },
+  {
+    id: 'office',
+    label: 'Büro',
+    icon: '💼',
+    prompt: 'in a professional home office',
+  },
+] as const;
+
+type RoomPresetId = typeof ROOM_PRESETS[number]['id'];
+
 // Generated prompt type
 interface GeneratedPrompt {
   title: string;
@@ -71,19 +122,27 @@ export function BackgroundPrompt({ onGenerate }: BackgroundPromptProps) {
   const [generatedPrompts, setGeneratedPrompts] = useState<GeneratedPrompt[]>([]);
   const [promptError, setPromptError] = useState<string | null>(null);
 
-  // Selected interior design style
+  // Selected presets
   const [selectedStyle, setSelectedStyle] = useState<StylePresetId>('none');
+  const [selectedRoom, setSelectedRoom] = useState<RoomPresetId>('none');
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (productImage && backgroundPrompt.trim()) {
-      // Combine user prompt with style preset
+      // Combine user prompt with room and style presets
       const stylePreset = STYLE_PRESETS.find(s => s.id === selectedStyle);
+      const roomPreset = ROOM_PRESETS.find(r => r.id === selectedRoom);
       const stylePrompt = stylePreset?.prompt || '';
+      const roomPrompt = roomPreset?.prompt || '';
 
-      if (stylePrompt) {
+      // Build combined prompt: [user prompt] [room] [style]
+      const parts = [backgroundPrompt.trim()];
+      if (roomPrompt) parts.push(roomPrompt);
+      if (stylePrompt) parts.push(stylePrompt);
+      const combinedPrompt = parts.join('. ');
+
+      if (combinedPrompt !== backgroundPrompt.trim()) {
         // Temporarily set combined prompt for generation
-        const combinedPrompt = `${backgroundPrompt.trim()}. ${stylePrompt}`;
         setBackgroundPrompt(combinedPrompt);
         // Use timeout to ensure state update before generation
         setTimeout(() => {
@@ -95,7 +154,7 @@ export function BackgroundPrompt({ onGenerate }: BackgroundPromptProps) {
         onGenerate();
       }
     }
-  }, [productImage, backgroundPrompt, selectedStyle, setBackgroundPrompt, onGenerate]);
+  }, [productImage, backgroundPrompt, selectedStyle, selectedRoom, setBackgroundPrompt, onGenerate]);
 
   // Generate 3 optimized prompts via Claude
   const handleGeneratePrompts = useCallback(async () => {
@@ -171,6 +230,30 @@ export function BackgroundPrompt({ onGenerate }: BackgroundPromptProps) {
             {STYLE_PRESETS.find(s => s.id === selectedStyle)?.prompt.slice(0, 60)}...
           </p>
         )}
+      </div>
+
+      {/* Room Type Selector */}
+      <div>
+        <label className="block text-xs text-zinc-500 mb-2 uppercase tracking-wider">
+          Raum
+        </label>
+        <div className="flex flex-wrap gap-1.5">
+          {ROOM_PRESETS.map((room) => (
+            <button
+              key={room.id}
+              type="button"
+              onClick={() => setSelectedRoom(room.id)}
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5
+                ${selectedRoom === room.id
+                  ? 'bg-blue-500/20 text-blue-300 border border-blue-500/50'
+                  : 'bg-zinc-800/50 text-zinc-400 border border-zinc-700/50 hover:bg-zinc-700/50 hover:text-zinc-300'
+                }`}
+            >
+              <span>{room.icon}</span>
+              <span>{room.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Custom prompt input */}
