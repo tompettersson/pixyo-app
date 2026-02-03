@@ -9,6 +9,7 @@ import { BackgroundPrompt } from '@/components/product-scenes/BackgroundPrompt';
 import { ReferenceImageUpload } from '@/components/product-scenes/ReferenceImageUpload';
 import { CompositingCanvas } from '@/components/product-scenes/CompositingCanvas';
 import { FloorPlanEditor } from '@/components/product-scenes/FloorPlanEditor';
+import { ProfileSelector } from '@/components/product-scenes/ProfileSelector';
 import { useBackgroundRemoval } from '@/hooks/useBackgroundRemoval';
 
 // Zoom levels
@@ -25,6 +26,8 @@ export default function ProductScenesPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null);
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+  const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [canvasScale, setCanvasScale] = useState(0.6);
 
@@ -519,6 +522,52 @@ export default function ProductScenesPage() {
     setExportDropdownOpen(false);
   }, [activeScene]);
 
+  // Save to asset library
+  const handleSaveToLibrary = useCallback(async () => {
+    if (!activeScene || !selectedProfileId) return;
+
+    setIsSaving(true);
+    try {
+      const { width, height } = getCanvasDimensions();
+
+      const response = await fetch('/api/assets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          profileId: selectedProfileId,
+          type: 'PRODUCT_SCENE',
+          imageData: activeScene.url,
+          width,
+          height,
+          meta: {
+            source: 'product-scenes',
+            prompt: activeScene.prompt,
+            mode: activeScene.mode || mode,
+            aspectRatio,
+            imageSize,
+            productAnalysis: productAnalysis ? {
+              type: productAnalysis.product.type,
+              type_german: productAnalysis.product.type_german,
+              brand: productAnalysis.product.brand,
+            } : undefined,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save to library');
+      }
+
+      // Show success feedback (could be a toast in the future)
+      alert('Bild wurde zur Bibliothek hinzugefügt!');
+    } catch (error) {
+      console.error('Save to library error:', error);
+      alert('Fehler beim Speichern. Bitte versuche es erneut.');
+    } finally {
+      setIsSaving(false);
+    }
+  }, [activeScene, selectedProfileId, mode, aspectRatio, imageSize, productAnalysis, getCanvasDimensions]);
+
   // Zoom controls
   const handleZoomIn = useCallback(() => {
     const currentIndex = ZOOM_LEVELS.indexOf(zoomLevel as typeof ZOOM_LEVELS[number]);
@@ -593,6 +642,11 @@ export default function ProductScenesPage() {
           </Link>
           <div className="h-6 w-px bg-zinc-800" />
           <h1 className="text-sm font-medium text-zinc-300">Product Scenes</h1>
+          <div className="h-6 w-px bg-zinc-800" />
+          <ProfileSelector
+            selectedProfileId={selectedProfileId}
+            onProfileChange={setSelectedProfileId}
+          />
         </div>
 
         {/* Mode Toggle */}
@@ -1274,6 +1328,27 @@ export default function ProductScenesPage() {
                   </>
                 )}
               </div>
+
+              {/* Save to Library */}
+              <button
+                onClick={handleSaveToLibrary}
+                disabled={!selectedProfileId || isSaving}
+                className="w-full mt-2 px-4 py-2.5 rounded-lg bg-violet-600 text-white font-medium text-sm
+                  hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed
+                  flex items-center justify-center gap-2 transition-colors"
+              >
+                {isSaving ? (
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                  </svg>
+                )}
+                {isSaving ? 'Speichert...' : 'Zur Bibliothek'}
+              </button>
+              {!selectedProfileId && (
+                <p className="text-xs text-zinc-500 mt-1">Wähle ein Profil im Header</p>
+              )}
             </div>
           )}
 

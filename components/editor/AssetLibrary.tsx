@@ -5,7 +5,7 @@ import * as HoverCard from "@radix-ui/react-hover-card";
 
 interface Asset {
   id: string;
-  type: "GENERATED" | "UNSPLASH";
+  type: "GENERATED" | "UNSPLASH" | "PRODUCT_SCENE";
   url: string;
   width: number;
   height: number;
@@ -41,7 +41,13 @@ export function AssetLibrary({ profileId, onSelectAsset }: AssetLibraryProps) {
     }
   };
 
-  const filteredAssets = assets.filter((asset) => asset.type === activeTab);
+  const filteredAssets = assets.filter((asset) => {
+    // Show PRODUCT_SCENE under "KI-Generiert" tab
+    if (activeTab === "GENERATED") {
+      return asset.type === "GENERATED" || asset.type === "PRODUCT_SCENE";
+    }
+    return asset.type === activeTab;
+  });
 
   const handleAssetClick = (asset: Asset) => {
     const credit = asset.meta?.credit
@@ -110,6 +116,11 @@ export function AssetLibrary({ profileId, onSelectAsset }: AssetLibraryProps) {
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  {asset.type === "PRODUCT_SCENE" && (
+                    <span className="absolute top-1 left-1 px-1 py-0.5 bg-violet-600 text-[9px] font-medium text-white rounded shadow-sm">
+                      PS
+                    </span>
+                  )}
                 </button>
               </HoverCard.Trigger>
               <HoverCard.Portal>
@@ -132,6 +143,11 @@ export function AssetLibrary({ profileId, onSelectAsset }: AssetLibraryProps) {
                   {asset.meta?.credit && (
                     <p className="text-xs text-zinc-500 mt-1">
                       📷 {asset.meta.credit.name}
+                    </p>
+                  )}
+                  {asset.type === "PRODUCT_SCENE" && (
+                    <p className="text-xs text-violet-400 mt-1">
+                      🎨 Product Scenes
                     </p>
                   )}
                   <HoverCard.Arrow className="fill-zinc-900" />

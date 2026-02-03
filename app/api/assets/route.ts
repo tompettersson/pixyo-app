@@ -7,7 +7,7 @@ import { z } from 'zod';
 // Schema for asset creation
 const assetSchema = z.object({
   profileId: z.string(),
-  type: z.enum(['GENERATED', 'UNSPLASH']),
+  type: z.enum(['GENERATED', 'UNSPLASH', 'PRODUCT_SCENE']),
   width: z.number(),
   height: z.number(),
   meta: z.record(z.string(), z.any()),

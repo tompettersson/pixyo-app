@@ -37,6 +37,7 @@ model Profile {
 enum AssetType {
   GENERATED
   UNSPLASH
+  PRODUCT_SCENE
 }
 
 model Asset {
