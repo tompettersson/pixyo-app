@@ -42,6 +42,7 @@ const requestSchema = z.object({
   productImages: z.array(productImageSchema).min(1).max(3).optional(),
   backgroundPrompt: z.string().min(1, "Hintergrund-Beschreibung erforderlich"),
   aspectRatio: z.enum(["1:1", "4:3", "16:9", "9:16"]).optional().default("1:1"),
+  imageSize: z.enum(["1K", "2K", "4K"]).optional().default("2K"),
   // Product scale level: -2 (smaller) to +2 (larger), 0 = default
   productScaleLevel: z.number().min(-2).max(2).optional().default(0),
   // Optional reference image for style guidance
@@ -265,7 +266,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(error, { status: 400 });
     }
 
-    const { productImage, productImages, backgroundPrompt, aspectRatio, productScaleLevel, referenceImage, productAnalysis, floorPlanImage, floorPlanDescription } = validationResult.data;
+    const { productImage, productImages, backgroundPrompt, aspectRatio, imageSize, productScaleLevel, referenceImage, productAnalysis, floorPlanImage, floorPlanDescription } = validationResult.data;
     const scaleParams = getScaleParameters(productScaleLevel);
 
     // Normalize images: support both single productImage and productImages array
@@ -283,71 +284,25 @@ export async function POST(request: NextRequest) {
     const primaryImage = normalizedImages[0]; // First image is primary (used for Vertex AI)
     console.log(`Processing ${imageCount} product image(s)`);
 
-    // Build product context for intelligent placement
-    // Supports all product categories: audio, electronics, kitchen, furniture, fashion, sports, other
+    // Build product context - minimal, let user prompt define the scene
     let productContext = '';
     if (productAnalysis) {
       const { product, placement } = productAnalysis;
       const placementMap: Record<string, string> = {
-        floor: 'on the floor (NOT on furniture or tables)',
-        low_furniture: 'on low furniture like a TV stand or sideboard',
-        table_height: 'on a table or desk',
-        shelf: 'on a shelf or bookcase',
-        counter: 'on a kitchen counter or workspace',
+        floor: 'on the floor',
+        low_furniture: 'on low furniture',
+        table_height: 'on a table',
+        shelf: 'on a shelf',
+        counter: 'on a counter',
         wall_mounted: 'mounted on a wall',
       };
-      const placementHint = placementMap[placement.vertical_position] || 'in a natural position';
-
-      // Get category-specific guidance
-      const getCategoryGuidance = (category: string, type: string): string => {
-        // Audio-specific guidance
-        if (category === 'audio') {
-          if (type === 'subwoofer') {
-            return '- Subwoofers are ALWAYS placed on the floor, typically near a sofa, next to TV furniture, or in a corner.\n- NEVER place a subwoofer on a table, shelf, or elevated surface.';
-          }
-          if (type === 'floor_standing_speaker') {
-            return '- Floor-standing speakers are placed on the floor, flanking a TV or entertainment center.';
-          }
-          if (type === 'bookshelf_speaker') {
-            return '- Bookshelf speakers go on shelves, stands, or desks - NOT directly on the floor.';
-          }
-          return '- Audio equipment should be placed naturally in the listening environment.';
-        }
-        // Kitchen products (bowls, spices, etc.)
-        if (category === 'kitchen') {
-          return '- Kitchen items should look natural and inviting.\n- Consider contextual elements like wooden cutting boards, fresh ingredients, or table settings.\n- Food products look best on clean, food-safe surfaces.';
-        }
-        // Electronics
-        if (category === 'electronics') {
-          return '- Electronics should be on stable, clean surfaces.\n- Consider realistic details like subtle cable hints or ventilation space.';
-        }
-        // Furniture
-        if (category === 'furniture') {
-          return '- Furniture should be properly grounded with realistic shadows.\n- Show the piece in a natural room context.';
-        }
-        // Fashion
-        if (category === 'fashion') {
-          return '- Fashion items benefit from lifestyle contexts or clean settings.\n- Consider natural fabric draping and texture details.';
-        }
-        // Sports & Outdoor
-        if (category === 'sports') {
-          return '- Sports equipment looks best in active or lifestyle contexts.\n- Outdoor and natural settings often work well.';
-        }
-        // Default
-        return '- Place the product in a context that highlights its function and appeal.';
-      };
-
-      const categoryGuidance = getCategoryGuidance(product.category, product.type);
+      const placementHint = placementMap[placement.vertical_position] || 'naturally';
 
       productContext = `
-**PRODUCT IDENTIFICATION:**
-This is a ${product.type_german}${product.brand && product.brand !== 'unknown' ? ` (${product.brand})` : ''}.
-
-**PLACEMENT LOGIC (VERY IMPORTANT):**
-A ${product.type_german} belongs ${placementHint}.
-${categoryGuidance}
+**PRODUCT:** ${product.type_german}${product.brand && product.brand !== 'unknown' ? ` (${product.brand})` : ''}
+**TYPICAL PLACEMENT:** ${placementHint}
 `;
-      console.log('Using product analysis:', product.type_german, 'category:', product.category, 'placement:', placement.vertical_position);
+      console.log('Product:', product.type_german, 'placement:', placement.vertical_position);
     }
 
     // Check for mock mode or missing API key
@@ -537,7 +492,7 @@ ${floorPlanNote}`;
         responseModalities: ["TEXT", "IMAGE"],
         imageConfig: {
           aspectRatio: aspectRatio,
-          imageSize: "2K", // 2K for faster generation and lower cost (can upgrade to 4K for production)
+          imageSize: imageSize, // 1K, 2K, or 4K - user selectable
         },
       },
     };
@@ -546,7 +501,7 @@ ${floorPlanNote}`;
     // Generate Scene (single pass, no feedback loop)
     // Feedback loop was removed: inconsistent results, doubles cost
     // =======================================================
-    console.log("Generating scene in 2K...");
+    console.log(`Generating scene in ${imageSize}...`);
 
     const response = await fetch(endpoint, {
       method: "POST",

@@ -122,6 +122,9 @@ interface ProductScenesState {
   // Aspect ratio
   aspectRatio: '1:1' | '4:3' | '16:9' | '9:16';
 
+  // Image resolution
+  imageSize: '1K' | '2K' | '4K';
+
   // Product scale adjustment (-2 to +2, 0 = default)
   productScaleLevel: number;
 
@@ -165,6 +168,9 @@ interface ProductScenesActions {
 
   // Aspect ratio
   setAspectRatio: (ratio: '1:1' | '4:3' | '16:9' | '9:16') => void;
+
+  // Image resolution
+  setImageSize: (size: '1K' | '2K' | '4K') => void;
 
   // Lens type
   setLensType: (lens: LensType) => void;
@@ -224,6 +230,7 @@ const initialState: ProductScenesState = {
   generatedScenes: [],
   activeSceneId: null,
   aspectRatio: '1:1',
+  imageSize: '2K',
   productScaleLevel: 0,
   compositing: defaultCompositingState,
 };
@@ -302,6 +309,9 @@ export const useProductScenesStore = create<ProductScenesState & ProductScenesAc
 
   // Aspect ratio
   setAspectRatio: (aspectRatio) => set({ aspectRatio }),
+
+  // Image resolution
+  setImageSize: (imageSize) => set({ imageSize }),
 
   // Lens type
   setLensType: (lensType) => set({ lensType }),

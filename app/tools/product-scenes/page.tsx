@@ -68,6 +68,8 @@ export default function ProductScenesPage() {
   const setActiveScene = useProductScenesStore((state) => state.setActiveScene);
   const aspectRatio = useProductScenesStore((state) => state.aspectRatio);
   const setAspectRatio = useProductScenesStore((state) => state.setAspectRatio);
+  const imageSize = useProductScenesStore((state) => state.imageSize);
+  const setImageSize = useProductScenesStore((state) => state.setImageSize);
   const productScaleLevel = useProductScenesStore((state) => state.productScaleLevel);
   const adjustProductScale = useProductScenesStore((state) => state.adjustProductScale);
   const lensType = useProductScenesStore((state) => state.lensType);
@@ -201,6 +203,7 @@ export default function ProductScenesPage() {
         productImages: Array<{ data: string; mimeType: string; label?: string }>;
         backgroundPrompt: string;
         aspectRatio: string;
+        imageSize: string;
         productScaleLevel: number;
         referenceImage?: { data: string; mimeType: string };
         productAnalysis?: ProductAnalysis;
@@ -215,6 +218,7 @@ export default function ProductScenesPage() {
         })),
         backgroundPrompt: backgroundPrompt.trim(),
         aspectRatio,
+        imageSize,
         productScaleLevel,
       };
 
@@ -286,7 +290,7 @@ export default function ProductScenesPage() {
     } finally {
       setIsGenerating(false);
     }
-  }, [productImages, backgroundPrompt, referenceImage, aspectRatio, productScaleLevel, productAnalysis, floorPlanImage, floorPlanLayout, setIsGenerating, setGenerationError, addGeneratedScene]);
+  }, [productImages, backgroundPrompt, referenceImage, aspectRatio, imageSize, productScaleLevel, productAnalysis, floorPlanImage, floorPlanLayout, setIsGenerating, setGenerationError, addGeneratedScene]);
 
   // ============================================
   // COMPOSITING MODE: Step 1 - Remove background
@@ -872,25 +876,53 @@ export default function ProductScenesPage() {
             </div>
           )}
 
-          {/* Aspect Ratio */}
-          <div className="pt-4 border-t border-zinc-800/50">
-            <h2 className="text-xs text-zinc-500 mb-3 uppercase tracking-wider">
-              Seitenverhältnis
-            </h2>
-            <div className="grid grid-cols-4 gap-1.5">
-              {(['1:1', '4:3', '16:9', '9:16'] as const).map((ratio) => (
-                <button
-                  key={ratio}
-                  onClick={() => setAspectRatio(ratio)}
-                  className={`px-2 py-2 rounded-lg text-xs font-medium transition-all
-                    ${aspectRatio === ratio
-                      ? 'bg-white/10 text-white border border-white/20'
-                      : 'bg-zinc-800/50 text-zinc-500 border border-zinc-700/50 hover:bg-zinc-700/50'
-                    }`}
-                >
-                  {ratio}
-                </button>
-              ))}
+          {/* Aspect Ratio & Resolution */}
+          <div className="pt-4 border-t border-zinc-800/50 space-y-4">
+            {/* Aspect Ratio */}
+            <div>
+              <h2 className="text-xs text-zinc-500 mb-2 uppercase tracking-wider">
+                Seitenverhältnis
+              </h2>
+              <div className="grid grid-cols-4 gap-1.5">
+                {(['1:1', '4:3', '16:9', '9:16'] as const).map((ratio) => (
+                  <button
+                    key={ratio}
+                    onClick={() => setAspectRatio(ratio)}
+                    className={`px-2 py-2 rounded-lg text-xs font-medium transition-all
+                      ${aspectRatio === ratio
+                        ? 'bg-white/10 text-white border border-white/20'
+                        : 'bg-zinc-800/50 text-zinc-500 border border-zinc-700/50 hover:bg-zinc-700/50'
+                      }`}
+                  >
+                    {ratio}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Resolution */}
+            <div>
+              <h2 className="text-xs text-zinc-500 mb-2 uppercase tracking-wider flex items-center gap-2">
+                Auflösung
+                <span className="text-[10px] text-zinc-600 font-normal normal-case">
+                  (1K = schnell/günstig, 4K = beste Qualität)
+                </span>
+              </h2>
+              <div className="grid grid-cols-3 gap-1.5">
+                {(['1K', '2K', '4K'] as const).map((size) => (
+                  <button
+                    key={size}
+                    onClick={() => setImageSize(size)}
+                    className={`px-3 py-2 rounded-lg text-xs font-medium transition-all
+                      ${imageSize === size
+                        ? 'bg-white/10 text-white border border-white/20'
+                        : 'bg-zinc-800/50 text-zinc-500 border border-zinc-700/50 hover:bg-zinc-700/50'
+                      }`}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
