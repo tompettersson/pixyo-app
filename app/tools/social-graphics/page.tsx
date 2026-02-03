@@ -709,19 +709,44 @@ export default function EditorPage() {
   const contentWidth =
     CANVAS_WIDTH - LAYOUT.padding.left - LAYOUT.padding.right;
 
+  // Calculate headline lines using actual text measurement
+  const measureTextLines = useCallback((text: string, fontSize: number, maxWidth: number): number => {
+    if (typeof window === 'undefined' || !text.trim()) return 1;
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return 1;
+
+    ctx.font = `bold ${fontSize}px Inter, sans-serif`;
+
+    // Split into words and simulate Konva's word wrap
+    const words = text.split(' ');
+    let lines = 1;
+    let currentLineWidth = 0;
+    const spaceWidth = ctx.measureText(' ').width;
+
+    for (const word of words) {
+      const wordWidth = ctx.measureText(word).width;
+
+      if (currentLineWidth + wordWidth > maxWidth && currentLineWidth > 0) {
+        lines++;
+        currentLineWidth = wordWidth + spaceWidth;
+      } else {
+        currentLineWidth += wordWidth + spaceWidth;
+      }
+    }
+
+    return lines;
+  }, []);
+
   // Calculate Y positions
   let yPos = 0;
   const taglineY = yPos;
   yPos += LAYOUT.taglineSize * 1.2 + LAYOUT.gapTaglineToHeadline;
   const headlineY = yPos;
-  const avgCharWidth = LAYOUT.headlineSize * 0.55;
-  const charsPerLine = Math.floor(contentWidth / avgCharWidth);
-  const estimatedHeadlineLines = Math.max(
-    1,
-    Math.ceil(content.headline.length / charsPerLine)
-  );
+  const headlineLines = measureTextLines(content.headline, LAYOUT.headlineSize, contentWidth);
   const headlineHeight =
-    estimatedHeadlineLines * LAYOUT.headlineSize * LAYOUT.headlineLineHeight;
+    headlineLines * LAYOUT.headlineSize * LAYOUT.headlineLineHeight;
   yPos += headlineHeight + LAYOUT.gapHeadlineToBody;
   const bodyY = yPos;
   const hasBody = content.body.trim().length > 0;
