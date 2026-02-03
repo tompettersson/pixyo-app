@@ -403,6 +403,7 @@ ${product.type === 'bookshelf_speaker' ? '- Bookshelf speakers go on shelves, st
       : "";
 
     // Floor plan context - 2D room layout for precise positioning
+    // Prefer image + description, but text-only also works as fallback
     const floorPlanNote = floorPlanImage && floorPlanDescription
       ? `\n**Room Layout Reference (IMPORTANT):**
 A floor plan image is provided showing the room layout from above (bird's eye view).
@@ -415,7 +416,12 @@ Use this floor plan to understand:
 - Window/door positions for natural lighting direction
 
 Render the scene as if viewing from a natural camera position that matches this layout. The floor plan shows the TOP-DOWN view - translate this to a natural eye-level or slightly elevated perspective photograph while maintaining the relative positions of all elements.`
-      : "";
+      : floorPlanDescription
+        ? `\n**Room Layout Description:**
+${floorPlanDescription}
+
+Use this description to understand the room layout and position the product accordingly.`
+        : "";
 
     // Get multi-view prompt blocks if multiple images provided
     const multiViewBlock = getMultiViewPromptBlock(normalizedImages, productAnalysis?.product?.type_german);
@@ -499,8 +505,17 @@ ${floorPlanNote}`;
       console.log("Added reference image to request");
     }
 
-    // Floor plan: Only using text description (image was too large for API limits)
-    // The floorPlanDescription is already included in the prompt via floorPlanNote
+    // Add floor plan image if provided (now works because product images are compressed)
+    // The text description is already in the prompt via floorPlanNote
+    if (floorPlanImage) {
+      parts.push({
+        inline_data: {
+          mime_type: floorPlanImage.mimeType,
+          data: floorPlanImage.data,
+        },
+      });
+      console.log("Added floor plan image to request");
+    }
 
     // Build the request with images
     const requestBody = {

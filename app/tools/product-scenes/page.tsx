@@ -230,9 +230,17 @@ export default function ProductScenesPage() {
         };
       }
 
-      // Include floor plan layout description (text only - image was too large for API)
-      // The text description contains room dimensions, furniture, camera position
-      if (floorPlanLayout) {
+      // Include floor plan for room layout reference
+      // Now that product images are compressed, there's room for the floor plan
+      if (floorPlanImage && floorPlanLayout) {
+        requestBody.floorPlanImage = {
+          data: floorPlanImage.split(',')[1], // Remove data URL prefix
+          mimeType: 'image/jpeg',
+        };
+        requestBody.floorPlanDescription = floorPlanLayout;
+        console.log('Including floor plan image + description');
+      } else if (floorPlanLayout) {
+        // Fallback: text description only
         requestBody.floorPlanDescription = floorPlanLayout;
         console.log('Including floor plan description (text only)');
       }

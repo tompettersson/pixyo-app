@@ -3,6 +3,93 @@
 import { useCallback, useRef, useState } from 'react';
 import { useProductScenesStore, type ProductImage, type ProductViewSlot, PRODUCT_VIEW_LABELS } from '@/store/useProductScenesStore';
 
+// =============================================================================
+// IMAGE COMPRESSION UTILITIES
+// Resize images to max 4K (3840px) and compress with JPEG quality 75%
+// This keeps high resolution for product details while reducing file size
+// from ~3-5MB to ~500KB-1MB per image
+// =============================================================================
+
+const MAX_DIMENSION = 3840; // 4K resolution limit
+const JPEG_QUALITY = 0.75; // 75% quality - good balance between size and quality
+
+/**
+ * Compress and optionally resize an image
+ * - Preserves aspect ratio
+ * - Max dimension: 3840px (4K)
+ * - JPEG output at 75% quality (for non-transparent images)
+ * - PNG output preserved for transparent images (compositing mode)
+ */
+function compressImage(
+  file: File,
+  preserveTransparency: boolean
+): Promise<{ data: string; mimeType: string; previewUrl: string }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const originalUrl = URL.createObjectURL(file);
+
+    img.onload = () => {
+      // Calculate new dimensions (max 4K, preserve aspect ratio)
+      let { width, height } = img;
+
+      if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+        if (width > height) {
+          height = Math.round((height / width) * MAX_DIMENSION);
+          width = MAX_DIMENSION;
+        } else {
+          width = Math.round((width / height) * MAX_DIMENSION);
+          height = MAX_DIMENSION;
+        }
+      }
+
+      // Create canvas for compression
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+
+      if (!ctx) {
+        URL.revokeObjectURL(originalUrl);
+        reject(new Error('Could not get canvas context'));
+        return;
+      }
+
+      // Draw image to canvas
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Determine output format
+      // For compositing mode (transparency), keep PNG
+      // For oneshot/floorplan mode, use JPEG for smaller size
+      const outputMimeType = preserveTransparency ? 'image/png' : 'image/jpeg';
+      const quality = preserveTransparency ? undefined : JPEG_QUALITY;
+
+      // Export compressed image
+      const compressedDataUrl = canvas.toDataURL(outputMimeType, quality);
+      const base64Data = compressedDataUrl.split(',')[1];
+
+      // Log compression stats
+      const originalSize = file.size;
+      const compressedSize = Math.round((base64Data.length * 3) / 4); // Approximate decoded size
+      console.log(`Image compressed: ${Math.round(originalSize/1024)}KB → ${Math.round(compressedSize/1024)}KB (${width}×${height})`);
+
+      URL.revokeObjectURL(originalUrl);
+
+      resolve({
+        data: base64Data,
+        mimeType: outputMimeType,
+        previewUrl: compressedDataUrl, // Use compressed for preview too (saves memory)
+      });
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(originalUrl);
+      reject(new Error('Failed to load image'));
+    };
+
+    img.src = originalUrl;
+  });
+}
+
 interface SlotUploadProps {
   slot: ProductViewSlot;
   image: ProductImage | null;
@@ -19,7 +106,7 @@ function SlotUpload({ slot, image, isCompositingMode, onUpload, onClear, disable
   const label = PRODUCT_VIEW_LABELS[slot];
   const isPrimary = slot === 0;
 
-  const processFile = useCallback((file: File) => {
+  const processFile = useCallback(async (file: File) => {
     // In compositing mode, only PNG or WebP allowed (for transparency)
     if (isCompositingMode) {
       if (file.type !== 'image/png' && file.type !== 'image/webp') {
@@ -32,25 +119,25 @@ function SlotUpload({ slot, image, isCompositingMode, onUpload, onClear, disable
       }
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      return; // Max 10MB
+    if (file.size > 20 * 1024 * 1024) {
+      return; // Max 20MB input (will be compressed)
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const base64Full = e.target?.result as string;
-      const base64Data = base64Full.split(',')[1];
+    try {
+      // Compress image: max 4K resolution, JPEG 75% (or PNG for transparency)
+      const compressed = await compressImage(file, isCompositingMode);
 
       const productImage: ProductImage = {
-        data: base64Data,
-        mimeType: file.type,
-        previewUrl: base64Full,
+        data: compressed.data,
+        mimeType: compressed.mimeType,
+        previewUrl: compressed.previewUrl,
         label: label,
       };
 
       onUpload(slot, productImage);
-    };
-    reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Failed to process image:', error);
+    }
   }, [slot, label, isCompositingMode, onUpload]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
