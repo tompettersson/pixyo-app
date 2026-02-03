@@ -756,14 +756,37 @@ export default function ProductScenesPage() {
                   </svg>
                   <span className="text-xs text-blue-400 font-medium">Layout bereit für KI</span>
                 </div>
-                <p className="text-xs text-zinc-400 whitespace-pre-line line-clamp-4">{floorPlanLayout}</p>
+
+                {/* Floor Plan Image Thumbnail */}
+                <div className="mb-3 rounded-lg overflow-hidden border border-zinc-700/50 bg-zinc-900">
+                  <img
+                    src={floorPlanImage}
+                    alt="Raumplaner Layout"
+                    className="w-full h-auto"
+                  />
+                </div>
+
+                {/* Text Description (collapsible) */}
+                <details className="group">
+                  <summary className="text-xs text-zinc-500 cursor-pointer hover:text-zinc-400 flex items-center gap-1">
+                    <svg className="w-3 h-3 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                    Textbeschreibung anzeigen
+                  </summary>
+                  <p className="mt-2 text-xs text-zinc-400 whitespace-pre-line bg-zinc-800/50 p-2 rounded">{floorPlanLayout}</p>
+                </details>
+
                 <button
                   onClick={() => {
                     setFloorPlanImage(null);
                     setFloorPlanLayout('');
                   }}
-                  className="mt-2 text-xs text-zinc-500 hover:text-red-400 transition-colors"
+                  className="mt-3 text-xs text-zinc-500 hover:text-red-400 transition-colors flex items-center gap-1"
                 >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                   Layout entfernen
                 </button>
               </div>
