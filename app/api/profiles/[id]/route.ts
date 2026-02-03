@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stackServerApp } from '@/lib/stack';
 import { prisma } from '@/lib/db';
+import { Prisma } from '@/lib/generated/prisma/client';
 import { z } from 'zod';
 
 // Schema for profile update (all fields optional)
 const profileUpdateSchema = z.object({
   name: z.string().min(1).optional(),
   logo: z.string().url().optional(),
+  logoVariants: z.object({
+    dark: z.string().url(),
+    light: z.string().url(),
+  }).nullable().optional(),
   colors: z.object({
     dark: z.string(),
     light: z.string(),
@@ -101,9 +106,22 @@ export async function PATCH(
     const body = await request.json();
     const validatedData = profileUpdateSchema.parse(body);
 
+    // Build update data, converting null to Prisma.JsonNull for JSON fields
+    const updateData: Prisma.ProfileUpdateInput = {
+      ...(validatedData.name !== undefined && { name: validatedData.name }),
+      ...(validatedData.logo !== undefined && { logo: validatedData.logo }),
+      ...(validatedData.logoVariants !== undefined && {
+        logoVariants: validatedData.logoVariants === null ? Prisma.JsonNull : validatedData.logoVariants,
+      }),
+      ...(validatedData.colors !== undefined && { colors: validatedData.colors }),
+      ...(validatedData.fonts !== undefined && { fonts: validatedData.fonts }),
+      ...(validatedData.layout !== undefined && { layout: validatedData.layout }),
+      ...(validatedData.systemPrompt !== undefined && { systemPrompt: validatedData.systemPrompt }),
+    };
+
     const profile = await prisma.profile.update({
       where: { id },
-      data: validatedData,
+      data: updateData,
     });
 
     return NextResponse.json({ profile });
