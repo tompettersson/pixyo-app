@@ -791,9 +791,9 @@ export default function EditorPage() {
       />
 
       {/* Main Editor Area */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden relative z-10">
         {/* Left Panel - Image Generation */}
-        <aside className="w-80 bg-zinc-900 border-r border-zinc-800/50 p-4 pt-6 space-y-4 overflow-y-auto relative z-10">
+        <aside className="w-80 bg-zinc-900 border-r border-zinc-800/50 p-4 pt-6 space-y-4 overflow-y-auto relative z-20">
         <div className="flex items-center justify-between gap-3 pb-3 border-b border-zinc-800/50">
           <span className="text-xs text-zinc-500 uppercase tracking-wider">Kunde</span>
           <div className="flex items-center gap-1">
@@ -1264,7 +1264,7 @@ export default function EditorPage() {
       </div>
 
       {/* Right Panel - Content & Overlay Controls */}
-      <aside className="w-80 bg-zinc-900 border-l border-zinc-800/50 p-4 space-y-4 overflow-y-auto overflow-x-hidden relative z-10">
+      <aside className="w-80 bg-zinc-900 border-l border-zinc-800/50 p-4 space-y-4 overflow-y-auto overflow-x-hidden relative z-20">
         {/* Overlay Controls */}
         <div>
           <h3 className="text-xs text-zinc-500 mb-3 uppercase tracking-wider">
