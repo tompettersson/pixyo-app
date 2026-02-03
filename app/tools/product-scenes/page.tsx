@@ -902,27 +902,32 @@ export default function ProductScenesPage() {
 
             {/* Resolution */}
             <div>
-              <h2 className="text-xs text-zinc-500 mb-2 uppercase tracking-wider flex items-center gap-2">
+              <h2 className="text-xs text-zinc-500 mb-2 uppercase tracking-wider">
                 Auflösung
-                <span className="text-[10px] text-zinc-600 font-normal normal-case">
-                  (1K = schnell/günstig, 4K = beste Qualität)
-                </span>
               </h2>
               <div className="grid grid-cols-3 gap-1.5">
-                {(['1K', '2K', '4K'] as const).map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setImageSize(size)}
-                    className={`px-3 py-2 rounded-lg text-xs font-medium transition-all
-                      ${imageSize === size
-                        ? 'bg-white/10 text-white border border-white/20'
-                        : 'bg-zinc-800/50 text-zinc-500 border border-zinc-700/50 hover:bg-zinc-700/50'
-                      }`}
-                  >
-                    {size}
-                  </button>
-                ))}
+                {(['1K', '2K', '4K'] as const).map((size) => {
+                  // Estimated cost per generation (rough Gemini pricing)
+                  const costMap = { '1K': '~$0.02', '2K': '~$0.04', '4K': '~$0.08' };
+                  return (
+                    <button
+                      key={size}
+                      onClick={() => setImageSize(size)}
+                      className={`px-3 py-2 rounded-lg text-xs font-medium transition-all flex flex-col items-center
+                        ${imageSize === size
+                          ? 'bg-white/10 text-white border border-white/20'
+                          : 'bg-zinc-800/50 text-zinc-500 border border-zinc-700/50 hover:bg-zinc-700/50'
+                        }`}
+                    >
+                      <span>{size}</span>
+                      <span className="text-[9px] opacity-60">{costMap[size]}</span>
+                    </button>
+                  );
+                })}
               </div>
+              <p className="text-[10px] text-zinc-600 mt-1.5 text-center">
+                Geschätzte Kosten pro Generierung
+              </p>
             </div>
           </div>
 
