@@ -32,7 +32,7 @@ export function describeCameraPosition(camera: CameraPosition, roomWidth: number
 }
 
 export type SpeakerType = 'floor-speaker' | 'subwoofer' | 'center-speaker' | 'bookshelf-speaker';
-export type FurnitureType = 'lowboard' | 'sideboard' | 'couch' | 'armchair' | 'coffee-table' | 'dining-table' | 'floor-lamp';
+export type FurnitureType = 'lowboard' | 'lowboard-tv' | 'sideboard' | 'couch' | 'armchair' | 'coffee-table' | 'dining-table' | 'floor-lamp';
 export type DecorType = 'plant-large' | 'plant-small' | 'wall-art' | 'rug';
 export type ArchitectureType = 'window' | 'door';
 
@@ -84,6 +84,7 @@ export const ELEMENT_TEMPLATES: ElementTemplate[] = [
 
   // Furniture
   { category: 'furniture', subType: 'lowboard', label: 'TV Stand', labelDe: 'Lowboard', icon: '📺', color: '#78716c', defaultWidth: 1.8, defaultHeight: 0.45 },
+  { category: 'furniture', subType: 'lowboard-tv', label: 'TV Stand + TV', labelDe: 'Lowboard + TV', icon: '📺', color: '#78716c', defaultWidth: 1.8, defaultHeight: 0.45 },
   { category: 'furniture', subType: 'sideboard', label: 'Sideboard', labelDe: 'Sideboard', icon: '🗄️', color: '#a8a29e', defaultWidth: 1.5, defaultHeight: 0.4 },
   { category: 'furniture', subType: 'couch', label: 'Couch', labelDe: 'Couch', icon: '🛋️', color: '#57534e', defaultWidth: 2.2, defaultHeight: 0.9 },
   { category: 'furniture', subType: 'armchair', label: 'Armchair', labelDe: 'Sessel', icon: '🪑', color: '#44403c', defaultWidth: 0.8, defaultHeight: 0.8 },
