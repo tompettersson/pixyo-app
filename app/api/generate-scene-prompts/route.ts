@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import Anthropic from "@anthropic-ai/sdk";
 import { getServerEnv } from "@/lib/env";
+import { requireAuthForRoute } from "@/lib/permissions";
+import { logUsage } from "@/lib/usage";
+import { AI_COSTS_EUR, AI_MODELS } from "@/lib/costs";
 import type { ApiError } from "@/types/api";
 
 // Request validation schema
@@ -59,6 +62,10 @@ Return exactly 3 prompts as JSON:
 
 export async function POST(request: NextRequest) {
   try {
+    // Auth + tool permission check
+    const auth = await requireAuthForRoute("generate-scene-prompts");
+    if (auth.error) return auth.error;
+
     const body = await request.json();
     const validationResult = requestSchema.safeParse(body);
 
@@ -136,6 +143,15 @@ Stay true to the user's vision but vary the lighting, materials, time of day, or
 
     const parsed = JSON.parse(jsonMatch[0]);
     const validated = generatedPromptsSchema.parse(parsed);
+
+    // Log usage (fire-and-forget)
+    logUsage({
+      userId: auth.user.id,
+      userEmail: auth.user.primaryEmail ?? "unknown",
+      operation: "generate-scene-prompts",
+      costEur: AI_COSTS_EUR["generate-scene-prompts"],
+      model: AI_MODELS["generate-scene-prompts"],
+    });
 
     return NextResponse.json(validated);
   } catch (error) {

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { generateImage } from "@/lib/ai/gemini";
+import { requireAuthForRoute } from "@/lib/permissions";
+import { logUsage } from "@/lib/usage";
+import { AI_COSTS_EUR, AI_MODELS } from "@/lib/costs";
 import type { GenerateImageRequest, ApiError } from "@/types/api";
 
 // Request validation schema
@@ -20,6 +23,10 @@ const requestSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    // Auth + tool permission check
+    const auth = await requireAuthForRoute("generate-image");
+    if (auth.error) return auth.error;
+
     // Parse and validate request body
     const body = await request.json();
     const validationResult = requestSchema.safeParse(body);
@@ -37,6 +44,15 @@ export async function POST(request: NextRequest) {
 
     // Generate image using Gemini
     const response = await generateImage(imageRequest);
+
+    // Log usage (fire-and-forget)
+    logUsage({
+      userId: auth.user.id,
+      userEmail: auth.user.primaryEmail ?? "unknown",
+      operation: "generate-image",
+      costEur: AI_COSTS_EUR["generate-image"],
+      model: AI_MODELS["generate-image"],
+    });
 
     return NextResponse.json(response);
   } catch (error) {

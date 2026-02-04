@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import Anthropic from '@anthropic-ai/sdk';
 import { getServerEnv } from '@/lib/env';
+import { requireAuthForRoute } from '@/lib/permissions';
+import { logUsage } from '@/lib/usage';
+import { AI_COSTS_EUR, AI_MODELS } from '@/lib/costs';
 
 // Request validation schema
 const requestSchema = z.object({
@@ -54,6 +57,10 @@ function getMockResponse(prompt: string): GeneratedText {
 
 export async function POST(request: NextRequest) {
   try {
+    // Auth + tool permission check
+    const auth = await requireAuthForRoute('generate-text');
+    if (auth.error) return auth.error;
+
     // Parse and validate request body
     const body = await request.json();
     const validationResult = requestSchema.safeParse(body);
@@ -122,6 +129,15 @@ Generiere jetzt die Texte als JSON.`;
       if (!parsedResponse.tagline || !parsedResponse.headline || !parsedResponse.body) {
         throw new Error('Missing required fields in response');
       }
+
+      // Log usage (fire-and-forget)
+      logUsage({
+        userId: auth.user.id,
+        userEmail: auth.user.primaryEmail ?? 'unknown',
+        operation: 'generate-text',
+        costEur: AI_COSTS_EUR['generate-text'],
+        model: AI_MODELS['generate-text'],
+      });
 
       return NextResponse.json(parsedResponse);
     } catch (parseError) {

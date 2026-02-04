@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { requireAuthForRoute } from "@/lib/permissions";
 import type { ApiError } from "@/types/api";
 
 /**
@@ -35,6 +36,10 @@ function isVertexAIConfigured(): boolean {
 
 export async function POST(request: NextRequest) {
   try {
+    // Auth + tool permission check
+    const auth = await requireAuthForRoute("generate-product-scene-vertex");
+    if (auth.error) return auth.error;
+
     // Parse request
     const body = await request.json();
     const validationResult = requestSchema.safeParse(body);

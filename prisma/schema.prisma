@@ -56,6 +56,21 @@ model Asset {
   @@index([profileId])
 }
 
+model UsageLog {
+  id        String   @id @default(cuid())
+  userId    String   // Stack Auth user ID
+  userEmail String   // For display in admin dashboard
+  operation String   // "generate-product-scene", "generate-image", etc.
+  costEur   Float    // EUR cost estimate
+  model     String   // "gemini-3-pro-image", "claude-sonnet-4", etc.
+  meta      Json?    // Additional metadata
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([userId, createdAt])
+}
+
 model Design {
   id             String   @id @default(cuid())
   profileId      String

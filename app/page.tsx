@@ -1,4 +1,5 @@
 import { stackServerApp } from "@/lib/stack";
+import { hasToolAccess, isAdmin, type ToolId, type UserServerMetadata } from "@/lib/permissions";
 import Link from 'next/link';
 
 // Tool card component for the dashboard
@@ -42,12 +43,64 @@ export default async function Home() {
 
   // Logged-in users see the tool selection dashboard
   if (user) {
+    const serverMetadata = user.serverMetadata as UserServerMetadata | null;
+    const userIsAdmin = isAdmin(serverMetadata);
+
+    // Define all tools with their permissions
+    const allTools: Array<{
+      id: ToolId;
+      href: string;
+      title: string;
+      description: string;
+      badge?: string;
+      icon: React.ReactNode;
+    }> = [
+      {
+        id: "social-graphics",
+        href: "/tools/social-graphics",
+        title: "Social Graphics",
+        description: "Erstelle professionelle Grafiken für Instagram, LinkedIn und mehr mit KI-generierten Bildern und Text-Overlays.",
+        icon: (
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        ),
+      },
+      {
+        id: "product-scenes",
+        href: "/tools/product-scenes",
+        title: "Product Scenes",
+        description: "Platziere deine Produktfotos in neuen Szenen. Der weiße Hintergrund wird durch eine KI-generierte Umgebung ersetzt.",
+        badge: "Neu",
+        icon: (
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+        ),
+      },
+    ];
+
+    // Filter tools based on user permissions
+    const visibleTools = allTools.filter((tool) =>
+      hasToolAccess(serverMetadata, tool.id)
+    );
+
     return (
       <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col">
         {/* Header */}
         <header className="px-6 py-4 flex items-center justify-between border-b border-zinc-800/50">
           <img src="/logos/pixyo.svg" alt="Pixyo" className="h-8" />
           <div className="flex items-center gap-4">
+            {userIsAdmin && (
+              <Link
+                href="/usage"
+                className="px-3 py-1.5 text-sm text-zinc-400 hover:text-white transition-colors"
+              >
+                Verbrauch
+              </Link>
+            )}
             <span className="text-sm text-zinc-400">{user.primaryEmail}</span>
             <Link
               href="/handler/sign-out"
@@ -66,33 +119,17 @@ export default async function Home() {
               <p className="text-zinc-400">Wähle ein Tool, um zu starten</p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4">
-              {/* Social Graphics Tool */}
-              <ToolCard
-                href="/tools/social-graphics"
-                title="Social Graphics"
-                description="Erstelle professionelle Grafiken für Instagram, LinkedIn und mehr mit KI-generierten Bildern und Text-Overlays."
-                icon={
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                }
-              />
-
-              {/* Product Scenes Tool */}
-              <ToolCard
-                href="/tools/product-scenes"
-                title="Product Scenes"
-                description="Platziere deine Produktfotos in neuen Szenen. Der weiße Hintergrund wird durch eine KI-generierte Umgebung ersetzt."
-                badge="Neu"
-                icon={
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                          d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                  </svg>
-                }
-              />
+            <div className={`grid gap-4 ${visibleTools.length > 1 ? 'md:grid-cols-2' : 'max-w-md mx-auto'}`}>
+              {visibleTools.map((tool) => (
+                <ToolCard
+                  key={tool.id}
+                  href={tool.href}
+                  title={tool.title}
+                  description={tool.description}
+                  badge={tool.badge}
+                  icon={tool.icon}
+                />
+              ))}
             </div>
           </div>
         </main>

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { GoogleGenAI, PersonGeneration } from "@google/genai";
 import { getServerEnv } from "@/lib/env";
+import { requireAuthForRoute } from "@/lib/permissions";
+import { logUsage } from "@/lib/usage";
+import { AI_COSTS_EUR, AI_MODELS } from "@/lib/costs";
 import type { ApiError } from "@/types/api";
 
 // Product Analysis schema (simplified)
@@ -253,6 +256,10 @@ function extractImageFromResponse(result: Record<string, unknown>): { data: stri
 
 export async function POST(request: NextRequest) {
   try {
+    // Auth + tool permission check
+    const auth = await requireAuthForRoute("generate-product-scene");
+    if (auth.error) return auth.error;
+
     // Parse and validate request body
     const body = await request.json();
     const validationResult = requestSchema.safeParse(body);
@@ -332,6 +339,16 @@ export async function POST(request: NextRequest) {
           aspectRatio
         );
         console.log(`Successfully generated with ${result.model}`);
+
+        // Log usage for Vertex AI path
+        logUsage({
+          userId: auth.user.id,
+          userEmail: auth.user.primaryEmail ?? "unknown",
+          operation: "generate-product-scene",
+          costEur: AI_COSTS_EUR["generate-product-scene-vertex"],
+          model: result.model,
+        });
+
         return NextResponse.json({
           image: result.image,
           prompt: result.prompt,
@@ -529,6 +546,15 @@ ${floorPlanNote}`;
 
     const finalImageUrl = `data:${generatedImage.mimeType};base64,${generatedImage.data}`;
     console.log("Scene generated successfully");
+
+    // Log usage (fire-and-forget)
+    logUsage({
+      userId: auth.user.id,
+      userEmail: auth.user.primaryEmail ?? "unknown",
+      operation: "generate-product-scene",
+      costEur: AI_COSTS_EUR["generate-product-scene"],
+      model: AI_MODELS["generate-product-scene"],
+    });
 
     return NextResponse.json({
       image: { url: finalImageUrl },

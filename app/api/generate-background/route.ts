@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getServerEnv } from "@/lib/env";
+import { requireAuthForRoute } from "@/lib/permissions";
+import { logUsage } from "@/lib/usage";
+import { AI_COSTS_EUR, AI_MODELS } from "@/lib/costs";
 import type { ApiError } from "@/types/api";
 
 // Product Analysis schema (from analyze-product API) - SIMPLIFIED
@@ -121,6 +124,10 @@ function getMockResponse(): { image: { url: string }; prompt: string } {
 
 export async function POST(request: NextRequest) {
   try {
+    // Auth + tool permission check
+    const auth = await requireAuthForRoute("generate-background");
+    if (auth.error) return auth.error;
+
     // Parse and validate request body
     const body = await request.json();
     const validationResult = requestSchema.safeParse(body);
@@ -354,6 +361,15 @@ Do NOT include any product placeholder - just the environment.`;
       }
       throw new Error("Keine Bilddaten in der Antwort erhalten");
     }
+
+    // Log usage (fire-and-forget)
+    logUsage({
+      userId: auth.user.id,
+      userEmail: auth.user.primaryEmail ?? "unknown",
+      operation: "generate-background",
+      costEur: AI_COSTS_EUR["generate-background"],
+      model: AI_MODELS["generate-background"],
+    });
 
     return NextResponse.json({
       image: { url: imageUrl },

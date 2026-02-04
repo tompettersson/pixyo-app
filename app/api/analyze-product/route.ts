@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getServerEnv } from "@/lib/env";
+import { requireAuthForRoute } from "@/lib/permissions";
+import { logUsage } from "@/lib/usage";
+import { AI_COSTS_EUR, AI_MODELS } from "@/lib/costs";
 import type { ApiError } from "@/types/api";
 
 // Request validation schema
@@ -131,6 +134,10 @@ function getMockAnalysis(): ProductAnalysis {
 
 export async function POST(request: NextRequest) {
   try {
+    // Auth + tool permission check
+    const auth = await requireAuthForRoute("analyze-product");
+    if (auth.error) return auth.error;
+
     // Parse and validate request body
     const body = await request.json();
     const validationResult = requestSchema.safeParse(body);
@@ -243,6 +250,15 @@ export async function POST(request: NextRequest) {
     }
 
     console.log("Product analysis complete:", analysis.product.type_german);
+
+    // Log usage (fire-and-forget)
+    logUsage({
+      userId: auth.user.id,
+      userEmail: auth.user.primaryEmail ?? "unknown",
+      operation: "analyze-product",
+      costEur: AI_COSTS_EUR["analyze-product"],
+      model: AI_MODELS["analyze-product"],
+    });
 
     return NextResponse.json({ analysis });
   } catch (error) {
