@@ -55,8 +55,8 @@ const ceraPro = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Pixyo - AI Social Image Generator",
-  description: "Create stunning social media images with AI-powered generation and a powerful editor",
+  title: "Pixyo - KI-Kreativtools für deine Marke",
+  description: "Erstelle professionelle Social Media Grafiken und Produktszenen mit KI. Pixyo kombiniert intelligente Bildgenerierung mit einem intuitiven Editor.",
 };
 
 export default function RootLayout({

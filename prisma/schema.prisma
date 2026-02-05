@@ -95,3 +95,12 @@ model Design {
 
   @@index([profileId])
 }
+
+model WaitlistEntry {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  source    String   @default("landing") // "hero" | "footer" | "landing"
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
