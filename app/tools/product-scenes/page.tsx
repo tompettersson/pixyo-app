@@ -500,27 +500,64 @@ export default function ProductScenesPage() {
     }
   }, [aspectRatio, backgroundPrompt, addGeneratedScene, setGenerationError]);
 
-  // Export function
-  const handleExport = useCallback((format: 'jpeg' | 'png') => {
+  // Export function with format conversion and JPEG quality options
+  const handleExport = useCallback((format: 'png' | 'jpeg-75' | 'jpeg-50') => {
     if (!activeScene) return;
+    setExportDropdownOpen(false);
 
-    const link = document.createElement('a');
-    link.download = `product-scene.${format === 'jpeg' ? 'jpg' : 'png'}`;
+    const isPng = format === 'png';
+    const extension = isPng ? 'png' : 'jpg';
+    const mimeType = isPng ? 'image/png' : 'image/jpeg';
+    const quality = format === 'jpeg-75' ? 0.75 : format === 'jpeg-50' ? 0.50 : 1;
 
-    if (activeScene.url.startsWith('data:')) {
-      link.href = activeScene.url;
-      link.click();
-    } else {
-      fetch(activeScene.url)
-        .then((res) => res.blob())
-        .then((blob) => {
+    // For PNG, download the original without re-encoding
+    if (isPng) {
+      const link = document.createElement('a');
+      link.download = `product-scene.${extension}`;
+      if (activeScene.url.startsWith('data:')) {
+        link.href = activeScene.url;
+        link.click();
+      } else {
+        fetch(activeScene.url)
+          .then((res) => res.blob())
+          .then((blob) => {
+            link.href = URL.createObjectURL(blob);
+            link.click();
+            URL.revokeObjectURL(link.href);
+          });
+      }
+      return;
+    }
+
+    // For JPEG, convert via canvas for proper compression
+    const img = new window.Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      // JPEG doesn't support transparency - fill white background
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) return;
+          const link = document.createElement('a');
+          link.download = `product-scene.${extension}`;
           link.href = URL.createObjectURL(blob);
           link.click();
           URL.revokeObjectURL(link.href);
-        });
-    }
-
-    setExportDropdownOpen(false);
+        },
+        mimeType,
+        quality,
+      );
+    };
+    img.src = activeScene.url;
   }, [activeScene]);
 
   // Save to asset library
@@ -1310,7 +1347,7 @@ export default function ProductScenesPage() {
                 <div className="flex">
                   <button onClick={() => handleExport('png')}
                     className="flex-1 px-4 py-2.5 rounded-l-lg bg-white text-zinc-900 font-medium text-sm hover:bg-zinc-100">
-                    Download
+                    Download PNG
                   </button>
                   <button onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
                     className="px-3 py-2.5 rounded-r-lg bg-white text-zinc-900 border-l border-zinc-200 hover:bg-zinc-100">
@@ -1323,8 +1360,18 @@ export default function ProductScenesPage() {
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setExportDropdownOpen(false)} />
                     <div className="absolute bottom-full left-0 right-0 mb-1 bg-zinc-800 rounded-lg border border-zinc-700 overflow-hidden shadow-xl z-50">
-                      <button onClick={() => handleExport('png')} className="w-full px-4 py-2.5 text-left text-sm text-zinc-100 hover:bg-zinc-700">PNG</button>
-                      <button onClick={() => handleExport('jpeg')} className="w-full px-4 py-2.5 text-left text-sm text-zinc-100 hover:bg-zinc-700 border-t border-zinc-700">JPEG</button>
+                      <button onClick={() => handleExport('png')} className="w-full px-4 py-2.5 text-left text-sm hover:bg-zinc-700 flex items-center justify-between">
+                        <span className="text-zinc-100">PNG</span>
+                        <span className="text-[10px] text-zinc-500">Beste Qualität</span>
+                      </button>
+                      <button onClick={() => handleExport('jpeg-75')} className="w-full px-4 py-2.5 text-left text-sm hover:bg-zinc-700 border-t border-zinc-700 flex items-center justify-between">
+                        <span className="text-zinc-100">JPEG 75%</span>
+                        <span className="text-[10px] text-zinc-500">Shop-optimiert</span>
+                      </button>
+                      <button onClick={() => handleExport('jpeg-50')} className="w-full px-4 py-2.5 text-left text-sm hover:bg-zinc-700 border-t border-zinc-700 flex items-center justify-between">
+                        <span className="text-zinc-100">JPEG 50%</span>
+                        <span className="text-[10px] text-zinc-500">Kleinste Datei</span>
+                      </button>
                     </div>
                   </>
                 )}
