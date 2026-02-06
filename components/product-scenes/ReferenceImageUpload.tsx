@@ -82,21 +82,21 @@ export function ReferenceImageUpload() {
 
   if (referenceImage) {
     return (
-      <div className="relative">
-        <div className="aspect-video rounded-lg bg-zinc-800/50 border border-zinc-700/50 overflow-hidden">
+      <div className="flex items-center gap-2 p-1.5 rounded-lg bg-zinc-800/50 border border-zinc-700/50">
+        <div className="w-10 h-10 rounded-md overflow-hidden flex-shrink-0">
           <img
             src={referenceImage.previewUrl}
             alt="Referenzbild"
             className="w-full h-full object-cover"
           />
         </div>
+        <span className="text-xs text-zinc-400 flex-1 truncate">Referenzbild geladen</span>
         <button
           onClick={handleClear}
-          className="absolute top-2 right-2 p-1.5 rounded-lg bg-zinc-900/90 backdrop-blur text-zinc-400
-                     hover:text-white hover:bg-zinc-800 transition-colors"
+          className="p-1 rounded-md text-zinc-500 hover:text-white hover:bg-zinc-700 transition-colors flex-shrink-0"
           title="Referenzbild entfernen"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -118,27 +118,20 @@ export function ReferenceImageUpload() {
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        className={`w-full aspect-video rounded-lg border-2 border-dashed transition-all
-                    flex flex-col items-center justify-center gap-2 cursor-pointer
+        className={`w-full h-10 rounded-lg border-2 border-dashed transition-all
+                    flex items-center justify-center gap-2 cursor-pointer
                     ${isDragOver
                       ? 'border-emerald-500 bg-emerald-500/10'
                       : 'border-zinc-700/50 bg-zinc-800/30 hover:border-zinc-600 hover:bg-zinc-800/50'
                     }`}
       >
-        <div className={`p-3 rounded-full transition-colors ${isDragOver ? 'bg-emerald-500/20' : 'bg-zinc-800'}`}>
-          <svg className={`w-6 h-6 ${isDragOver ? 'text-emerald-400' : 'text-zinc-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                  d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-          </svg>
-        </div>
-        <div className="text-center">
-          <p className={`text-xs font-medium ${isDragOver ? 'text-emerald-300' : 'text-zinc-400'}`}>
-            {isDragOver ? 'Bild hier ablegen' : 'Referenzbild hochladen'}
-          </p>
-          <p className="text-[10px] text-zinc-600 mt-0.5">
-            Optional
-          </p>
-        </div>
+        <svg className={`w-4 h-4 ${isDragOver ? 'text-emerald-400' : 'text-zinc-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+        </svg>
+        <span className={`text-xs font-medium ${isDragOver ? 'text-emerald-300' : 'text-zinc-400'}`}>
+          {isDragOver ? 'Ablegen' : 'Referenzbild hochladen'}
+        </span>
       </button>
     </div>
   );

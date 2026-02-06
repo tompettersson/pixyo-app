@@ -282,7 +282,7 @@ export function BackgroundPrompt({ onGenerate }: BackgroundPromptProps) {
         <textarea
           value={backgroundPrompt}
           onChange={(e) => setBackgroundPrompt(e.target.value)}
-          rows={2}
+          rows={3}
           className="w-full px-3 py-2 rounded-xl bg-zinc-800/50 backdrop-blur border border-zinc-700/50 text-zinc-100
                      focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/30 text-sm resize-none
                      placeholder:text-zinc-600"

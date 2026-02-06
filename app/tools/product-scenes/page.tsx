@@ -762,7 +762,7 @@ export default function ProductScenesPage() {
 
             {/* Analysis Status & Results */}
             {productImage && (
-              <div className="mt-3">
+              <div className="mt-2">
                 {isAnalyzing ? (
                   <div className="flex items-center gap-2 text-xs text-zinc-400">
                     <svg className="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none">
@@ -772,37 +772,22 @@ export default function ProductScenesPage() {
                     Analysiere Produktbild...
                   </div>
                 ) : productAnalysis ? (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-1.5 text-xs text-zinc-500">
-                      <svg className="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      Analyse abgeschlossen
-                    </div>
-                    {/* Simplified Analysis Pills - only essential info */}
-                    <div className="flex flex-wrap gap-1.5">
-                      {/* Product Type + Brand */}
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-violet-500/20 text-violet-300 text-[10px] font-medium">
-                        <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4" />
-                        </svg>
-                        {productAnalysis.product.brand && productAnalysis.product.brand !== 'unknown'
-                          ? `${productAnalysis.product.brand} ${productAnalysis.product.type_german}`
-                          : productAnalysis.product.type_german}
-                      </span>
-                      {/* Lens - the key info for perspective matching */}
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-500/20 text-blue-300 text-[10px] font-medium">
-                        <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                        </svg>
-                        ~{productAnalysis.camera.focal_length.estimated_mm}mm
-                      </span>
-                    </div>
-                    {/* Suggested Rooms for scene ideas */}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <svg className="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300 text-[10px] font-medium">
+                      {productAnalysis.product.brand && productAnalysis.product.brand !== 'unknown'
+                        ? `${productAnalysis.product.brand} ${productAnalysis.product.type_german}`
+                        : productAnalysis.product.type_german}
+                    </span>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[10px] font-medium">
+                      ~{productAnalysis.camera.focal_length.estimated_mm}mm
+                    </span>
                     {productAnalysis.environment.primary_rooms_german.length > 0 && (
-                      <p className="text-[10px] text-zinc-500">
-                        Passt zu: {productAnalysis.environment.primary_rooms_german.slice(0, 2).join(', ')}
-                      </p>
+                      <span className="text-[10px] text-zinc-500">
+                        | {productAnalysis.environment.primary_rooms_german.slice(0, 2).join(', ')}
+                      </span>
                     )}
                   </div>
                 ) : null}
@@ -825,13 +810,6 @@ export default function ProductScenesPage() {
 
           {/* Reference Image */}
           <div className="pt-2 border-t border-zinc-800/50">
-            <h2 className="text-xs text-zinc-500 mb-2 uppercase tracking-wider flex items-center gap-2">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                      d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-              </svg>
-              Referenzbild (optional)
-            </h2>
             <ReferenceImageUpload />
           </div>
 
@@ -1020,48 +998,46 @@ export default function ProductScenesPage() {
           {/* Product Scale (Oneshot mode only) */}
           {mode === 'oneshot' && (
             <div className="pt-2 border-t border-zinc-800/50">
-              <h2 className="text-xs text-zinc-500 mb-2 uppercase tracking-wider">
+              <h2 className="text-xs text-zinc-500 mb-1 uppercase tracking-wider">
                 Produktgröße im Bild
               </h2>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => adjustProductScale(-1)}
                   disabled={productScaleLevel <= -2}
-                  className="p-2 rounded-lg bg-zinc-800/50 text-zinc-400 hover:bg-zinc-700 hover:text-white
+                  className="p-1.5 rounded-lg bg-zinc-800/50 text-zinc-400 hover:bg-zinc-700 hover:text-white
                              disabled:opacity-30 disabled:hover:bg-zinc-800/50 disabled:hover:text-zinc-400 transition-all"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
                   </svg>
                 </button>
-                <div className="flex-1 text-center">
-                  <div className="flex items-center justify-center gap-1">
-                    {[-2, -1, 0, 1, 2].map((level) => (
-                      <div
-                        key={level}
-                        className={`w-2 h-2 rounded-full transition-all ${
-                          level === productScaleLevel
-                            ? 'bg-violet-500 scale-125'
-                            : level < productScaleLevel
-                              ? 'bg-zinc-600'
-                              : 'bg-zinc-700'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <p className="text-xs text-zinc-500 mt-1.5">
-                    {productScaleLevel === 0 ? 'Standard' :
-                     productScaleLevel < 0 ? `Kleiner (${productScaleLevel})` :
-                     `Größer (+${productScaleLevel})`}
-                  </p>
+                <div className="flex-1 flex items-center justify-center gap-1">
+                  {[-2, -1, 0, 1, 2].map((level) => (
+                    <div
+                      key={level}
+                      className={`w-2 h-2 rounded-full transition-all ${
+                        level === productScaleLevel
+                          ? 'bg-violet-500 scale-125'
+                          : level < productScaleLevel
+                            ? 'bg-zinc-600'
+                            : 'bg-zinc-700'
+                      }`}
+                    />
+                  ))}
                 </div>
+                <span className="text-[10px] text-zinc-500 w-14 text-center">
+                  {productScaleLevel === 0 ? 'Standard' :
+                   productScaleLevel < 0 ? `Kleiner` :
+                   `Größer`}
+                </span>
                 <button
                   onClick={() => adjustProductScale(1)}
                   disabled={productScaleLevel >= 2}
-                  className="p-2 rounded-lg bg-zinc-800/50 text-zinc-400 hover:bg-zinc-700 hover:text-white
+                  className="p-1.5 rounded-lg bg-zinc-800/50 text-zinc-400 hover:bg-zinc-700 hover:text-white
                              disabled:opacity-30 disabled:hover:bg-zinc-800/50 disabled:hover:text-zinc-400 transition-all"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
                 </button>
