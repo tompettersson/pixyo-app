@@ -173,7 +173,7 @@ function SlotUpload({ slot, image, isCompositingMode, onUpload, onClear, disable
   if (image) {
     return (
       <div className="relative group">
-        <div className={`aspect-square rounded-xl overflow-hidden border-2 transition-all ${
+        <div className={`${isPrimary ? 'aspect-[4/3]' : 'aspect-square'} rounded-xl overflow-hidden border-2 transition-all ${
           isPrimary
             ? 'border-violet-500/50 bg-zinc-800/50'
             : 'border-zinc-700/50 bg-zinc-800/30'
@@ -222,7 +222,7 @@ function SlotUpload({ slot, image, isCompositingMode, onUpload, onClear, disable
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         disabled={disabled}
-        className={`w-full aspect-square rounded-xl border-2 border-dashed transition-all
+        className={`w-full ${isPrimary ? 'aspect-[4/3]' : 'aspect-square'} rounded-xl border-2 border-dashed transition-all
                     flex flex-col items-center justify-center gap-1.5
                     ${disabled
                       ? 'cursor-not-allowed opacity-40 border-zinc-800 bg-zinc-900/20'
@@ -286,8 +286,8 @@ export function ProductUpload() {
   const hasMainImage = !!slot0Image;
 
   return (
-    <div className="space-y-3">
-      {/* Primary slot - larger */}
+    <div className="space-y-2">
+      {/* Primary slot - landscape ratio for compactness */}
       <SlotUpload
         slot={0}
         image={slot0Image}
@@ -296,8 +296,8 @@ export function ProductUpload() {
         onClear={handleClear}
       />
 
-      {/* Additional views - smaller, in a row */}
-      <div className="grid grid-cols-2 gap-2">
+      {/* Additional views - 4 in a single row */}
+      <div className="grid grid-cols-4 gap-1.5">
         <SlotUpload
           slot={1}
           image={slot1Image}

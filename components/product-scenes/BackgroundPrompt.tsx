@@ -220,25 +220,25 @@ export function BackgroundPrompt({ onGenerate }: BackgroundPromptProps) {
   const canGeneratePrompts = backgroundPrompt.trim().length >= 3 && !isGeneratingPrompts;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-3">
       {/* Interior Design Style Selector */}
       <div>
-        <label className="block text-xs text-zinc-500 mb-2 uppercase tracking-wider">
+        <label className="block text-xs text-zinc-500 mb-1.5 uppercase tracking-wider">
           Innenarchitektur-Stil
         </label>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1">
           {STYLE_PRESETS.map((style) => (
             <button
               key={style.id}
               type="button"
               onClick={() => setSelectedStyle(style.id)}
-              className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5
+              className={`px-2 py-1 rounded-lg text-[11px] font-medium transition-all flex items-center gap-1
                 ${selectedStyle === style.id
                   ? 'bg-violet-500/20 text-violet-300 border border-violet-500/50'
                   : 'bg-zinc-800/50 text-zinc-400 border border-zinc-700/50 hover:bg-zinc-700/50 hover:text-zinc-300'
                 }`}
             >
-              <span>{style.icon}</span>
+              <span className="text-xs">{style.icon}</span>
               <span>{style.label}</span>
             </button>
           ))}
@@ -252,22 +252,22 @@ export function BackgroundPrompt({ onGenerate }: BackgroundPromptProps) {
 
       {/* Room Type Selector */}
       <div>
-        <label className="block text-xs text-zinc-500 mb-2 uppercase tracking-wider">
+        <label className="block text-xs text-zinc-500 mb-1.5 uppercase tracking-wider">
           Raum
         </label>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1">
           {ROOM_PRESETS.map((room) => (
             <button
               key={room.id}
               type="button"
               onClick={() => setSelectedRoom(room.id)}
-              className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5
+              className={`px-2 py-1 rounded-lg text-[11px] font-medium transition-all flex items-center gap-1
                 ${selectedRoom === room.id
                   ? 'bg-blue-500/20 text-blue-300 border border-blue-500/50'
                   : 'bg-zinc-800/50 text-zinc-400 border border-zinc-700/50 hover:bg-zinc-700/50 hover:text-zinc-300'
                 }`}
             >
-              <span>{room.icon}</span>
+              <span className="text-xs">{room.icon}</span>
               <span>{room.label}</span>
             </button>
           ))}
@@ -276,14 +276,14 @@ export function BackgroundPrompt({ onGenerate }: BackgroundPromptProps) {
 
       {/* Custom prompt input */}
       <div>
-        <label className="block text-xs text-zinc-500 mb-2 uppercase tracking-wider">
+        <label className="block text-xs text-zinc-500 mb-1.5 uppercase tracking-wider">
           Szene beschreiben
         </label>
         <textarea
           value={backgroundPrompt}
           onChange={(e) => setBackgroundPrompt(e.target.value)}
-          rows={3}
-          className="w-full px-4 py-3 rounded-xl bg-zinc-800/50 backdrop-blur border border-zinc-700/50 text-zinc-100
+          rows={2}
+          className="w-full px-3 py-2 rounded-xl bg-zinc-800/50 backdrop-blur border border-zinc-700/50 text-zinc-100
                      focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/30 text-sm resize-none
                      placeholder:text-zinc-600"
           placeholder="z.B. 'Modernes Wohnzimmer mit Bergblick' oder 'Minimalistisches Loft'"
@@ -295,7 +295,7 @@ export function BackgroundPrompt({ onGenerate }: BackgroundPromptProps) {
         type="button"
         onClick={handleGeneratePrompts}
         disabled={!canGeneratePrompts}
-        className={`w-full px-4 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center justify-center gap-2
+        className={`w-full px-3 py-2 rounded-xl font-medium text-sm transition-all flex items-center justify-center gap-2
           ${canGeneratePrompts
             ? 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white border border-zinc-700'
             : 'bg-zinc-900 text-zinc-600 cursor-not-allowed border border-zinc-800'
@@ -384,7 +384,7 @@ export function BackgroundPrompt({ onGenerate }: BackgroundPromptProps) {
       <button
         type="submit"
         disabled={!canGenerate}
-        className={`w-full px-4 py-3 rounded-xl font-medium text-sm transition-all flex items-center justify-center gap-2
+        className={`w-full px-3 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center justify-center gap-2
           ${canGenerate
             ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-500 hover:to-indigo-500 shadow-lg shadow-violet-500/20'
             : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'

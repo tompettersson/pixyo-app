@@ -725,7 +725,7 @@ export default function ProductScenesPage() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Panel - Controls */}
-        <aside className="w-80 bg-zinc-900 border-r border-zinc-800/50 p-4 space-y-6 overflow-y-auto flex-shrink-0">
+        <aside className="w-96 bg-zinc-900 border-r border-zinc-800/50 p-3 space-y-3 overflow-y-auto flex-shrink-0">
           {/* Mode Info */}
           {mode === 'compositing' && (
             <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
@@ -744,7 +744,7 @@ export default function ProductScenesPage() {
 
           {/* Product Upload */}
           <div>
-            <h2 className="text-xs text-zinc-500 mb-3 uppercase tracking-wider flex items-center gap-2">
+            <h2 className="text-xs text-zinc-500 mb-2 uppercase tracking-wider flex items-center gap-2">
               <span className="w-5 h-5 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] font-bold">1</span>
               Produktbild
             </h2>
@@ -811,8 +811,8 @@ export default function ProductScenesPage() {
           </div>
 
           {/* Background Prompt */}
-          <div className="pt-4 border-t border-zinc-800/50">
-            <h2 className="text-xs text-zinc-500 mb-3 uppercase tracking-wider flex items-center gap-2">
+          <div className="pt-2 border-t border-zinc-800/50">
+            <h2 className="text-xs text-zinc-500 mb-2 uppercase tracking-wider flex items-center gap-2">
               <span className="w-5 h-5 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] font-bold">2</span>
               Hintergrund
             </h2>
@@ -824,8 +824,8 @@ export default function ProductScenesPage() {
           </div>
 
           {/* Reference Image */}
-          <div className="pt-4 border-t border-zinc-800/50">
-            <h2 className="text-xs text-zinc-500 mb-3 uppercase tracking-wider flex items-center gap-2">
+          <div className="pt-2 border-t border-zinc-800/50">
+            <h2 className="text-xs text-zinc-500 mb-2 uppercase tracking-wider flex items-center gap-2">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                       d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
@@ -891,7 +891,7 @@ export default function ProductScenesPage() {
 
           {/* Compositing Controls - Available as soon as product is uploaded */}
           {mode === 'compositing' && productImage && (
-            <div className="pt-4 border-t border-zinc-800/50 space-y-4">
+            <div className="pt-2 border-t border-zinc-800/50 space-y-3">
               <h2 className="text-xs text-zinc-500 uppercase tracking-wider">
                 Produkt-Positionierung
               </h2>
@@ -968,57 +968,59 @@ export default function ProductScenesPage() {
             </div>
           )}
 
-          {/* Aspect Ratio & Resolution */}
-          <div className="pt-4 border-t border-zinc-800/50 space-y-4">
-            {/* Aspect Ratio */}
-            <div>
-              <h2 className="text-xs text-zinc-500 mb-2 uppercase tracking-wider">
-                Seitenverhältnis
-              </h2>
-              <div className="grid grid-cols-4 gap-1.5">
-                {(['1:1', '4:3', '16:9', '9:16'] as const).map((ratio) => (
-                  <button
-                    key={ratio}
-                    onClick={() => setAspectRatio(ratio)}
-                    className={`px-2 py-2 rounded-lg text-xs font-medium transition-all
-                      ${aspectRatio === ratio
-                        ? 'bg-white/10 text-white border border-white/20'
-                        : 'bg-zinc-800/50 text-zinc-500 border border-zinc-700/50 hover:bg-zinc-700/50'
-                      }`}
-                  >
-                    {ratio}
-                  </button>
-                ))}
+          {/* Aspect Ratio & Resolution - side by side */}
+          <div className="pt-2 border-t border-zinc-800/50">
+            <div className="flex gap-4">
+              {/* Aspect Ratio */}
+              <div className="flex-1">
+                <h2 className="text-xs text-zinc-500 mb-1.5 uppercase tracking-wider">
+                  Seitenverhältnis
+                </h2>
+                <div className="grid grid-cols-4 gap-1">
+                  {(['1:1', '4:3', '16:9', '9:16'] as const).map((ratio) => (
+                    <button
+                      key={ratio}
+                      onClick={() => setAspectRatio(ratio)}
+                      className={`px-1.5 py-1.5 rounded-lg text-[11px] font-medium transition-all
+                        ${aspectRatio === ratio
+                          ? 'bg-white/10 text-white border border-white/20'
+                          : 'bg-zinc-800/50 text-zinc-500 border border-zinc-700/50 hover:bg-zinc-700/50'
+                        }`}
+                    >
+                      {ratio}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Resolution */}
-            <div>
-              <h2 className="text-xs text-zinc-500 mb-2 uppercase tracking-wider">
-                Auflösung
-              </h2>
-              <div className="grid grid-cols-3 gap-1.5">
-                {(['1K', '2K', '4K'] as const).map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setImageSize(size)}
-                    className={`px-3 py-2 rounded-lg text-xs font-medium transition-all
-                      ${imageSize === size
-                        ? 'bg-white/10 text-white border border-white/20'
-                        : 'bg-zinc-800/50 text-zinc-500 border border-zinc-700/50 hover:bg-zinc-700/50'
-                      }`}
-                  >
-                    {size}
-                  </button>
-                ))}
+              {/* Resolution */}
+              <div className="w-28">
+                <h2 className="text-xs text-zinc-500 mb-1.5 uppercase tracking-wider">
+                  Auflösung
+                </h2>
+                <div className="grid grid-cols-3 gap-1">
+                  {(['1K', '2K', '4K'] as const).map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setImageSize(size)}
+                      className={`px-1.5 py-1.5 rounded-lg text-[11px] font-medium transition-all
+                        ${imageSize === size
+                          ? 'bg-white/10 text-white border border-white/20'
+                          : 'bg-zinc-800/50 text-zinc-500 border border-zinc-700/50 hover:bg-zinc-700/50'
+                        }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
 
           {/* Product Scale (Oneshot mode only) */}
           {mode === 'oneshot' && (
-            <div className="pt-4 border-t border-zinc-800/50">
-              <h2 className="text-xs text-zinc-500 mb-3 uppercase tracking-wider">
+            <div className="pt-2 border-t border-zinc-800/50">
+              <h2 className="text-xs text-zinc-500 mb-2 uppercase tracking-wider">
                 Produktgröße im Bild
               </h2>
               <div className="flex items-center gap-2">
