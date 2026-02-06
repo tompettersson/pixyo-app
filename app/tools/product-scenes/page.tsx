@@ -11,6 +11,7 @@ import { CompositingCanvas } from '@/components/product-scenes/CompositingCanvas
 import { FloorPlanEditor } from '@/components/product-scenes/FloorPlanEditor';
 import { ProfileSelector } from '@/components/product-scenes/ProfileSelector';
 import { useBackgroundRemoval } from '@/hooks/useBackgroundRemoval';
+import { UserUsage } from '@/components/product-scenes/UserUsage';
 
 // Zoom levels
 const ZOOM_LEVELS = [0.5, 0.75, 1, 1.25, 1.5, 2] as const;
@@ -1394,6 +1395,9 @@ export default function ProductScenesPage() {
               )}
             </ul>
           </div>
+
+          {/* User Usage */}
+          <UserUsage />
         </aside>
       </div>
     </div>

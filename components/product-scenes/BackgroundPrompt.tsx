@@ -44,6 +44,24 @@ const STYLE_PRESETS = [
     icon: '✨',
     prompt: 'Luxury hotel style with high-end marble finishes, velvet textures, subtle gold accents, dramatic mood lighting, and sophisticated elegance',
   },
+  {
+    id: 'country',
+    label: 'Landhaus',
+    icon: '🏡',
+    prompt: 'Country house style with rustic reclaimed wood beams, natural stone walls, linen curtains, dried flower arrangements, warm candlelight, and cozy farmhouse charm',
+  },
+  {
+    id: 'colonial',
+    label: 'Kolonial',
+    icon: '🌴',
+    prompt: 'Colonial style with dark hardwood furniture, rattan and wicker accents, tropical plants, ceiling fans, warm amber lighting, brass hardware, and elegant plantation atmosphere',
+  },
+  {
+    id: 'shabbychic',
+    label: 'Shabby Chic',
+    icon: '🌸',
+    prompt: 'Shabby chic style with distressed painted white furniture, vintage floral fabrics, pastel color palette, antique mirrors, soft romantic lighting, and charming imperfections',
+  },
 ] as const;
 
 type StylePresetId = typeof STYLE_PRESETS[number]['id'];

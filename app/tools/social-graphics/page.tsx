@@ -239,6 +239,27 @@ export default function EditorPage() {
   // DERIVED from store: photo credit
   const photoCredit = backgroundImageState?.credit ?? null;
 
+  // Compute "cover" dimensions: fill canvas while preserving image aspect ratio
+  const bgCoverDimensions = useMemo(() => {
+    if (!backgroundImage) return { width: CANVAS_WIDTH, height: CANVAS_HEIGHT };
+    const imgW = backgroundImage.naturalWidth || backgroundImage.width;
+    const imgH = backgroundImage.naturalHeight || backgroundImage.height;
+    if (!imgW || !imgH) return { width: CANVAS_WIDTH, height: CANVAS_HEIGHT };
+
+    const canvasRatio = CANVAS_WIDTH / CANVAS_HEIGHT;
+    const imgRatio = imgW / imgH;
+
+    // Cover scale: smallest scale that fills the entire canvas
+    const coverScale = imgRatio > canvasRatio
+      ? CANVAS_HEIGHT / imgH
+      : CANVAS_WIDTH / imgW;
+
+    return {
+      width: imgW * coverScale * bgScale,
+      height: imgH * coverScale * bgScale,
+    };
+  }, [backgroundImage, bgScale]);
+
   // Text color based on overlay mode
   const textColor = overlayMode === "darken" ? "#ffffff" : "#111111";
   const buttonTextColor =
@@ -1168,13 +1189,13 @@ export default function EditorPage() {
                   image={backgroundImage}
                   x={bgFlipX ? CANVAS_WIDTH - bgPositionX : bgPositionX}
                   y={bgPositionY}
-                  width={CANVAS_WIDTH * bgScale}
-                  height={CANVAS_HEIGHT * bgScale}
+                  width={bgCoverDimensions.width}
+                  height={bgCoverDimensions.height}
                   scaleX={bgFlipX ? -1 : 1}
                   offsetX={bgFlipX
-                    ? -(CANVAS_WIDTH * bgScale - CANVAS_WIDTH) / 2
-                    : (CANVAS_WIDTH * bgScale - CANVAS_WIDTH) / 2}
-                  offsetY={(CANVAS_HEIGHT * bgScale - CANVAS_HEIGHT) / 2}
+                    ? -(bgCoverDimensions.width - CANVAS_WIDTH) / 2
+                    : (bgCoverDimensions.width - CANVAS_WIDTH) / 2}
+                  offsetY={(bgCoverDimensions.height - CANVAS_HEIGHT) / 2}
                 />
               ) : (
                 <Rect

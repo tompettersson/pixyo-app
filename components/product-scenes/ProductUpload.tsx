@@ -5,19 +5,19 @@ import { useProductScenesStore, type ProductImage, type ProductViewSlot, PRODUCT
 
 // =============================================================================
 // IMAGE COMPRESSION UTILITIES
-// Resize images to max 4K (3840px) and compress with JPEG quality 75%
+// Resize images to max 4K (3840px) and compress with JPEG quality 60%
 // This keeps high resolution for product details while reducing file size
-// from ~3-5MB to ~500KB-1MB per image
+// from ~3-5MB to ~300KB-700KB per image
 // =============================================================================
 
 const MAX_DIMENSION = 3840; // 4K resolution limit
-const JPEG_QUALITY = 0.75; // 75% quality - good balance between size and quality
+const JPEG_QUALITY = 0.60; // 60% quality - smaller files, allows more images per request
 
 /**
  * Compress and optionally resize an image
  * - Preserves aspect ratio
  * - Max dimension: 3840px (4K)
- * - JPEG output at 75% quality (for non-transparent images)
+ * - JPEG output at 60% quality (for non-transparent images)
  * - PNG output preserved for transparent images (compositing mode)
  */
 function compressImage(
@@ -124,7 +124,7 @@ function SlotUpload({ slot, image, isCompositingMode, onUpload, onClear, disable
     }
 
     try {
-      // Compress image: max 4K resolution, JPEG 75% (or PNG for transparency)
+      // Compress image: max 4K resolution, JPEG 60% (or PNG for transparency)
       const compressed = await compressImage(file, isCompositingMode);
 
       const productImage: ProductImage = {
@@ -279,8 +279,10 @@ export function ProductUpload() {
   const slot0Image = productImages[0] || null;
   const slot1Image = productImages[1] || null;
   const slot2Image = productImages[2] || null;
+  const slot3Image = productImages[3] || null;
+  const slot4Image = productImages[4] || null;
 
-  // Slot 1 and 2 are only enabled if slot 0 has an image
+  // Additional slots are only enabled if slot 0 has an image
   const hasMainImage = !!slot0Image;
 
   return (
@@ -307,6 +309,22 @@ export function ProductUpload() {
         <SlotUpload
           slot={2}
           image={slot2Image}
+          isCompositingMode={isCompositingMode}
+          onUpload={handleUpload}
+          onClear={handleClear}
+          disabled={!hasMainImage}
+        />
+        <SlotUpload
+          slot={3}
+          image={slot3Image}
+          isCompositingMode={isCompositingMode}
+          onUpload={handleUpload}
+          onClear={handleClear}
+          disabled={!hasMainImage}
+        />
+        <SlotUpload
+          slot={4}
+          image={slot4Image}
           isCompositingMode={isCompositingMode}
           onUpload={handleUpload}
           onClear={handleClear}

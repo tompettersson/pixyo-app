@@ -11,8 +11,8 @@ export interface ProductImage {
 }
 
 // Multi-view slot labels (German)
-export const PRODUCT_VIEW_LABELS = ['Hauptansicht', 'Zusatzansicht 1', 'Zusatzansicht 2'] as const;
-export type ProductViewSlot = 0 | 1 | 2;
+export const PRODUCT_VIEW_LABELS = ['Hauptansicht', 'Zusatzansicht 1', 'Zusatzansicht 2', 'Zusatzansicht 3', 'Zusatzansicht 4'] as const;
+export type ProductViewSlot = 0 | 1 | 2 | 3 | 4;
 
 // Reference background image state
 export interface ReferenceImage {

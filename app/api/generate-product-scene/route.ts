@@ -38,11 +38,11 @@ const productImageSchema = z.object({
   label: z.string().optional(), // Optional label like "Frontal", "Seitlich"
 });
 
-// Request validation schema - supports 1-3 product images for multi-view
+// Request validation schema - supports 1-5 product images for multi-view
 const requestSchema = z.object({
   // Support both single image (backward compatible) and multi-view array
   productImage: productImageSchema.optional(),
-  productImages: z.array(productImageSchema).min(1).max(3).optional(),
+  productImages: z.array(productImageSchema).min(1).max(5).optional(),
   backgroundPrompt: z.string().min(1, "Hintergrund-Beschreibung erforderlich"),
   aspectRatio: z.enum(["1:1", "4:3", "16:9", "9:16"]).optional().default("1:1"),
   imageSize: z.enum(["1K", "2K", "4K"]).optional().default("2K"),
