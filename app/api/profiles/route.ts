@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stackServerApp } from '@/lib/stack';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
+import { isAdmin, type UserServerMetadata } from '@/lib/permissions';
 import { profileSchema, generateSlug, ensureUniqueSlug } from '@/lib/api/profile-helpers';
 
-// GET all profiles for current user (including system-seeded profiles)
+// GET profiles: admins see ALL, regular users see only their own
 export async function GET() {
   try {
     const user = await stackServerApp.getUser();
@@ -12,14 +13,18 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Return both user's own profiles AND system-seeded profiles
+    const serverMetadata = user.serverMetadata as UserServerMetadata | null;
+    const admin = isAdmin(serverMetadata);
+
     const profiles = await prisma.profile.findMany({
-      where: {
-        OR: [
-          { userId: user.id },
-          { userId: 'system-seed-user' },
-        ],
-      },
+      where: admin
+        ? undefined // Admins see all profiles
+        : {
+            OR: [
+              { userId: user.id },
+              { userId: 'system-seed-user' },
+            ],
+          },
       orderBy: { updatedAt: 'desc' },
     });
     return NextResponse.json({ profiles });
