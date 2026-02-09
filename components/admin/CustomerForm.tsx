@@ -86,6 +86,7 @@ export function CustomerForm({
   const [logoUploadError, setLogoUploadError] = useState<string | null>(null);
   const [logoUploadSuccess, setLogoUploadSuccess] = useState(false);
   const [isDraggingLogo, setIsDraggingLogo] = useState(false);
+  const [brokenLogos, setBrokenLogos] = useState<Set<string>>(new Set());
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   const update = (partial: Partial<ProfileFormData>) => {
@@ -138,6 +139,7 @@ export function CustomerForm({
           // For now, show a preview using a data URL
           const dataUrl = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgContent)))}`;
           update({ logo: dataUrl });
+          setBrokenLogos(new Set());
           setLogoUploadSuccess(true);
           setTimeout(() => setLogoUploadSuccess(false), 3000);
           return;
@@ -160,6 +162,7 @@ export function CustomerForm({
 
         const data = await response.json();
         update({ logo: data.logo, logoVariants: data.logoVariants });
+        setBrokenLogos(new Set());
         setLogoUploadSuccess(true);
         setTimeout(() => setLogoUploadSuccess(false), 3000);
       } catch (err) {
@@ -339,11 +342,16 @@ export function CustomerForm({
               <div className="flex items-center justify-center gap-4">
                 <div className="text-center">
                   <div className="w-20 h-20 rounded bg-zinc-900 border border-zinc-700 flex items-center justify-center p-2">
-                    <img
-                      src={formData.logo}
-                      alt="Logo Original"
-                      className="max-w-full max-h-full object-contain"
-                    />
+                    {brokenLogos.has("original") ? (
+                      <span className="text-xs text-zinc-600">SVG fehlt</span>
+                    ) : (
+                      <img
+                        src={formData.logo}
+                        alt="Logo Original"
+                        className="max-w-full max-h-full object-contain"
+                        onError={() => setBrokenLogos((prev) => new Set(prev).add("original"))}
+                      />
+                    )}
                   </div>
                   <span className="text-xs text-zinc-500 mt-1 block">
                     Original
@@ -352,11 +360,16 @@ export function CustomerForm({
                 {formData.logoVariants?.dark && (
                   <div className="text-center">
                     <div className="w-20 h-20 rounded bg-zinc-900 border border-zinc-700 flex items-center justify-center p-2">
-                      <img
-                        src={formData.logoVariants.dark}
-                        alt="Logo weiß"
-                        className="max-w-full max-h-full object-contain"
-                      />
+                      {brokenLogos.has("dark") ? (
+                        <span className="text-xs text-zinc-600">fehlt</span>
+                      ) : (
+                        <img
+                          src={formData.logoVariants.dark}
+                          alt="Logo weiß"
+                          className="max-w-full max-h-full object-contain"
+                          onError={() => setBrokenLogos((prev) => new Set(prev).add("dark"))}
+                        />
+                      )}
                     </div>
                     <span className="text-xs text-zinc-500 mt-1 block">
                       Weiß
@@ -366,11 +379,16 @@ export function CustomerForm({
                 {formData.logoVariants?.light && (
                   <div className="text-center">
                     <div className="w-20 h-20 rounded bg-white border border-zinc-300 flex items-center justify-center p-2">
-                      <img
-                        src={formData.logoVariants.light}
-                        alt="Logo schwarz"
-                        className="max-w-full max-h-full object-contain"
-                      />
+                      {brokenLogos.has("light") ? (
+                        <span className="text-xs text-zinc-600">fehlt</span>
+                      ) : (
+                        <img
+                          src={formData.logoVariants.light}
+                          alt="Logo schwarz"
+                          className="max-w-full max-h-full object-contain"
+                          onError={() => setBrokenLogos((prev) => new Set(prev).add("light"))}
+                        />
+                      )}
                     </div>
                     <span className="text-xs text-zinc-500 mt-1 block">
                       Schwarz
