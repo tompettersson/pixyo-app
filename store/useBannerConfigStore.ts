@@ -1,0 +1,140 @@
+import { create } from 'zustand';
+import { temporal } from 'zundo';
+import type { Customer } from '@/types/customer';
+import type { PatternId } from '@/lib/banner/formats';
+
+export interface BannerConfig {
+  activePattern: PatternId;
+
+  // Colors
+  colorFrom: string;
+  colorTo: string;
+  accentColor: string;
+  textColor: 'white' | 'dark' | 'auto';
+
+  // Typography
+  headlineFont: string;
+  headlineWeight: string;
+  headlineUppercase: boolean;
+  ctaStyle: 'pill' | 'rounded' | 'square';
+  ctaUppercase: boolean;
+
+  // Content
+  headline: string;
+  subline: string;
+  ctaText: string;
+  logoUrl: string | null;
+
+  // Design
+  gradientAngle: number;
+  overlayStrength: number;
+  showDecoElements: boolean;
+  splitRatio: number;
+
+  // Background
+  bgImageUrl: string;
+}
+
+interface BannerConfigState extends BannerConfig {
+  profileId: string | null;
+
+  // Single updater — replaces all individual setters
+  updateConfig: (partial: Partial<BannerConfig>) => void;
+  loadFromProfile: (profile: Customer) => void;
+}
+
+// ─── Resolve text color based on background luminance ──────────
+function resolveTextColor(mode: 'white' | 'dark' | 'auto', colorFrom: string): string {
+  if (mode === 'white') return '#ffffff';
+  if (mode === 'dark') return '#1a1a1a';
+  const hex = colorFrom.replace('#', '');
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.5 ? '#1a1a1a' : '#ffffff';
+}
+
+export function getResolvedConfig(state: BannerConfig): BannerConfig & { resolvedTextColor: string } {
+  return {
+    ...state,
+    resolvedTextColor: resolveTextColor(state.textColor, state.colorFrom),
+  };
+}
+
+// ─── Background image presets ──────────────────────────────────
+const BG_IMAGES = {
+  city: 'https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=1200&q=80&auto=format',
+  nature: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=1200&q=80&auto=format',
+  abstract: 'https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=1200&q=80&auto=format',
+};
+
+export const BG_IMAGE_OPTIONS = [
+  { label: 'Stadt', url: BG_IMAGES.city, thumb: BG_IMAGES.city.replace('w=1200', 'w=120') },
+  { label: 'Natur', url: BG_IMAGES.nature, thumb: BG_IMAGES.nature.replace('w=1200', 'w=120') },
+  { label: 'Abstrakt', url: BG_IMAGES.abstract, thumb: BG_IMAGES.abstract.replace('w=1200', 'w=120') },
+];
+
+const DEFAULT_CONFIG: BannerConfig = {
+  activePattern: 'P1',
+  colorFrom: '#7c3aed',
+  colorTo: '#4f46e5',
+  accentColor: '#ffffff',
+  textColor: 'white',
+  headlineFont: 'Inter',
+  headlineWeight: '700',
+  headlineUppercase: false,
+  ctaStyle: 'pill',
+  ctaUppercase: true,
+  headline: 'Smarter arbeiten.',
+  subline: 'KI-Tools für dein Team',
+  ctaText: 'Jetzt starten',
+  logoUrl: null,
+  gradientAngle: 135,
+  overlayStrength: 0.5,
+  showDecoElements: true,
+  splitRatio: 0.45,
+  bgImageUrl: BG_IMAGES.city,
+};
+
+export const useBannerConfigStore = create<BannerConfigState>()(
+  temporal(
+    (set) => ({
+      ...DEFAULT_CONFIG,
+      profileId: null,
+
+      updateConfig: (partial) => set(partial),
+
+      loadFromProfile: (profile: Customer) =>
+        set({
+          profileId: profile.id,
+          logoUrl: profile.logo || null,
+          colorFrom: profile.colors.dark,
+          colorTo: profile.colors.light,
+          accentColor: profile.colors.accent,
+          headlineFont: profile.fonts.headline.family,
+          headlineWeight: profile.fonts.headline.weight || '700',
+          headlineUppercase: profile.fonts.headline.uppercase ?? false,
+          ctaStyle:
+            profile.layout.button.radius >= 999
+              ? 'pill'
+              : profile.layout.button.radius >= 8
+                ? 'rounded'
+                : 'square',
+        }),
+    }),
+    {
+      limit: 50,
+      // Only track BannerConfig fields, not actions
+      equality: (pastState, currentState) => {
+        const keys: (keyof BannerConfig)[] = [
+          'activePattern', 'colorFrom', 'colorTo', 'accentColor', 'textColor',
+          'headlineFont', 'headlineWeight', 'headlineUppercase', 'ctaStyle', 'ctaUppercase',
+          'headline', 'subline', 'ctaText', 'logoUrl', 'gradientAngle',
+          'overlayStrength', 'showDecoElements', 'splitRatio', 'bgImageUrl',
+        ];
+        return keys.every((k) => pastState[k] === currentState[k]);
+      },
+    }
+  )
+);

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { stackServerApp } from "@/lib/stack";
 
 // Tool IDs matching the homepage tool cards
-export type ToolId = "social-graphics" | "product-scenes";
+export type ToolId = "social-graphics" | "product-scenes" | "banner-konfigurator";
 
 // Map API route names to their parent tool
 const TOOL_ROUTES: Record<string, ToolId> = {
