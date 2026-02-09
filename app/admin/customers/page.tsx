@@ -230,6 +230,7 @@ export default function AdminCustomersPage() {
             {viewMode === "edit" && selectedProfile && (
               <>
                 <CustomerForm
+                  key={selectedProfile.id}
                   mode="edit"
                   initialData={profileToFormData(selectedProfile)}
                   profileId={selectedProfile.id}
