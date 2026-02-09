@@ -192,6 +192,29 @@ export default function EditorPage() {
   const [logoImage, setLogoImage] = useState<HTMLImageElement | null>(null);
   const [logoSize, setLogoSize] = useState({ width: 0, height: 0 });
   const [currentCustomer, setCurrentCustomer] = useState<Customer | null>(null);
+
+  // Resolve font family names: next/font/google uses hashed names,
+  // Konva canvas needs the actual font-family from CSS variables
+  const resolveFont = useCallback((familyName: string): string => {
+    if (typeof window === "undefined") return familyName;
+    const CSS_VAR_MAP: Record<string, string> = {
+      Inter: "--font-inter",
+      Poppins: "--font-poppins",
+      "Space Grotesk": "--font-space-grotesk",
+      "Bebas Neue": "--font-bebas-neue",
+      "Playfair Display": "--font-playfair",
+      Lora: "--font-lora",
+      Oswald: "--font-oswald",
+      "Cera Pro": "--font-cera-pro",
+    };
+    const varName = CSS_VAR_MAP[familyName];
+    if (!varName) return familyName;
+    const resolved = getComputedStyle(document.documentElement)
+      .getPropertyValue(varName)
+      .trim();
+    return resolved || familyName;
+  }, []);
+
   // Local HTMLImageElement loaded from store's backgroundImageState.url
   const [backgroundImage, setBackgroundImage] =
     useState<HTMLImageElement | null>(null);
@@ -1235,14 +1258,14 @@ export default function EditorPage() {
                 mode={overlayMode}
               />
 
-              {/* Content Container */}
+              {/* Content Container — fonts from customer profile */}
               <Group x={LAYOUT.padding.left} y={LAYOUT.padding.top}>
                 <Text
                   x={0}
                   y={taglineY}
                   width={contentWidth}
                   text={content.tagline.toUpperCase()}
-                  fontFamily="Inter"
+                  fontFamily={resolveFont(currentCustomer?.fonts?.headline?.family || "Inter")}
                   fontSize={LAYOUT.taglineSize}
                   fontStyle="bold"
                   fill={textColor}
@@ -1252,8 +1275,8 @@ export default function EditorPage() {
                   x={0}
                   y={headlineY}
                   width={contentWidth}
-                  text={content.headline}
-                  fontFamily="Inter"
+                  text={currentCustomer?.fonts?.headline?.uppercase ? content.headline.toUpperCase() : content.headline}
+                  fontFamily={resolveFont(currentCustomer?.fonts?.headline?.family || "Inter")}
                   fontSize={LAYOUT.headlineSize}
                   fontStyle="bold"
                   fill={textColor}
@@ -1265,7 +1288,7 @@ export default function EditorPage() {
                   y={bodyY}
                   width={contentWidth}
                   text={content.body}
-                  fontFamily="Inter"
+                  fontFamily={resolveFont(currentCustomer?.fonts?.body?.family || "Inter")}
                   fontSize={LAYOUT.bodySize}
                   fontStyle="normal"
                   fill={textColor}
@@ -1290,7 +1313,7 @@ export default function EditorPage() {
                       x={LAYOUT.buttonPaddingX}
                       y={LAYOUT.buttonPaddingY}
                       text={content.buttonText.toUpperCase()}
-                      fontFamily="Inter"
+                      fontFamily={resolveFont(currentCustomer?.fonts?.headline?.family || "Inter")}
                       fontSize={LAYOUT.buttonSize}
                       fontStyle="bold"
                       fill={buttonTextColor}
