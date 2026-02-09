@@ -3,6 +3,7 @@ import { z } from "zod";
 import { generateImage } from "@/lib/ai/gemini";
 import { requireAuthForRoute } from "@/lib/permissions";
 import { logUsage } from "@/lib/usage";
+import { prisma } from "@/lib/db";
 import { AI_COSTS_EUR, AI_MODELS } from "@/lib/costs";
 import type { GenerateImageRequest, ApiError } from "@/types/api";
 
@@ -19,6 +20,8 @@ const requestSchema = z.object({
       mimeType: z.string(), // image/png, image/jpeg, image/webp
     })
     .optional(),
+  // Prompt source for generation tracking
+  promptSource: z.enum(["ai-improved", "user-direct"]).optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -40,7 +43,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(error, { status: 400 });
     }
 
-    const imageRequest: GenerateImageRequest = validationResult.data;
+    const { promptSource, ...imageRequestData } = validationResult.data;
+    const imageRequest: GenerateImageRequest = imageRequestData;
 
     // Generate image using Gemini
     const response = await generateImage(imageRequest);
@@ -54,7 +58,27 @@ export async function POST(request: NextRequest) {
       model: AI_MODELS["generate-image"],
     });
 
-    return NextResponse.json(response);
+    // Log generation for prompt tracking (fire-and-forget, but capture ID)
+    let generationLogId: string | undefined;
+    try {
+      const generationLog = await prisma.generationLog.create({
+        data: {
+          userId: auth.user.id,
+          tool: "social-graphics",
+          prompt: imageRequest.prompt,
+          promptSource: promptSource ?? "user-direct",
+          meta: {
+            mode: imageRequest.mode,
+            aspectRatio: imageRequest.aspectRatio,
+          },
+        },
+      });
+      generationLogId = generationLog.id;
+    } catch (err) {
+      console.error("Failed to create GenerationLog:", err);
+    }
+
+    return NextResponse.json({ ...response, generationLogId });
   } catch (error) {
     console.error("Generate image error:", error);
 

@@ -39,6 +39,8 @@ export default function ProductScenesPage() {
 
   // Generation step tracking (for loading UI)
   const [generationStep, setGenerationStep] = useState<1 | 2>(1);
+  // Generation log ID for download tracking
+  const [generationLogId, setGenerationLogId] = useState<string | null>(null);
 
   // Canvas view tab: 'edit' (compositing canvas) or 'result' (generated/harmonized scene)
   const [canvasViewTab, setCanvasViewTab] = useState<'edit' | 'result'>('edit');
@@ -276,6 +278,11 @@ export default function ProductScenesPage() {
 
       const data = await response.json();
 
+      // Store generation log ID for download tracking
+      if (data.generationLogId) {
+        setGenerationLogId(data.generationLogId);
+      }
+
       const scene: GeneratedScene = {
         id: `scene_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
         url: data.image.url,
@@ -500,6 +507,17 @@ export default function ProductScenesPage() {
     }
   }, [aspectRatio, backgroundPrompt, addGeneratedScene, setGenerationError]);
 
+  // Track download helper (fire-and-forget)
+  const trackDownload = useCallback(() => {
+    if (generationLogId) {
+      fetch("/api/track-download", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ generationLogId }),
+      }).catch((err) => console.error("Download tracking failed:", err));
+    }
+  }, [generationLogId]);
+
   // Export function with format conversion and JPEG quality options
   const handleExport = useCallback((format: 'png' | 'jpeg-75' | 'jpeg-50') => {
     if (!activeScene) return;
@@ -526,6 +544,7 @@ export default function ProductScenesPage() {
             URL.revokeObjectURL(link.href);
           });
       }
+      trackDownload();
       return;
     }
 
@@ -558,7 +577,8 @@ export default function ProductScenesPage() {
       );
     };
     img.src = activeScene.url;
-  }, [activeScene]);
+    trackDownload();
+  }, [activeScene, trackDownload]);
 
   // Save to asset library
   const handleSaveToLibrary = useCallback(async () => {

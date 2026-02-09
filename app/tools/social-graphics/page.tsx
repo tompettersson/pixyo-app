@@ -206,6 +206,7 @@ export default function EditorPage() {
   const [isGeneratingPrompt, setIsGeneratingPrompt] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [generationError, setGenerationError] = useState<string | null>(null);
+  const [generationLogId, setGenerationLogId] = useState<string | null>(null);
 
 
   // Unsplash state
@@ -476,10 +477,12 @@ export default function EditorPage() {
       const requestBody: {
         prompt: string;
         aspectRatio: string;
+        promptSource: "ai-improved" | "user-direct";
         productImage?: { data: string; mimeType: string };
       } = {
         prompt: finalPrompt,
         aspectRatio: "1:1",
+        promptSource: generatedPrompt ? "ai-improved" : "user-direct",
       };
 
       // Include product image if uploaded (for Gemini Image-to-Image)
@@ -494,6 +497,11 @@ export default function EditorPage() {
       });
       if (!response.ok) throw new Error("Failed to generate image");
       const data = await response.json();
+
+      // Store generation log ID for download tracking
+      if (data.generationLogId) {
+        setGenerationLogId(data.generationLogId);
+      }
 
       let imageUrl: string | null = null;
       if (data.imageBase64) {
@@ -726,9 +734,18 @@ export default function EditorPage() {
         link.click();
         URL.revokeObjectURL(url);
         setExportDropdownOpen(false);
+
+        // Track download (fire-and-forget)
+        if (generationLogId) {
+          fetch("/api/track-download", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ generationLogId }),
+          }).catch((err) => console.error("Download tracking failed:", err));
+        }
       }
     });
-  }, []);
+  }, [generationLogId]);
 
   // Content area dimensions
   const contentWidth =

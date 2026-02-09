@@ -4,6 +4,7 @@ import { GoogleGenAI, PersonGeneration } from "@google/genai";
 import { getServerEnv } from "@/lib/env";
 import { requireAuthForRoute } from "@/lib/permissions";
 import { logUsage } from "@/lib/usage";
+import { prisma } from "@/lib/db";
 import { AI_COSTS_EUR, AI_MODELS } from "@/lib/costs";
 import type { ApiError } from "@/types/api";
 
@@ -349,9 +350,32 @@ export async function POST(request: NextRequest) {
           model: result.model,
         });
 
+        // Log generation for prompt tracking
+        let generationLogId: string | undefined;
+        try {
+          const generationLog = await prisma.generationLog.create({
+            data: {
+              userId: auth.user.id,
+              tool: "product-scenes",
+              prompt: backgroundPrompt,
+              promptSource: "user-direct",
+              meta: {
+                aspectRatio,
+                imageSize,
+                productScaleLevel,
+                model: result.model,
+              },
+            },
+          });
+          generationLogId = generationLog.id;
+        } catch (err) {
+          console.error("Failed to create GenerationLog:", err);
+        }
+
         return NextResponse.json({
           image: result.image,
           prompt: result.prompt,
+          generationLogId,
         });
       } catch (vertexError) {
         console.error("Vertex AI failed, falling back to Gemini API:", vertexError);
@@ -556,9 +580,32 @@ ${floorPlanNote}`;
       model: AI_MODELS["generate-product-scene"],
     });
 
+    // Log generation for prompt tracking
+    let generationLogId: string | undefined;
+    try {
+      const generationLog = await prisma.generationLog.create({
+        data: {
+          userId: auth.user.id,
+          tool: "product-scenes",
+          prompt: backgroundPrompt,
+          promptSource: "user-direct",
+          meta: {
+            aspectRatio,
+            imageSize,
+            productScaleLevel,
+            model: AI_MODELS["generate-product-scene"],
+          },
+        },
+      });
+      generationLogId = generationLog.id;
+    } catch (err) {
+      console.error("Failed to create GenerationLog:", err);
+    }
+
     return NextResponse.json({
       image: { url: finalImageUrl },
       prompt: backgroundPrompt,
+      generationLogId,
     });
   } catch (error) {
     console.error("Generate product scene error:", error);

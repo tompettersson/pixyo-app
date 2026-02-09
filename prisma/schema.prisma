@@ -104,3 +104,19 @@ model WaitlistEntry {
 
   @@index([createdAt])
 }
+
+model GenerationLog {
+  id           String    @id @default(cuid())
+  userId       String
+  tool         String    // "social-graphics" | "product-scenes"
+  prompt       String    @db.Text
+  promptSource String    // "ai-improved" | "user-direct"
+  meta         Json?     // Tool-specific: { mode, preset, aspectRatio, ... }
+  downloaded   Boolean   @default(false)
+  downloadedAt DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([downloaded])
+}
