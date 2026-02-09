@@ -81,6 +81,19 @@ export default async function Home() {
           </svg>
         ),
       },
+      {
+        id: "banner-konfigurator",
+        href: "/tools/banner-konfigurator",
+        title: "Banner-Konfigurator",
+        description: "16 Banner-Formate in 4 Kategorien. Ein Design-Pattern wählen, Brand-Farben setzen, alle Formate gleichzeitig als ZIP exportieren.",
+        badge: "Neu",
+        icon: (
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                  d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+          </svg>
+        ),
+      },
     ];
 
     // Filter tools based on user permissions
@@ -95,12 +108,20 @@ export default async function Home() {
           <img src="/logos/pixyo.svg" alt="Pixyo" className="h-8" />
           <div className="flex items-center gap-4">
             {userIsAdmin && (
-              <Link
-                href="/usage"
-                className="px-3 py-1.5 text-sm text-zinc-400 hover:text-white transition-colors"
-              >
-                Verbrauch
-              </Link>
+              <>
+                <Link
+                  href="/admin/customers"
+                  className="px-3 py-1.5 text-sm text-zinc-400 hover:text-white transition-colors"
+                >
+                  Kunden
+                </Link>
+                <Link
+                  href="/usage"
+                  className="px-3 py-1.5 text-sm text-zinc-400 hover:text-white transition-colors"
+                >
+                  Verbrauch
+                </Link>
+              </>
             )}
             <span className="text-sm text-zinc-400">{user.primaryEmail}</span>
             <Link
@@ -120,7 +141,7 @@ export default async function Home() {
               <p className="text-zinc-400">Wähle ein Tool, um zu starten</p>
             </div>
 
-            <div className={`grid gap-4 ${visibleTools.length > 1 ? 'md:grid-cols-2' : 'max-w-md mx-auto'}`}>
+            <div className={`grid gap-4 ${visibleTools.length > 2 ? 'md:grid-cols-3' : visibleTools.length > 1 ? 'md:grid-cols-2' : 'max-w-md mx-auto'}`}>
               {visibleTools.map((tool) => (
                 <ToolCard
                   key={tool.id}

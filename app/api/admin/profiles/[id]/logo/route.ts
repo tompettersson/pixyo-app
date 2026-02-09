@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { stackServerApp } from "@/lib/stack";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
+import { isAdmin, type UserServerMetadata } from "@/lib/permissions";
 import {
   logoUploadSchema,
   processLogoUpload,
@@ -11,32 +12,35 @@ import {
 } from "@/lib/api/logo-helpers";
 
 /**
- * POST /api/profiles/[id]/logo
- * Upload an SVG logo and generate colorized variants
+ * POST /api/admin/profiles/[id]/logo
+ * Upload SVG logo (admin only, no ownership check)
  */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse<LogoUploadResponse | { error: string; details?: unknown }>> {
   try {
-    // Authenticate user
     const user = await stackServerApp.getUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const serverMetadata = user.serverMetadata as UserServerMetadata | null;
+    if (!isAdmin(serverMetadata)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const { id: profileId } = await params;
 
-    // Verify profile ownership
-    const profile = await prisma.profile.findFirst({
-      where: { id: profileId, userId: user.id },
+    // Find profile without ownership check
+    const profile = await prisma.profile.findUnique({
+      where: { id: profileId },
     });
 
     if (!profile) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
 
-    // Parse and validate request body
     const body = await request.json();
     const validatedData = logoUploadSchema.parse(body);
 
@@ -67,25 +71,28 @@ export async function POST(
 }
 
 /**
- * DELETE /api/profiles/[id]/logo
- * Remove logo from profile
+ * DELETE /api/admin/profiles/[id]/logo
+ * Remove logo (admin only, no ownership check)
  */
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse<{ success: boolean } | { error: string }>> {
   try {
-    // Authenticate user
     const user = await stackServerApp.getUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const serverMetadata = user.serverMetadata as UserServerMetadata | null;
+    if (!isAdmin(serverMetadata)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const { id: profileId } = await params;
 
-    // Verify profile ownership
-    const profile = await prisma.profile.findFirst({
-      where: { id: profileId, userId: user.id },
+    const profile = await prisma.profile.findUnique({
+      where: { id: profileId },
     });
 
     if (!profile) {

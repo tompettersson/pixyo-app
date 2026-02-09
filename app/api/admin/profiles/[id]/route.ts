@@ -3,9 +3,18 @@ import { stackServerApp } from '@/lib/stack';
 import { prisma } from '@/lib/db';
 import { Prisma } from '@/lib/generated/prisma/client';
 import { z } from 'zod';
+import { isAdmin, type UserServerMetadata } from '@/lib/permissions';
 import { profileUpdateSchema } from '@/lib/api/profile-helpers';
 
-// GET single profile (only if owned by current user)
+// Admin update schema allows userId reassignment
+const adminProfileUpdateSchema = profileUpdateSchema.extend({
+  userId: z.string().min(1).optional(),
+});
+
+/**
+ * GET /api/admin/profiles/[id]
+ * Get single profile without ownership check (admin only)
+ */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -16,10 +25,24 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const serverMetadata = user.serverMetadata as UserServerMetadata | null;
+    if (!isAdmin(serverMetadata)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const { id } = await params;
-    const profile = await prisma.profile.findFirst({
-      where: { id, userId: user.id },
-      include: { assets: true },
+    const profile = await prisma.profile.findUnique({
+      where: { id },
+      include: {
+        assets: true,
+        designs: true,
+        _count: {
+          select: {
+            assets: true,
+            designs: true,
+          },
+        },
+      },
     });
 
     if (!profile) {
@@ -36,7 +59,11 @@ export async function GET(
   }
 }
 
-// PATCH update profile (only if owned by current user)
+/**
+ * PATCH /api/admin/profiles/[id]
+ * Update profile without ownership check (admin only)
+ * Also allows userId reassignment
+ */
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -47,21 +74,25 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const serverMetadata = user.serverMetadata as UserServerMetadata | null;
+    if (!isAdmin(serverMetadata)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const { id } = await params;
 
-    // Check ownership
-    const existing = await prisma.profile.findFirst({
-      where: { id, userId: user.id },
-    });
+    // Verify profile exists
+    const existing = await prisma.profile.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
     const body = await request.json();
-    const validatedData = profileUpdateSchema.parse(body);
+    const validatedData = adminProfileUpdateSchema.parse(body);
 
-    // Build update data, converting null to Prisma.JsonNull for JSON fields
+    // Build update data
     const updateData: Prisma.ProfileUpdateInput = {
+      ...(validatedData.userId !== undefined && { userId: validatedData.userId }),
       ...(validatedData.name !== undefined && { name: validatedData.name }),
       ...(validatedData.logo !== undefined && { logo: validatedData.logo }),
       ...(validatedData.logoVariants !== undefined && {
@@ -94,7 +125,10 @@ export async function PATCH(
   }
 }
 
-// DELETE profile (only if owned by current user)
+/**
+ * DELETE /api/admin/profiles/[id]
+ * Delete profile without ownership check (admin only)
+ */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -105,19 +139,19 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const serverMetadata = user.serverMetadata as UserServerMetadata | null;
+    if (!isAdmin(serverMetadata)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const { id } = await params;
 
-    // Check ownership
-    const existing = await prisma.profile.findFirst({
-      where: { id, userId: user.id },
-    });
+    const existing = await prisma.profile.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
-    await prisma.profile.delete({
-      where: { id },
-    });
+    await prisma.profile.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
   } catch (error) {

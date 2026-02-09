@@ -2,9 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stackServerApp } from '@/lib/stack';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
+import { isAdmin, type UserServerMetadata } from '@/lib/permissions';
 import { profileSchema, generateSlug, ensureUniqueSlug } from '@/lib/api/profile-helpers';
 
-// GET all profiles for current user (including system-seeded profiles)
+/**
+ * GET /api/admin/profiles
+ * List all profiles (admin only) with asset/design counts
+ */
 export async function GET() {
   try {
     const user = await stackServerApp.getUser();
@@ -12,16 +16,23 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Return both user's own profiles AND system-seeded profiles
+    const serverMetadata = user.serverMetadata as UserServerMetadata | null;
+    if (!isAdmin(serverMetadata)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const profiles = await prisma.profile.findMany({
-      where: {
-        OR: [
-          { userId: user.id },
-          { userId: 'system-seed-user' },
-        ],
-      },
       orderBy: { updatedAt: 'desc' },
+      include: {
+        _count: {
+          select: {
+            assets: true,
+            designs: true,
+          },
+        },
+      },
     });
+
     return NextResponse.json({ profiles });
   } catch (error) {
     console.error('Failed to fetch profiles:', error);
@@ -32,7 +43,15 @@ export async function GET() {
   }
 }
 
-// POST create new profile for current user
+// Admin creation schema extends profileSchema with optional userId
+const adminProfileSchema = profileSchema.extend({
+  userId: z.string().min(1, 'User ID is required'),
+});
+
+/**
+ * POST /api/admin/profiles
+ * Create profile with explicit userId (admin only)
+ */
 export async function POST(request: NextRequest) {
   try {
     const user = await stackServerApp.getUser();
@@ -40,16 +59,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const validatedData = profileSchema.parse(body);
+    const serverMetadata = user.serverMetadata as UserServerMetadata | null;
+    if (!isAdmin(serverMetadata)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
-    // Generate slug from name if not provided
+    const body = await request.json();
+    const validatedData = adminProfileSchema.parse(body);
+
     const slug = validatedData.slug || generateSlug(validatedData.name);
     const finalSlug = await ensureUniqueSlug(slug);
 
     const profile = await prisma.profile.create({
       data: {
-        userId: user.id,
+        userId: validatedData.userId,
         slug: finalSlug,
         name: validatedData.name,
         logo: validatedData.logo,
