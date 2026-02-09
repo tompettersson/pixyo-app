@@ -57,13 +57,16 @@ export const profileSchema = z.object({
   systemPrompt: z.string(),
 });
 
-// Schema for profile update (all fields optional)
+// Lenient weight: accept string or number, coerce to string
+const weightSchema = z.union([z.string(), z.number()]).transform(String).optional();
+
+// Schema for profile update (all fields optional, lenient types for DB data)
 export const profileUpdateSchema = z.object({
   name: z.string().min(1).optional(),
-  logo: z.string().url().optional(),
+  logo: z.string().optional(), // Don't require .url() — can be empty or data URI
   logoVariants: z.object({
-    dark: z.string().url(),
-    light: z.string().url(),
+    dark: z.string(),
+    light: z.string(),
   }).nullable().optional(),
   colors: z.object({
     dark: z.string(),
@@ -73,14 +76,14 @@ export const profileUpdateSchema = z.object({
   fonts: z.object({
     headline: z.object({
       family: z.string(),
-      size: z.number(),
-      weight: z.string().optional(),
+      size: z.union([z.number(), z.string()]).transform(Number),
+      weight: weightSchema,
       uppercase: z.boolean().optional(),
     }),
     body: z.object({
       family: z.string(),
-      size: z.number(),
-      weight: z.string().optional(),
+      size: z.union([z.number(), z.string()]).transform(Number),
+      weight: weightSchema,
     }),
   }).optional(),
   layout: z.object({

@@ -112,8 +112,10 @@ export async function PATCH(
     return NextResponse.json({ profile });
   } catch (error) {
     if (error instanceof z.ZodError) {
+      const details = error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join(', ');
+      console.error('Profile validation error:', details);
       return NextResponse.json(
-        { error: 'Invalid profile data', details: error.issues },
+        { error: `Validierungsfehler: ${details}`, details: error.issues },
         { status: 400 }
       );
     }
