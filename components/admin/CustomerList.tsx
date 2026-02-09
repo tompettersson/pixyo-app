@@ -1,5 +1,45 @@
 "use client";
 
+import { useState } from "react";
+
+function LogoThumbnail({ profile }: { profile: AdminProfile }) {
+  const [broken, setBroken] = useState(false);
+
+  // Prefer white variant (logoVariants.dark) for dark background
+  const logoUrl = profile.logoVariants?.dark || profile.logo;
+
+  if (!logoUrl || broken) {
+    return (
+      <div className="w-10 h-10 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center flex-shrink-0">
+        <svg
+          className="w-5 h-5 text-zinc-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z"
+          />
+        </svg>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-10 h-10 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center p-1.5 flex-shrink-0">
+      <img
+        src={logoUrl}
+        alt={profile.name}
+        className="max-w-full max-h-full object-contain"
+        onError={() => setBroken(true)}
+      />
+    </div>
+  );
+}
+
 interface AdminProfile {
   id: string;
   name: string;
@@ -120,20 +160,8 @@ export function CustomerList({
                 : "border-l-2 border-transparent"
             }`}
         >
-          {/* Logo Thumbnail */}
-          <div className="w-10 h-10 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center p-1.5 flex-shrink-0">
-            {profile.logo ? (
-              <img
-                src={profile.logo}
-                alt={profile.name}
-                className="max-w-full max-h-full object-contain"
-              />
-            ) : (
-              <span className="text-xs text-zinc-600 font-medium">
-                {profile.name.charAt(0).toUpperCase()}
-              </span>
-            )}
-          </div>
+          {/* Logo Thumbnail — white variant on dark bg, fallback icon */}
+          <LogoThumbnail profile={profile} />
 
           {/* Info */}
           <div className="flex-1 min-w-0">
