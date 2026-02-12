@@ -73,7 +73,12 @@ export default function BrandDesignPage() {
           <div className="flex items-center gap-3">
             <img src="/logos/pixyo.svg" alt="Pixyo" className="h-7" />
             <div>
-              <h1 className="text-lg font-bold leading-tight">Brand Design</h1>
+              <h1 className="text-lg font-bold leading-tight">
+                Brand Design
+                {store.profileName && (
+                  <span className="text-zinc-500 font-normal"> &middot; {store.profileName}</span>
+                )}
+              </h1>
               <p className="text-xs text-zinc-500">
                 Design-System &middot; Live-Preview &middot; Export
               </p>

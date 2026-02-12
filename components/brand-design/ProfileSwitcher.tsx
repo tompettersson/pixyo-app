@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useBrandDesignStore } from '@/store/useBrandDesignStore';
 import type { Customer } from '@/types/customer';
 import type { DesignTokens } from '@/types/designTokens';
@@ -14,6 +15,8 @@ export default function ProfileSwitcher() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { profileId, loadFromProfile } = useBrandDesignStore();
+  const searchParams = useSearchParams();
+  const autoLoadedRef = useRef(false);
 
   useEffect(() => {
     async function fetchProfiles() {
@@ -21,7 +24,23 @@ export default function ProfileSwitcher() {
         const res = await fetch('/api/profiles');
         if (!res.ok) throw new Error('Failed to load profiles');
         const data = await res.json();
-        setProfiles(data.profiles || []);
+        const loaded = data.profiles || [];
+        setProfiles(loaded);
+
+        // Auto-load profile from URL ?profile=<id>
+        if (!autoLoadedRef.current && loaded.length > 0) {
+          autoLoadedRef.current = true;
+          const urlProfileId = searchParams.get('profile');
+          if (urlProfileId) {
+            const match = loaded.find((p: ProfileFromAPI) => p.id === urlProfileId);
+            if (match) {
+              loadFromProfile(match);
+            }
+          } else if (loaded.length === 1) {
+            // Auto-load if only one profile
+            loadFromProfile(loaded[0]);
+          }
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Fehler beim Laden');
       } finally {
@@ -29,7 +48,7 @@ export default function ProfileSwitcher() {
       }
     }
     fetchProfiles();
-  }, []);
+  }, [searchParams, loadFromProfile]);
 
   const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const id = e.target.value;
@@ -50,6 +69,14 @@ export default function ProfileSwitcher() {
 
   if (error) {
     return <p className="text-xs text-red-400">{error}</p>;
+  }
+
+  if (profiles.length === 0) {
+    return (
+      <div className="text-xs text-zinc-500">
+        Keine Profile verfügbar. Bitte einloggen.
+      </div>
+    );
   }
 
   return (

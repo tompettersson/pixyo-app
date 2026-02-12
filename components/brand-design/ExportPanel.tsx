@@ -9,8 +9,9 @@ import { generateTailwindConfig } from '@/lib/brand-design/export-tailwind';
 type ExportFormat = 'json' | 'css' | 'tailwind' | 'llm';
 
 export default function ExportPanel() {
-  const { tokens, profileName } = useBrandDesignStore();
+  const { tokens, profileName, resetToDefaults } = useBrandDesignStore();
   const [copied, setCopied] = useState<ExportFormat | null>(null);
+  const [confirmReset, setConfirmReset] = useState(false);
 
   const handleCopy = useCallback(
     async (format: ExportFormat) => {
@@ -65,6 +66,36 @@ export default function ExportPanel() {
             <span className="text-[10px] text-zinc-500">{exp.desc}</span>
           </button>
         ))}
+      </div>
+
+      {/* Reset */}
+      <div className="pt-2">
+        {confirmReset ? (
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                resetToDefaults();
+                setConfirmReset(false);
+              }}
+              className="flex-1 px-3 py-2 text-xs font-medium bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg transition-colors cursor-pointer"
+            >
+              Ja, zurücksetzen
+            </button>
+            <button
+              onClick={() => setConfirmReset(false)}
+              className="flex-1 px-3 py-2 text-xs font-medium bg-zinc-800 hover:bg-zinc-700 text-zinc-400 rounded-lg transition-colors cursor-pointer"
+            >
+              Abbrechen
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setConfirmReset(true)}
+            className="w-full px-3 py-2 text-xs text-zinc-600 hover:text-zinc-400 transition-colors cursor-pointer"
+          >
+            Auf Standard zurücksetzen
+          </button>
+        )}
       </div>
     </div>
   );
