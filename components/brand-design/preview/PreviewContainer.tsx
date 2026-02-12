@@ -3,10 +3,12 @@
 import React from 'react';
 import { useBrandDesignStore } from '@/store/useBrandDesignStore';
 import MoodboardView from './MoodboardView';
+import BrandGuidelinesView from './BrandGuidelinesView';
+import PagePreviewView from './PagePreviewView';
 
 const TABS = [
   { id: 'moodboard' as const, label: 'Moodboard' },
-  { id: 'guidelines' as const, label: 'Guidelines' },
+  { id: 'guidelines' as const, label: 'Brand Guide' },
   { id: 'page-preview' as const, label: 'Page Preview' },
 ] as const;
 
@@ -21,13 +23,11 @@ export default function PreviewContainer() {
           <button
             key={tab.id}
             onClick={() => setPreviewTab(tab.id)}
-            className={`px-4 py-1.5 text-sm rounded-md font-medium transition-all ${
+            className={`px-4 py-1.5 text-sm rounded-md font-medium transition-all cursor-pointer ${
               activePreviewTab === tab.id
                 ? 'bg-zinc-800 text-white shadow-sm'
                 : 'text-zinc-500 hover:text-zinc-300'
-            } ${tab.id !== 'moodboard' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-            disabled={tab.id !== 'moodboard'}
-            title={tab.id !== 'moodboard' ? 'Kommt in Phase 2' : undefined}
+            }`}
           >
             {tab.label}
           </button>
@@ -40,15 +40,11 @@ export default function PreviewContainer() {
       )}
 
       {activePreviewTab === 'guidelines' && (
-        <div className="flex items-center justify-center h-96 text-zinc-600">
-          Brand Guidelines — Phase 2
-        </div>
+        <BrandGuidelinesView tokens={tokens} profileName={profileName} />
       )}
 
       {activePreviewTab === 'page-preview' && (
-        <div className="flex items-center justify-center h-96 text-zinc-600">
-          Page Preview — Phase 2
-        </div>
+        <PagePreviewView tokens={tokens} profileName={profileName} />
       )}
     </div>
   );

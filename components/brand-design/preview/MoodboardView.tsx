@@ -9,358 +9,338 @@ interface MoodboardViewProps {
   profileName: string | null;
 }
 
+/**
+ * Moodboard — Creative, visual layout showing the brand "feeling".
+ * Arranged as a collage-style grid with typography, color moods, and brand personality.
+ */
 export default function MoodboardView({ tokens, profileName }: MoodboardViewProps) {
-  const { colors, typography, spacing, borders, shadows, components, voice } = tokens;
+  const { colors, typography, components, voice, media } = tokens;
 
-  // Load fonts for preview
   useEffect(() => {
     loadGoogleFont(typography.fonts.heading.family);
     loadGoogleFont(typography.fonts.body.family);
   }, [typography.fonts]);
 
+  const headingFont = `'${typography.fonts.heading.family}', ${typography.fonts.heading.fallback}`;
+  const bodyFont = `'${typography.fonts.body.family}', ${typography.fonts.body.fallback}`;
+
   return (
-    <div className="space-y-8">
-      {/* ── Color Palette ──────────────────────────────── */}
-      <section>
-        <h2 className="text-sm font-semibold text-zinc-400 mb-3 uppercase tracking-wider">Farbpalette</h2>
-        <div className="grid grid-cols-3 gap-3">
-          {Object.entries(colors.palette).map(([name, value]) => (
-            <div key={name} className="group">
-              <div
-                className="aspect-[3/2] rounded-xl border border-zinc-800"
-                style={{ backgroundColor: value }}
-              />
-              <div className="mt-1.5 flex justify-between items-baseline">
-                <span className="text-xs text-zinc-400 capitalize">{name}</span>
-                <span className="text-[10px] text-zinc-600 font-mono">{value}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Semantic colors row */}
-        <div className="mt-4 flex gap-2 flex-wrap">
-          {[
-            { label: 'BG', color: colors.semantic.background.default, border: true },
-            { label: 'Subtle', color: colors.semantic.background.subtle, border: true },
-            { label: 'Text', color: colors.semantic.text.default },
-            { label: 'Muted', color: colors.semantic.text.muted },
-            { label: 'Success', color: colors.semantic.status.success },
-            { label: 'Warning', color: colors.semantic.status.warning },
-            { label: 'Error', color: colors.semantic.status.error },
-            { label: 'Info', color: colors.semantic.status.info },
-          ].map((item) => (
-            <div key={item.label} className="flex items-center gap-1.5">
-              <div
-                className="w-5 h-5 rounded"
-                style={{
-                  backgroundColor: item.color,
-                  border: item.border ? '1px solid #3f3f46' : undefined,
-                }}
-              />
-              <span className="text-[10px] text-zinc-500">{item.label}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Typography Specimen ────────────────────────── */}
-      <section
-        className="rounded-2xl p-8"
-        style={{
-          backgroundColor: colors.semantic.background.default,
-          border: `1px solid ${colors.semantic.border.default}`,
-        }}
+    <div className="space-y-4">
+      {/* ── Hero Block ─────────────────────────────────── */}
+      <div
+        className="relative rounded-2xl overflow-hidden"
+        style={{ minHeight: '360px', background: colors.semantic.primary }}
       >
-        <h2
-          className="text-sm font-semibold uppercase tracking-wider mb-6"
-          style={{ color: colors.semantic.text.muted }}
-        >
-          Typografie
-        </h2>
-
-        <div className="space-y-3">
-          {[
-            { label: 'H1', size: typography.scale['5xl'], weight: typography.fontWeights.bold },
-            { label: 'H2', size: typography.scale['4xl'], weight: typography.fontWeights.bold },
-            { label: 'H3', size: typography.scale['3xl'], weight: typography.fontWeights.semibold },
-            { label: 'H4', size: typography.scale['2xl'], weight: typography.fontWeights.semibold },
-          ].map((level) => (
-            <div key={level.label} className="flex items-baseline gap-3">
-              <span
-                className="text-[10px] font-mono w-6 shrink-0"
-                style={{ color: colors.semantic.text.muted }}
-              >
-                {level.label}
-              </span>
-              <span
-                style={{
-                  fontFamily: `'${typography.fonts.heading.family}', ${typography.fonts.heading.fallback}`,
-                  fontSize: level.size,
-                  fontWeight: level.weight,
-                  lineHeight: typography.lineHeight.tight,
-                  color: colors.semantic.text.default,
-                  textTransform: typography.headingUppercase ? 'uppercase' : 'none',
-                  letterSpacing: typography.headingUppercase ? typography.letterSpacing.wide : typography.letterSpacing.normal,
-                }}
-              >
-                {profileName || 'Brand Name'}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-6 space-y-2">
-          <p
-            style={{
-              fontFamily: `'${typography.fonts.body.family}', ${typography.fonts.body.fallback}`,
-              fontSize: typography.scale.base_ || `${typography.scale.base}px`,
-              fontWeight: typography.fontWeights.normal,
-              lineHeight: typography.lineHeight.normal,
-              color: colors.semantic.text.default,
-            }}
-          >
-            Body Text — Dies ist ein Beispiel für den Fließtext. Die Schriftart{' '}
-            <strong style={{ fontWeight: typography.fontWeights.bold }}>
-              {typography.fonts.body.family}
-            </strong>{' '}
-            in {typography.scale.base}px mit einem Zeilenabstand von {typography.lineHeight.normal}.
-          </p>
-          <p
-            style={{
-              fontFamily: `'${typography.fonts.body.family}', ${typography.fonts.body.fallback}`,
-              fontSize: typography.scale.sm,
-              fontWeight: typography.fontWeights.normal,
-              lineHeight: typography.lineHeight.relaxed,
-              color: colors.semantic.text.muted,
-            }}
-          >
-            Muted Text — Kleinere Beschreibungen und sekundäre Informationen werden in dieser Größe dargestellt.
-          </p>
-        </div>
-      </section>
-
-      {/* ── Button Gallery ─────────────────────────────── */}
-      <section>
-        <h2 className="text-sm font-semibold text-zinc-400 mb-3 uppercase tracking-wider">Buttons</h2>
+        {/* Decorative circles */}
         <div
-          className="rounded-2xl p-8 flex flex-wrap gap-4 items-center"
+          className="absolute -top-20 -right-20 w-64 h-64 rounded-full opacity-20"
+          style={{ background: colors.semantic.accent }}
+        />
+        <div
+          className="absolute bottom-10 -left-10 w-40 h-40 rounded-full opacity-15"
+          style={{ background: colors.semantic.secondary }}
+        />
+
+        <div className="relative z-10 p-12 flex flex-col justify-end h-full" style={{ minHeight: '360px' }}>
+          {/* Logo */}
+          {media.logoVariants.primary && (
+            <img
+              src={media.logoVariants.light || media.logoVariants.primary}
+              alt="Logo"
+              className="w-16 h-16 object-contain mb-6 opacity-90"
+              crossOrigin="anonymous"
+            />
+          )}
+          <h1
+            style={{
+              fontFamily: headingFont,
+              fontSize: typography.scale['5xl'],
+              fontWeight: typography.fontWeights.bold,
+              lineHeight: typography.lineHeight.tight,
+              color: colors.semantic.text.onPrimary,
+              textTransform: typography.headingUppercase ? 'uppercase' : 'none',
+              letterSpacing: typography.headingUppercase ? typography.letterSpacing.wide : typography.letterSpacing.tight,
+            }}
+          >
+            {profileName || 'Brand Name'}
+          </h1>
+          {voice.tone.length > 0 && (
+            <p
+              className="mt-3 opacity-70"
+              style={{
+                fontFamily: bodyFont,
+                fontSize: typography.scale.lg,
+                color: colors.semantic.text.onPrimary,
+              }}
+            >
+              {voice.tone.join(' \u00b7 ')}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* ── Color Mood Grid ────────────────────────────── */}
+      <div className="grid grid-cols-5 gap-3" style={{ height: '140px' }}>
+        <div className="rounded-xl col-span-2" style={{ background: colors.semantic.primary }} />
+        <div className="rounded-xl" style={{ background: colors.semantic.secondary }} />
+        <div className="rounded-xl" style={{ background: colors.semantic.accent }} />
+        <div className="rounded-xl flex flex-col justify-end p-4" style={{ background: colors.semantic.background.inverse }}>
+          <span
+            className="text-[10px] font-mono"
+            style={{ color: colors.semantic.text.inverse }}
+          >
+            {colors.semantic.background.inverse}
+          </span>
+        </div>
+      </div>
+
+      {/* ── Typography + Buttons Side-by-Side ──────────── */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* Type specimen */}
+        <div
+          className="rounded-2xl p-8"
           style={{
-            backgroundColor: colors.semantic.background.default,
+            background: colors.semantic.background.default,
             border: `1px solid ${colors.semantic.border.default}`,
           }}
         >
-          {(['primary', 'secondary', 'outline', 'ghost'] as const).map((variant) => {
-            const style = components.button[variant];
-            return (
-              <button
-                key={variant}
-                className="transition-opacity hover:opacity-90"
+          <p
+            className="mb-1"
+            style={{
+              fontFamily: bodyFont,
+              fontSize: typography.scale.xs,
+              color: colors.semantic.text.muted,
+              textTransform: 'uppercase',
+              letterSpacing: typography.letterSpacing.wide,
+            }}
+          >
+            {typography.fonts.heading.family}
+          </p>
+          <h2
+            style={{
+              fontFamily: headingFont,
+              fontSize: typography.scale['4xl'],
+              fontWeight: typography.fontWeights.bold,
+              lineHeight: typography.lineHeight.tight,
+              color: colors.semantic.text.default,
+              textTransform: typography.headingUppercase ? 'uppercase' : 'none',
+            }}
+          >
+            Aa Bb Cc
+          </h2>
+          <div className="mt-4 space-y-0.5">
+            <p
+              style={{
+                fontFamily: headingFont,
+                fontSize: typography.scale.lg,
+                fontWeight: typography.fontWeights.bold,
+                color: colors.semantic.text.default,
+              }}
+            >
+              ABCDEFGHIJKLMNOPQRSTUVWXYZ
+            </p>
+            <p
+              style={{
+                fontFamily: headingFont,
+                fontSize: typography.scale.lg,
+                fontWeight: typography.fontWeights.normal,
+                color: colors.semantic.text.muted,
+              }}
+            >
+              abcdefghijklmnopqrstuvwxyz
+            </p>
+            <p
+              style={{
+                fontFamily: headingFont,
+                fontSize: typography.scale.lg,
+                fontWeight: typography.fontWeights.normal,
+                color: colors.semantic.text.muted,
+              }}
+            >
+              0123456789 !@#$%
+            </p>
+          </div>
+
+          {typography.fonts.body.family !== typography.fonts.heading.family && (
+            <div className="mt-6 pt-4" style={{ borderTop: `1px solid ${colors.semantic.border.subtle}` }}>
+              <p
+                className="mb-1"
                 style={{
-                  background: style.background,
-                  color: style.color,
-                  border: style.border === 'none' ? 'none' : style.border,
-                  borderRadius: style.borderRadius,
-                  fontWeight: style.fontWeight,
-                  textTransform: style.textTransform,
-                  padding: `${style.paddingY} ${style.paddingX}`,
-                  fontFamily: `'${typography.fonts.body.family}', ${typography.fonts.body.fallback}`,
-                  fontSize: typography.scale.sm,
+                  fontFamily: bodyFont,
+                  fontSize: typography.scale.xs,
+                  color: colors.semantic.text.muted,
+                  textTransform: 'uppercase',
+                  letterSpacing: typography.letterSpacing.wide,
                 }}
               >
-                {variant.charAt(0).toUpperCase() + variant.slice(1)} Button
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* ── Spacing Visualization ──────────────────────── */}
-      <section>
-        <h2 className="text-sm font-semibold text-zinc-400 mb-3 uppercase tracking-wider">Spacing</h2>
-        <div className="space-y-1">
-          {Object.entries(spacing.scale).map(([key, value]) => (
-            <div key={key} className="flex items-center gap-3">
-              <span className="text-[10px] text-zinc-500 font-mono w-8 text-right">{key}</span>
-              <div
-                className="h-4 rounded-sm"
+                {typography.fonts.body.family}
+              </p>
+              <p
                 style={{
-                  width: value,
-                  backgroundColor: colors.semantic.primary,
-                  opacity: 0.3,
+                  fontFamily: bodyFont,
+                  fontSize: typography.scale.base_,
+                  lineHeight: typography.lineHeight.relaxed,
+                  color: colors.semantic.text.default,
                 }}
-              />
-              <span className="text-[10px] text-zinc-600 font-mono">{value}</span>
+              >
+                The quick brown fox jumps over the lazy dog. Franz jagt im komplett verwahrlosten Taxi quer durch Bayern.
+              </p>
             </div>
-          ))}
+          )}
         </div>
-      </section>
 
-      {/* ── Radius & Shadows ───────────────────────────── */}
-      <section className="grid grid-cols-2 gap-6">
-        {/* Radius */}
-        <div>
-          <h2 className="text-sm font-semibold text-zinc-400 mb-3 uppercase tracking-wider">Border Radius</h2>
-          <div className="flex flex-wrap gap-3">
-            {['sm', 'md', 'lg', 'xl', 'full'].map((key) => (
-              <div key={key} className="text-center">
-                <div
-                  className="w-14 h-14 border-2"
+        {/* Buttons + Card mood */}
+        <div className="space-y-4">
+          {/* Buttons */}
+          <div
+            className="rounded-2xl p-8 flex flex-col gap-3"
+            style={{
+              background: colors.semantic.background.default,
+              border: `1px solid ${colors.semantic.border.default}`,
+            }}
+          >
+            {(['primary', 'secondary', 'outline', 'ghost'] as const).map((variant) => {
+              const style = components.button[variant];
+              return (
+                <button
+                  key={variant}
+                  className="w-full text-center transition-opacity"
                   style={{
-                    borderRadius: borders.radius[key as keyof typeof borders.radius],
-                    borderColor: colors.semantic.primary,
-                    backgroundColor: `${colors.semantic.primary}10`,
+                    background: style.background,
+                    color: style.color,
+                    border: style.border === 'none' ? 'none' : style.border,
+                    borderRadius: style.borderRadius,
+                    fontWeight: style.fontWeight,
+                    textTransform: style.textTransform,
+                    padding: `${style.paddingY} ${style.paddingX}`,
+                    fontFamily: bodyFont,
+                    fontSize: typography.scale.sm,
                   }}
-                />
-                <span className="text-[10px] text-zinc-500 font-mono mt-1 block">{key}</span>
-              </div>
-            ))}
+                >
+                  {variant === 'primary' ? 'Jetzt starten' : variant === 'secondary' ? 'Mehr erfahren' : variant === 'outline' ? 'Kontakt' : 'Details ansehen'}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Mini card */}
+          <div
+            className="rounded-2xl p-6"
+            style={{
+              background: colors.semantic.background.subtle,
+              border: `1px solid ${colors.semantic.border.subtle}`,
+            }}
+          >
+            <div
+              className="w-10 h-10 rounded-lg mb-3 flex items-center justify-center"
+              style={{ background: colors.semantic.primary }}
+            >
+              <svg className="w-5 h-5" fill="none" stroke={colors.semantic.text.onPrimary} strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <h3
+              style={{
+                fontFamily: headingFont,
+                fontSize: typography.scale.lg,
+                fontWeight: typography.fontWeights.semibold,
+                color: colors.semantic.text.default,
+                textTransform: typography.headingUppercase ? 'uppercase' : 'none',
+              }}
+            >
+              Feature Highlight
+            </h3>
+            <p
+              className="mt-1"
+              style={{
+                fontFamily: bodyFont,
+                fontSize: typography.scale.sm,
+                lineHeight: typography.lineHeight.relaxed,
+                color: colors.semantic.text.muted,
+              }}
+            >
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod.
+            </p>
           </div>
         </div>
+      </div>
 
-        {/* Shadows */}
-        <div>
-          <h2 className="text-sm font-semibold text-zinc-400 mb-3 uppercase tracking-wider">Schatten</h2>
-          <div className="flex flex-wrap gap-4">
-            {(['sm', 'md', 'lg', 'xl'] as const).map((key) => (
-              <div key={key} className="text-center">
-                <div
-                  className="w-14 h-14 bg-white rounded-lg"
-                  style={{
-                    boxShadow: shadows[key],
-                    borderRadius: borders.radius.default,
-                  }}
-                />
-                <span className="text-[10px] text-zinc-500 font-mono mt-1 block">{key}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Card Preview ───────────────────────────────── */}
-      <section>
-        <h2 className="text-sm font-semibold text-zinc-400 mb-3 uppercase tracking-wider">Card</h2>
+      {/* ── Brand Voice Mood ───────────────────────────── */}
+      {(voice.description || voice.dos.length > 0 || voice.donts.length > 0) && (
         <div
+          className="rounded-2xl p-8"
           style={{
-            background: components.card.background,
-            border: components.card.border,
-            borderRadius: components.card.borderRadius,
-            boxShadow: components.card.shadow,
-            padding: components.card.padding,
-            maxWidth: '400px',
+            background: colors.semantic.background.inverse,
           }}
         >
           <h3
             style={{
-              fontFamily: `'${typography.fonts.heading.family}', ${typography.fonts.heading.fallback}`,
+              fontFamily: headingFont,
               fontSize: typography.scale.xl,
-              fontWeight: typography.fontWeights.semibold,
-              color: colors.semantic.text.default,
-              lineHeight: typography.lineHeight.tight,
+              fontWeight: typography.fontWeights.bold,
+              color: colors.semantic.text.inverse,
               textTransform: typography.headingUppercase ? 'uppercase' : 'none',
-              marginBottom: spacing.scale.sm,
+              marginBottom: '12px',
             }}
           >
-            Card Title
+            Brand Voice
           </h3>
-          <p
-            style={{
-              fontFamily: `'${typography.fonts.body.family}', ${typography.fonts.body.fallback}`,
-              fontSize: typography.scale.sm,
-              color: colors.semantic.text.muted,
-              lineHeight: typography.lineHeight.normal,
-              marginBottom: spacing.scale.md,
-            }}
-          >
-            Dies ist eine Beispiel-Card mit dem konfigurierten Design-System.
-            Schatten, Radius und Padding sind live anpassbar.
-          </p>
-          <button
-            style={{
-              background: components.button.primary.background,
-              color: components.button.primary.color,
-              border: components.button.primary.border === 'none' ? 'none' : components.button.primary.border,
-              borderRadius: components.button.primary.borderRadius,
-              fontWeight: components.button.primary.fontWeight,
-              textTransform: components.button.primary.textTransform,
-              padding: `${components.button.primary.paddingY} ${components.button.primary.paddingX}`,
-              fontFamily: `'${typography.fonts.body.family}', ${typography.fonts.body.fallback}`,
-              fontSize: typography.scale.sm,
-            }}
-          >
-            Mehr erfahren
-          </button>
-        </div>
-      </section>
-
-      {/* ── Input Preview ──────────────────────────────── */}
-      <section>
-        <h2 className="text-sm font-semibold text-zinc-400 mb-3 uppercase tracking-wider">Input</h2>
-        <div
-          className="p-6 rounded-2xl"
-          style={{
-            backgroundColor: colors.semantic.background.default,
-            border: `1px solid ${colors.semantic.border.default}`,
-            maxWidth: '400px',
-          }}
-        >
-          <label
-            style={{
-              fontFamily: `'${typography.fonts.body.family}', ${typography.fonts.body.fallback}`,
-              fontSize: typography.scale.sm,
-              fontWeight: typography.fontWeights.medium,
-              color: colors.semantic.text.default,
-              display: 'block',
-              marginBottom: spacing.scale.xs,
-            }}
-          >
-            E-Mail-Adresse
-          </label>
-          <input
-            type="email"
-            placeholder="name@example.com"
-            readOnly
-            style={{
-              width: '100%',
-              background: components.input.background,
-              border: components.input.border,
-              borderRadius: components.input.borderRadius,
-              padding: components.input.padding,
-              fontFamily: `'${typography.fonts.body.family}', ${typography.fonts.body.fallback}`,
-              fontSize: `${typography.scale.base}px`,
-              color: colors.semantic.text.default,
-              outline: 'none',
-            }}
-          />
-        </div>
-      </section>
-
-      {/* ── Brand Voice ────────────────────────────────── */}
-      {(voice.tone.length > 0 || voice.description) && (
-        <section>
-          <h2 className="text-sm font-semibold text-zinc-400 mb-3 uppercase tracking-wider">Brand Voice</h2>
-          <div className="bg-zinc-900 rounded-xl p-4 space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-zinc-500">Formalität:</span>
-              <span className="text-xs text-zinc-300 capitalize">{voice.formality}</span>
-              <span className="text-xs text-zinc-500 ml-2">Anrede:</span>
-              <span className="text-xs text-zinc-300">{voice.address}</span>
-            </div>
-            {voice.tone.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {voice.tone.map((t, i) => (
-                  <span key={i} className="px-2 py-0.5 bg-zinc-800 text-xs text-zinc-300 rounded-md">
-                    {t}
+          {voice.description && (
+            <p
+              style={{
+                fontFamily: bodyFont,
+                fontSize: typography.scale.base_,
+                lineHeight: typography.lineHeight.relaxed,
+                color: colors.semantic.text.inverse,
+                opacity: 0.7,
+              }}
+            >
+              {voice.description}
+            </p>
+          )}
+          {(voice.dos.length > 0 || voice.donts.length > 0) && (
+            <div className="grid grid-cols-2 gap-6 mt-4">
+              {voice.dos.length > 0 && (
+                <div>
+                  <span
+                    className="text-xs font-medium block mb-2"
+                    style={{ color: colors.semantic.status.success }}
+                  >
+                    Do
                   </span>
-                ))}
-              </div>
-            )}
-            {voice.description && (
-              <p className="text-xs text-zinc-400 leading-relaxed">{voice.description}</p>
-            )}
-          </div>
-        </section>
+                  {voice.dos.map((d, i) => (
+                    <p
+                      key={i}
+                      className="text-sm mb-1"
+                      style={{ color: colors.semantic.text.inverse, opacity: 0.7 }}
+                    >
+                      + {d}
+                    </p>
+                  ))}
+                </div>
+              )}
+              {voice.donts.length > 0 && (
+                <div>
+                  <span
+                    className="text-xs font-medium block mb-2"
+                    style={{ color: colors.semantic.status.error }}
+                  >
+                    Don&apos;t
+                  </span>
+                  {voice.donts.map((d, i) => (
+                    <p
+                      key={i}
+                      className="text-sm mb-1"
+                      style={{ color: colors.semantic.text.inverse, opacity: 0.7 }}
+                    >
+                      - {d}
+                    </p>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
