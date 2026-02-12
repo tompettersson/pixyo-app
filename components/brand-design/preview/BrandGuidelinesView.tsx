@@ -4,6 +4,15 @@ import React, { useEffect } from 'react';
 import type { DesignTokens } from '@/types/designTokens';
 import { loadGoogleFont } from '@/lib/brand-design/font-loader';
 
+/** Simple luminance check to decide text color on a swatch */
+function isLightColor(hex: string): boolean {
+  const c = hex.replace('#', '');
+  const r = parseInt(c.substring(0, 2), 16);
+  const g = parseInt(c.substring(2, 4), 16);
+  const b = parseInt(c.substring(4, 6), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000 > 160;
+}
+
 interface BrandGuidelinesViewProps {
   tokens: DesignTokens;
   profileName: string | null;
@@ -30,18 +39,31 @@ export default function BrandGuidelinesView({ tokens, profileName }: BrandGuidel
       <section>
         <h2 className="text-sm font-semibold text-zinc-400 mb-3 uppercase tracking-wider">Farbpalette</h2>
         <div className="grid grid-cols-3 gap-3">
-          {Object.entries(colors.palette).map(([name, value]) => (
-            <div key={name} className="group">
-              <div
-                className="aspect-[3/2] rounded-xl border border-zinc-800"
-                style={{ backgroundColor: value }}
-              />
-              <div className="mt-1.5 flex justify-between items-baseline">
-                <span className="text-xs text-zinc-400 capitalize">{name}</span>
-                <span className="text-[10px] text-zinc-600 font-mono">{value}</span>
+          {Object.entries(colors.palette).map(([name, value]) => {
+            // Determine if text should be light or dark based on background
+            const isLight = isLightColor(value);
+            return (
+              <div key={name} className="group">
+                <div
+                  className="aspect-[3/2] rounded-xl border border-zinc-800 flex flex-col justify-end p-3"
+                  style={{ backgroundColor: value }}
+                >
+                  <span
+                    className="text-xs font-medium capitalize"
+                    style={{ color: isLight ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.8)' }}
+                  >
+                    {name}
+                  </span>
+                  <span
+                    className="text-[10px] font-mono"
+                    style={{ color: isLight ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.5)' }}
+                  >
+                    {value}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Semantic colors row */}

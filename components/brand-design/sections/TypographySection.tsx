@@ -63,18 +63,34 @@ export default function TypographySection() {
   return (
     <div className="space-y-4">
       {/* Font families */}
-      <Select
-        label="Heading-Font"
-        value={typography.fonts.heading.family}
-        onChange={(e) => handleFontChange('heading', e.target.value)}
-        options={fontOptions}
-      />
-      <Select
-        label="Body-Font"
-        value={typography.fonts.body.family}
-        onChange={(e) => handleFontChange('body', e.target.value)}
-        options={fontOptions}
-      />
+      <div>
+        <Select
+          label="Heading-Font"
+          value={typography.fonts.heading.family}
+          onChange={(e) => handleFontChange('heading', e.target.value)}
+          options={fontOptions}
+        />
+        <p
+          className="mt-1.5 text-lg text-zinc-300 truncate"
+          style={{ fontFamily: `'${typography.fonts.heading.family}', sans-serif`, fontWeight: typography.fontWeights.bold }}
+        >
+          Die Zukunft beginnt hier
+        </p>
+      </div>
+      <div>
+        <Select
+          label="Body-Font"
+          value={typography.fonts.body.family}
+          onChange={(e) => handleFontChange('body', e.target.value)}
+          options={fontOptions}
+        />
+        <p
+          className="mt-1.5 text-sm text-zinc-400 truncate"
+          style={{ fontFamily: `'${typography.fonts.body.family}', sans-serif` }}
+        >
+          Dies ist ein Beispiel für den Fließtext.
+        </p>
+      </div>
 
       {/* Type Scale */}
       <Slider

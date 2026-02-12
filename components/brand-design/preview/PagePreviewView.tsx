@@ -313,7 +313,7 @@ export default function PagePreviewView({ tokens, profileName }: PagePreviewView
           }}
         >
           <span style={{ fontSize: typography.scale.sm, color: colors.semantic.text.muted }}>
-            &copy; 2025 {name}. Alle Rechte vorbehalten.
+            &copy; {new Date().getFullYear()} {name}. Alle Rechte vorbehalten.
           </span>
           <div className="flex" style={{ gap: spacing.scale.lg }}>
             {['Impressum', 'Datenschutz', 'AGB'].map((item) => (

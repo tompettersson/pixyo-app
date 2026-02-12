@@ -81,15 +81,24 @@ export default function MoodboardView({ tokens, profileName }: MoodboardViewProp
 
       {/* ── Color Mood Grid ────────────────────────────── */}
       <div className="grid grid-cols-5 gap-3" style={{ height: '140px' }}>
-        <div className="rounded-xl col-span-2" style={{ background: colors.semantic.primary }} />
-        <div className="rounded-xl" style={{ background: colors.semantic.secondary }} />
-        <div className="rounded-xl" style={{ background: colors.semantic.accent }} />
+        <div className="rounded-xl col-span-2 flex flex-col justify-end p-4" style={{ background: colors.semantic.primary }}>
+          <span className="text-[10px] font-mono" style={{ color: colors.semantic.text.onPrimary, opacity: 0.6 }}>
+            Primary
+          </span>
+        </div>
+        <div className="rounded-xl flex flex-col justify-end p-4" style={{ background: colors.semantic.secondary }}>
+          <span className="text-[10px] font-mono" style={{ color: colors.semantic.text.onPrimary, opacity: 0.6 }}>
+            Secondary
+          </span>
+        </div>
+        <div className="rounded-xl flex flex-col justify-end p-4" style={{ background: colors.semantic.accent }}>
+          <span className="text-[10px] font-mono" style={{ color: colors.semantic.text.onPrimary, opacity: 0.6 }}>
+            Accent
+          </span>
+        </div>
         <div className="rounded-xl flex flex-col justify-end p-4" style={{ background: colors.semantic.background.inverse }}>
-          <span
-            className="text-[10px] font-mono"
-            style={{ color: colors.semantic.text.inverse }}
-          >
-            {colors.semantic.background.inverse}
+          <span className="text-[10px] font-mono" style={{ color: colors.semantic.text.inverse, opacity: 0.6 }}>
+            Dark
           </span>
         </div>
       </div>
