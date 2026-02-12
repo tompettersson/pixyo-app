@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { stackServerApp } from "@/lib/stack";
 
 // Tool IDs matching the homepage tool cards
-export type ToolId = "social-graphics" | "product-scenes" | "banner-konfigurator";
+export type ToolId = "social-graphics" | "product-scenes" | "banner-konfigurator" | "brand-design";
 
 // Map API route names to their parent tool
 const TOOL_ROUTES: Record<string, ToolId> = {
@@ -17,6 +17,8 @@ const TOOL_ROUTES: Record<string, ToolId> = {
   "generate-prompt": "social-graphics",
   "generate-image": "social-graphics",
   "generate-text": "social-graphics",
+  // Brand Design
+  "brand-design-generate": "brand-design",
 };
 
 // Server metadata shape from Stack Auth

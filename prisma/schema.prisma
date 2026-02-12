@@ -24,6 +24,7 @@ model Profile {
   fonts        Json     // { headline: {...}, body: {...} }
   layout       Json     // { padding: {...}, gaps: {...}, etc. }
   systemPrompt String   @db.Text
+  designTokens Json?    // Full design token set (null = legacy profile)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

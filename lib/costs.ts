@@ -15,6 +15,9 @@ export const AI_COSTS_EUR: Record<string, number> = {
   "generate-prompt": 0.015, // Claude Sonnet 4
   "generate-image": 0.03, // Gemini 3 Pro Image
   "generate-text": 0.015, // Claude Sonnet 4.5
+
+  // Brand Design
+  "brand-design-generate": 0.02, // Claude Sonnet 4.5
 };
 
 /**
@@ -30,4 +33,7 @@ export const AI_MODELS: Record<string, string> = {
   "generate-prompt": "claude-sonnet-4",
   "generate-image": "gemini-3-pro-image",
   "generate-text": "claude-sonnet-4.5",
+
+  // Brand Design
+  "brand-design-generate": "claude-sonnet-4.5",
 };
