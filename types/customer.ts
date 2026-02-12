@@ -38,6 +38,7 @@ export interface Customer {
   fonts: CustomerFonts;
   layout: CustomerLayout;
   systemPrompt: string;
+  designTokens?: import('@/types/designTokens').DesignTokens | null;
 }
 
 // Design types

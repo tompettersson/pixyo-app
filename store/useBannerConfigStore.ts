@@ -105,23 +105,42 @@ export const useBannerConfigStore = create<BannerConfigState>()(
 
       updateConfig: (partial) => set(partial),
 
-      loadFromProfile: (profile: Customer) =>
-        set({
-          profileId: profile.id,
-          logoUrl: profile.logo || null,
-          colorFrom: profile.colors.dark,
-          colorTo: profile.colors.light,
-          accentColor: profile.colors.accent,
-          headlineFont: profile.fonts.headline.family,
-          headlineWeight: profile.fonts.headline.weight || '700',
-          headlineUppercase: profile.fonts.headline.uppercase ?? false,
-          ctaStyle:
-            profile.layout.button.radius >= 999
-              ? 'pill'
-              : profile.layout.button.radius >= 8
-                ? 'rounded'
-                : 'square',
-        }),
+      loadFromProfile: (profile: Customer) => {
+        const dt = profile.designTokens;
+        if (dt && typeof dt === 'object') {
+          // Use design tokens (new system)
+          const radius = parseInt(dt.borders?.radius?.default || '8');
+          set({
+            profileId: profile.id,
+            logoUrl: dt.media?.logoVariants?.primary || profile.logo || null,
+            colorFrom: dt.colors?.semantic?.primary || profile.colors.dark,
+            colorTo: dt.colors?.semantic?.secondary || profile.colors.light,
+            accentColor: dt.colors?.semantic?.accent || profile.colors.accent,
+            headlineFont: dt.typography?.fonts?.heading?.family || profile.fonts.headline.family,
+            headlineWeight: String(dt.typography?.fontWeights?.bold ?? profile.fonts.headline.weight ?? '700'),
+            headlineUppercase: dt.typography?.headingUppercase ?? profile.fonts.headline.uppercase ?? false,
+            ctaStyle: radius >= 999 ? 'pill' : radius >= 8 ? 'rounded' : 'square',
+          });
+        } else {
+          // Legacy profile fields
+          set({
+            profileId: profile.id,
+            logoUrl: profile.logo || null,
+            colorFrom: profile.colors.dark,
+            colorTo: profile.colors.light,
+            accentColor: profile.colors.accent,
+            headlineFont: profile.fonts.headline.family,
+            headlineWeight: profile.fonts.headline.weight || '700',
+            headlineUppercase: profile.fonts.headline.uppercase ?? false,
+            ctaStyle:
+              profile.layout.button.radius >= 999
+                ? 'pill'
+                : profile.layout.button.radius >= 8
+                  ? 'rounded'
+                  : 'square',
+          });
+        }
+      },
     }),
     {
       limit: 50,
