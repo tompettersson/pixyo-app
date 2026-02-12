@@ -35,6 +35,37 @@ export default function BrandGuidelinesView({ tokens, profileName }: BrandGuidel
 
   return (
     <div className="space-y-8">
+      {/* ── Logo ────────────────────────────────────────── */}
+      {media.logoVariants.primary && (
+        <section>
+          <h2 className="text-sm font-semibold text-zinc-400 mb-3 uppercase tracking-wider">Logo</h2>
+          <div className="grid grid-cols-2 gap-3">
+            <div
+              className="rounded-xl p-8 flex items-center justify-center"
+              style={{ backgroundColor: colors.semantic.background.default, border: `1px solid ${colors.semantic.border.default}` }}
+            >
+              <img
+                src={media.logoVariants.primary}
+                alt="Logo on light"
+                className="max-h-16 object-contain"
+                crossOrigin="anonymous"
+              />
+            </div>
+            <div
+              className="rounded-xl p-8 flex items-center justify-center"
+              style={{ backgroundColor: colors.semantic.background.inverse }}
+            >
+              <img
+                src={media.logoVariants.light || media.logoVariants.primary}
+                alt="Logo on dark"
+                className="max-h-16 object-contain"
+                crossOrigin="anonymous"
+              />
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ── Color Palette ──────────────────────────────── */}
       <section>
         <h2 className="text-sm font-semibold text-zinc-400 mb-3 uppercase tracking-wider">Farbpalette</h2>

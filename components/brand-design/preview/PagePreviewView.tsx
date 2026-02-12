@@ -243,6 +243,39 @@ export default function PagePreviewView({ tokens, profileName }: PagePreviewView
           </div>
         </section>
 
+        {/* Stats */}
+        <section
+          className="grid grid-cols-3 text-center"
+          style={{
+            padding: `${spacing.scale['2xl']} ${spacing.scale['2xl']}`,
+            borderTop: `1px solid ${colors.semantic.border.subtle}`,
+            borderBottom: `1px solid ${colors.semantic.border.subtle}`,
+          }}
+        >
+          {[
+            { value: '10k+', label: 'Kunden' },
+            { value: '99,9%', label: 'Uptime' },
+            { value: '4.9/5', label: 'Bewertung' },
+          ].map((stat) => (
+            <div key={stat.label}>
+              <div
+                style={{
+                  fontFamily: headingFont,
+                  fontSize: typography.scale['3xl'],
+                  fontWeight: typography.fontWeights.bold,
+                  color: colors.semantic.primary,
+                  lineHeight: typography.lineHeight.tight,
+                }}
+              >
+                {stat.value}
+              </div>
+              <div style={{ fontSize: typography.scale.sm, color: colors.semantic.text.muted, marginTop: spacing.scale.xs }}>
+                {stat.label}
+              </div>
+            </div>
+          ))}
+        </section>
+
         {/* Testimonial */}
         <section className="text-center" style={{ padding: `${spacing.scale['3xl']} ${spacing.scale['2xl']}` }}>
           <blockquote

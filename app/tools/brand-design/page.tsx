@@ -163,7 +163,13 @@ export default function BrandDesignPage() {
         </div>
 
         {/* Right: Preview */}
-        <main className="flex-1 overflow-y-auto">
+        <main
+          className="flex-1 overflow-y-auto"
+          style={{
+            backgroundImage: 'radial-gradient(circle, #27272a 1px, transparent 1px)',
+            backgroundSize: '24px 24px',
+          }}
+        >
           <PreviewContainer />
         </main>
       </div>
