@@ -87,9 +87,18 @@ export const useBrandDesignStore = create<BrandDesignState>()(
         set({ activePreviewTab: tab }),
 
       loadFromProfile: (profile) => {
-        const tokens = profile.designTokens
-          ? (profile.designTokens as DesignTokens)
-          : migrateFromProfile(profile);
+        if (!profile) return;
+
+        let tokens: DesignTokens;
+        if (profile.designTokens && typeof profile.designTokens === 'object') {
+          // Merge with defaults to fill any missing fields
+          tokens = {
+            ...DEFAULT_DESIGN_TOKENS,
+            ...(profile.designTokens as DesignTokens),
+          };
+        } else {
+          tokens = migrateFromProfile(profile);
+        }
 
         set({
           tokens,

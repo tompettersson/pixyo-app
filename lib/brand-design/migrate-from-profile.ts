@@ -9,11 +9,17 @@ import { generatePalette, getContrastColor } from './palette-generator';
  * from the existing colors, fonts, and layout.
  */
 export function migrateFromProfile(profile: Customer): DesignTokens {
-  const { colors, fonts, layout, logo, logoVariants } = profile;
   const defaults = DEFAULT_DESIGN_TOKENS;
 
+  // Safety: if profile fields are missing, return defaults
+  if (!profile?.colors || !profile?.fonts || !profile?.layout) {
+    return { ...defaults, media: { ...defaults.media, logoVariants: { primary: profile?.logo } } };
+  }
+
+  const { colors, fonts, layout, logo, logoVariants } = profile;
+
   // Generate a palette from the primary (dark) color
-  const palette = generatePalette(colors.dark);
+  const palette = generatePalette(colors.dark || '#7c3aed');
 
   const tokens: DesignTokens = {
     ...defaults,
