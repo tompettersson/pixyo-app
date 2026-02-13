@@ -49,21 +49,17 @@ export function LandingPage() {
 
       {/* Content */}
       <main className="relative z-10">
-        {/* === PIXYO — Das Produkt === */}
+        {/* === PIXYO — Das Tool === */}
         <HeroSection />
         <ManifestoSection />
-        <PortfolioSection />
+        <PricingSection />
         <TestimonialSection />
+        <TrustSection />
 
-        {/* === DIE AGENTUR — Wer dahinter steckt === */}
+        {/* === DARÜBER HINAUS — Agentur & Portfolio === */}
         <AgencySection />
         <ServicesGrid />
-
-        {/* === PRICING === */}
-        <PricingSection />
-
-        {/* === TRUST & CTA === */}
-        <TrustSection />
+        <PortfolioSection />
         <FinalCTA />
       </main>
 

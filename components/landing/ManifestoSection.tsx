@@ -30,15 +30,15 @@ export function ManifestoSection() {
             <div>
               <div className="w-12 h-px bg-[#E8710A]/40 mb-6" />
               <p className="text-base sm:text-lg text-white/60 leading-relaxed font-light max-w-lg">
-                Pixyo ist die Plattform — dahinter steckt eine Agentur, die seit Jahren
-                digitale Werkzeuge baut. Von KI-gestützten Design-Tools bis zu kompletten
-                Shopware-Ökosystemen mit 36+ Plugins. 23 Projekte in Produktion.
+                Social-Media-Grafiken per KI generieren. Produktfotos in neue Szenen setzen.
+                Banner für 16 Plattformen gleichzeitig exportieren. Dein komplettes Designsystem
+                an einem Ort verwalten. Alles brand-konform, alles sofort einsatzbereit.
               </p>
             </div>
             <div>
               <p className="text-base sm:text-lg text-white/60 leading-relaxed font-light max-w-lg">
-                E-Commerce, Content-Plattformen, 3D-Konfiguratoren, Government-Portale,
-                SaaS-Dashboards — wir bauen, was dein Business braucht.
+                Pixyo ersetzt teure Fotoshootings, endlose Designrunden und manuelle
+                Formatanpassungen. Ein Tool, das sich deinem Branding unterordnet.
                 Keine Templates. Keine Kompromisse. Kein Bullshit.
               </p>
             </div>

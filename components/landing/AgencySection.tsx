@@ -16,30 +16,42 @@ export function AgencySection() {
         <AnimatedSection delay={0.1}>
           <div className="text-center mb-8">
             <span className="font-oswald text-xs tracking-[0.4em] uppercase text-[#E8710A]/70">
-              Wer dahinter steckt
+              Darüber hinaus
             </span>
+          </div>
+        </AnimatedSection>
+
+        <AnimatedSection delay={0.15}>
+          <div className="flex justify-center mb-10">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logos/actualize-logo.svg"
+              alt="Actualize"
+              className="h-10 sm:h-12 opacity-70"
+              style={{ filter: 'brightness(0) invert(1)' }}
+            />
           </div>
         </AnimatedSection>
 
         <AnimatedSection delay={0.2}>
           <h2 className="font-bebas-neue text-5xl sm:text-6xl md:text-8xl lg:text-9xl text-white tracking-tight leading-[0.85] text-center mb-12">
-            Actualize.
+            Seit 2000.
             <br />
-            <span className="text-white/30">Die Agentur dahinter.</span>
+            <span className="text-white/30">Die Agentur hinter Pixyo.</span>
           </h2>
         </AnimatedSection>
 
         <AnimatedSection delay={0.3}>
           <div className="max-w-3xl mx-auto text-center">
             <p className="text-base sm:text-lg text-white/55 leading-relaxed font-light mb-6">
-              Pixyo ist unser Werkzeug — aber dahinter steckt Actualize, ein Team, das seit Jahren
-              digitale Produkte baut. 36+ Shopware-Plugins für einen einzelnen Kunden.
-              KI-Integrationen. 3D-Konfiguratoren. Government-Plattformen. Komplette
-              Design-Systeme. Wir bauen alles, was dein Unternehmen braucht.
+              Pixyo ist unser neuestes Werkzeug — aber Actualize baut seit über 25 Jahren
+              digitale Produkte. Wir haben die Dotcom-Blase überlebt, den Mobile-Shift
+              mitgestaltet und bauen jetzt die KI-Tools, die die Zukunft entscheiden.
             </p>
             <p className="text-base sm:text-lg text-white/55 leading-relaxed font-light">
-              Von der einzelnen Idee bis zum kompletten digitalen Ökosystem.
-              Geiles Design, geile UX, gebaut für Wirkung — nicht für Awards.
+              36+ Shopware-Plugins für einen einzelnen Kunden. 3D-Konfiguratoren.
+              Government-Plattformen. Komplette Design-Systeme.
+              Was auch immer dein Unternehmen braucht — wir bauen es.
             </p>
 
             <div className="mt-10 flex items-center justify-center gap-6">
