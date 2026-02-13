@@ -23,17 +23,6 @@ export function HeroSection() {
       />
 
       <div className="relative z-10 max-w-7xl mx-auto w-full">
-        {/* Large Pixyo Logo — the product front and center */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.05 }}
-          className="mb-10"
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logos/pixyo.svg" alt="Pixyo" className="h-10 sm:h-14 md:h-20" />
-        </motion.div>
-
         {/* Overline */}
         <motion.p
           initial={{ opacity: 0, x: -20 }}
