@@ -169,6 +169,7 @@ const getCanvasDimensions = (ratio: string): { width: number; height: number } =
 const defaultContent: DesignContent = {
   tagline: 'JETZT NEU',
   headline: 'Deine große Überschrift hier',
+  headlineSize: 112, // Default headline font size (matches LAYOUT.headlineSize)
   body: 'Hier kommt dein Fließtext. Er kann mehrere Zeilen umfassen und wird automatisch umgebrochen.',
   buttonText: 'MEHR ERFAHREN',
   showButton: false, // Default: Button hidden for social media
@@ -511,7 +512,7 @@ export const useEditorStore = create<EditorState & EditorActions>()(
         // SCHRITT 2: Design-State laden
         const canvasState = design.canvasState as CanvasState;
         const layers = design.layers as Layer[];
-        const content = design.content || defaultContent;
+        const content = { ...defaultContent, ...(design.content as Partial<DesignContent>) };
         // NEW: Load complete visual state
         const backgroundImageState = design.backgroundImage as DesignBackgroundImage | null;
         const overlay = (design.overlay as DesignOverlay) || defaultOverlay;

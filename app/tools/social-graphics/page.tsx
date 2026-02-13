@@ -809,9 +809,10 @@ export default function EditorPage() {
   const taglineY = yPos;
   yPos += LAYOUT.taglineSize * 1.2 + LAYOUT.gapTaglineToHeadline;
   const headlineY = yPos;
-  const headlineLines = measureTextLines(content.headline, LAYOUT.headlineSize, contentWidth);
+  const effectiveHeadlineSize = content.headlineSize ?? LAYOUT.headlineSize;
+  const headlineLines = measureTextLines(content.headline, effectiveHeadlineSize, contentWidth);
   const headlineHeight =
-    headlineLines * LAYOUT.headlineSize * LAYOUT.headlineLineHeight;
+    headlineLines * effectiveHeadlineSize * LAYOUT.headlineLineHeight;
   yPos += headlineHeight + LAYOUT.gapHeadlineToBody;
   const bodyY = yPos;
   const hasBody = content.body.trim().length > 0;
@@ -1277,7 +1278,7 @@ export default function EditorPage() {
                   width={contentWidth}
                   text={currentCustomer?.fonts?.headline?.uppercase ? content.headline.toUpperCase() : content.headline}
                   fontFamily={resolveFont(currentCustomer?.fonts?.headline?.family || "Inter")}
-                  fontSize={LAYOUT.headlineSize}
+                  fontSize={effectiveHeadlineSize}
                   fontStyle="bold"
                   fill={textColor}
                   lineHeight={LAYOUT.headlineLineHeight}
@@ -1648,10 +1649,29 @@ export default function EditorPage() {
                   setContent({ headline: e.target.value })
                 }
                 rows={2}
-                className="w-full px-3 py-2 rounded bg-zinc-800/50 backdrop-blur border border-zinc-700/50 text-zinc-100 
+                className="w-full px-3 py-2 rounded bg-zinc-800/50 backdrop-blur border border-zinc-700/50 text-zinc-100
                            focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/50 text-sm resize-none"
                 placeholder="Deine Hauptüberschrift"
               />
+              {/* Headline font size slider */}
+              <div className="mt-2">
+                <div className="flex justify-between text-xs text-zinc-500 mb-1">
+                  <span>Schriftgröße</span>
+                  <span>{content.headlineSize ?? LAYOUT.headlineSize}px</span>
+                </div>
+                <input
+                  type="range"
+                  min="48"
+                  max="160"
+                  step="2"
+                  value={content.headlineSize ?? LAYOUT.headlineSize}
+                  onChange={(e) => setContent({ headlineSize: Number(e.target.value) })}
+                  className="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer
+                             [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3
+                             [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer
+                             [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-125"
+                />
+              </div>
             </div>
 
             <div>

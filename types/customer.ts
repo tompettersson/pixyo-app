@@ -53,6 +53,7 @@ export interface DesignCanvasState {
 export interface DesignContent {
   tagline: string;
   headline: string;
+  headlineSize: number; // Font size for headline (default: 112, range: 48–160)
   body: string;
   buttonText: string;
   showButton: boolean; // Toggle for CTA button visibility
