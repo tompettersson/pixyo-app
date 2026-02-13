@@ -8,6 +8,7 @@ import { ManifestoSection } from './ManifestoSection';
 import { PortfolioSection } from './PortfolioSection';
 import { AgencySection } from './AgencySection';
 import { ServicesGrid } from './ServicesGrid';
+import { PricingSection } from './PricingSection';
 import { TrustSection } from './TrustSection';
 import { FinalCTA } from './FinalCTA';
 import { Footer } from './Footer';
@@ -55,6 +56,9 @@ export function LandingPage() {
         {/* === DIE AGENTUR — Wer dahinter steckt === */}
         <AgencySection />
         <ServicesGrid />
+
+        {/* === PRICING === */}
+        <PricingSection />
 
         {/* === TRUST & CTA === */}
         <TrustSection />

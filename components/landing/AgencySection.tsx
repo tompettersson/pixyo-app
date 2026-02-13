@@ -33,13 +33,13 @@ export function AgencySection() {
           <div className="max-w-3xl mx-auto text-center">
             <p className="text-base sm:text-lg text-white/55 leading-relaxed font-light mb-6">
               Pixyo ist unser Werkzeug — aber dahinter steckt ein Team, das seit Jahren
-              digitale Lösungen baut. Shopware-Plugins, KI-Integrationen, komplette
-              Design-Systeme, SEO-Toolkits. Wir können alles bauen, was dein
-              Unternehmen braucht.
+              digitale Produkte baut. 36+ Shopware-Plugins für einen einzelnen Kunden.
+              KI-Integrationen. 3D-Konfiguratoren. Government-Plattformen. Komplette
+              Design-Systeme. Wir bauen alles, was dein Unternehmen braucht.
             </p>
             <p className="text-base sm:text-lg text-white/55 leading-relaxed font-light">
               Von der einzelnen Idee bis zum kompletten digitalen Ökosystem.
-              Geiles Design, geile User Experience, gebaut für Wirkung.
+              Geiles Design, geile UX, gebaut für Wirkung — nicht für Awards.
             </p>
           </div>
         </AnimatedSection>

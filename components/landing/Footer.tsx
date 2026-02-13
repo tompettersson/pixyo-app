@@ -9,7 +9,7 @@ export function Footer() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logos/pixyo.svg" alt="Pixyo" className="h-5 opacity-40" />
             <span className="text-[11px] text-white/30 tracking-wider uppercase font-oswald">
-              &copy; 2025
+              &copy; 2026
             </span>
           </div>
 

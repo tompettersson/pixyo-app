@@ -32,14 +32,14 @@ export function ManifestoSection() {
               <p className="text-base sm:text-lg text-white/60 leading-relaxed font-light max-w-lg">
                 Pixyo ist die Plattform — dahinter steckt eine Agentur, die seit Jahren
                 digitale Werkzeuge baut. Von KI-gestützten Design-Tools bis zu kompletten
-                Shopware-Ökosystemen mit 36+ Plugins.
+                Shopware-Ökosystemen mit 36+ Plugins. 23 Projekte in Produktion.
               </p>
             </div>
             <div>
               <p className="text-base sm:text-lg text-white/60 leading-relaxed font-light max-w-lg">
-                E-Commerce, Content-Plattformen, Google Ads Automation, Learning Management,
+                E-Commerce, Content-Plattformen, 3D-Konfiguratoren, Government-Portale,
                 SaaS-Dashboards — wir bauen, was dein Business braucht.
-                Keine Templates, keine Kompromisse.
+                Keine Templates. Keine Kompromisse. Kein Bullshit.
               </p>
             </div>
           </div>

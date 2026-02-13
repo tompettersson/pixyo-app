@@ -1,6 +1,7 @@
 'use client';
 
 import { AnimatedSection } from './AnimatedSection';
+import { DiagonalLinesPattern } from './PatternElements';
 
 const services = [
   {
@@ -47,8 +48,9 @@ const services = [
 
 export function ServicesGrid() {
   return (
-    <section className="px-6 py-24 sm:py-32">
-      <div className="max-w-7xl mx-auto">
+    <section className="relative px-6 py-24 sm:py-32 overflow-hidden">
+      <DiagonalLinesPattern className="absolute inset-0" />
+      <div className="relative max-w-7xl mx-auto">
         <AnimatedSection>
           <div className="flex items-baseline gap-6 mb-16 sm:mb-20">
             <span className="font-oswald text-xs tracking-[0.3em] uppercase text-white/50">
