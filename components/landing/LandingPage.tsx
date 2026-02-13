@@ -6,6 +6,7 @@ import { BauhausCanvas } from './BauhausCanvas';
 import { HeroSection } from './HeroSection';
 import { ManifestoSection } from './ManifestoSection';
 import { PortfolioSection } from './PortfolioSection';
+import { TestimonialSection } from './TestimonialSection';
 import { AgencySection } from './AgencySection';
 import { ServicesGrid } from './ServicesGrid';
 import { PricingSection } from './PricingSection';
@@ -52,6 +53,7 @@ export function LandingPage() {
         <HeroSection />
         <ManifestoSection />
         <PortfolioSection />
+        <TestimonialSection />
 
         {/* === DIE AGENTUR — Wer dahinter steckt === */}
         <AgencySection />
