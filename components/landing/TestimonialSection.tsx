@@ -1,6 +1,7 @@
 'use client';
 
 import { AnimatedSection } from './AnimatedSection';
+import { MoritzJungSignature } from './MoritzJungSignature';
 
 export function TestimonialSection() {
   return (
@@ -32,13 +33,8 @@ export function TestimonialSection() {
               </blockquote>
 
               {/* Signature */}
-              <div className="mt-10 flex items-end gap-6">
-                <div>
-                  <p className="font-dancing-script text-3xl sm:text-4xl text-white/70 mb-1">
-                    Moritz Jung
-                  </p>
-                  <div className="w-24 h-px bg-gradient-to-r from-[#E8710A]/40 to-transparent" />
-                </div>
+              <div className="mt-10">
+                <MoritzJungSignature className="w-52 sm:w-60 h-auto text-white/60" />
               </div>
             </div>
 

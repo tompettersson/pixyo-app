@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import { StackProvider, StackTheme } from "@stackframe/stack";
 import { stackServerApp } from "@/lib/stack";
 import { Toaster } from 'sonner';
+import { CookieBanner } from '@/components/CookieBanner';
 import "./globals.css";
 
 // Load all fonts needed for the editor
@@ -94,6 +95,7 @@ export default function RootLayout({
               theme="dark"
               richColors
             />
+            <CookieBanner />
           </StackTheme>
         </StackProvider>
       </body>

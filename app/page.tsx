@@ -10,12 +10,14 @@ function ToolCard({
   title,
   description,
   badge,
+  tags,
 }: {
   href: string;
   icon: React.ReactNode;
   title: string;
   description: string;
   badge?: string;
+  tags?: string;
 }) {
   return (
     <Link
@@ -37,6 +39,9 @@ function ToolCard({
         {icon}
       </div>
       <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
+      {tags && (
+        <p className="text-[11px] font-mono text-zinc-500 tracking-wide mb-2">{tags}</p>
+      )}
       <p className="text-sm text-zinc-400 leading-relaxed">{description}</p>
     </Link>
   );
@@ -58,12 +63,27 @@ export default async function Home() {
       title: string;
       description: string;
       badge?: string;
+      tags?: string;
       icon: React.ReactNode;
     }> = [
+      {
+        id: "product-scenes",
+        href: "/tools/product-scenes",
+        title: "Product Scenes",
+        tags: "KI-Bildgenerierung · Produktfotos · Szenen",
+        description: "Platziere deine Produktfotos in neuen Szenen. Der weiße Hintergrund wird durch eine KI-generierte Umgebung ersetzt.",
+        icon: (
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+        ),
+      },
       {
         id: "social-graphics",
         href: "/tools/social-graphics",
         title: "Social Graphics",
+        tags: "KI-Bildgenerierung · Text-Overlays · Social Media",
         description: "Erstelle professionelle Grafiken für Instagram, LinkedIn und mehr mit KI-generierten Bildern und Text-Overlays.",
         icon: (
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -73,22 +93,10 @@ export default async function Home() {
         ),
       },
       {
-        id: "product-scenes",
-        href: "/tools/product-scenes",
-        title: "Product Scenes",
-        description: "Platziere deine Produktfotos in neuen Szenen. Der weiße Hintergrund wird durch eine KI-generierte Umgebung ersetzt.",
-        badge: "Neu",
-        icon: (
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-          </svg>
-        ),
-      },
-      {
         id: "banner-konfigurator",
         href: "/tools/banner-konfigurator",
         title: "Banner-Konfigurator",
+        tags: "16 Formate · Patterns · ZIP-Export",
         description: "16 Banner-Formate in 4 Kategorien. Ein Design-Pattern wählen, Brand-Farben setzen, alle Formate gleichzeitig als ZIP exportieren.",
         badge: "In Entwicklung",
         icon: (
@@ -102,6 +110,7 @@ export default async function Home() {
         id: "brand-design",
         href: "/tools/brand-design",
         title: "Brand Design",
+        tags: "Design-System · Live-Preview · Export",
         description: "Vollständiges Design-System aus deinen Brand-Farben und Logo. Typografie, Spacing, Buttons, Schatten — alles live editierbar mit Preview.",
         badge: "In Entwicklung",
         icon: (
@@ -166,6 +175,7 @@ export default async function Home() {
                   title={tool.title}
                   description={tool.description}
                   badge={tool.badge}
+                  tags={tool.tags}
                   icon={tool.icon}
                 />
               ))}

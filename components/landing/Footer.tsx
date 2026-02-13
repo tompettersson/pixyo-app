@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 export function Footer() {
   return (
     <footer className="px-6 py-8">
@@ -14,18 +16,24 @@ export function Footer() {
           </div>
 
           <div className="flex items-center gap-8">
-            <a
-              href="#"
+            <Link
+              href="/impressum"
               className="text-[11px] text-white/30 hover:text-white/40 transition-colors tracking-wider uppercase font-oswald"
             >
               Impressum
-            </a>
-            <a
-              href="#"
+            </Link>
+            <Link
+              href="/datenschutz"
               className="text-[11px] text-white/30 hover:text-white/40 transition-colors tracking-wider uppercase font-oswald"
             >
               Datenschutz
-            </a>
+            </Link>
+            <Link
+              href="/agb"
+              className="text-[11px] text-white/30 hover:text-white/40 transition-colors tracking-wider uppercase font-oswald"
+            >
+              AGB
+            </Link>
           </div>
         </div>
       </div>
