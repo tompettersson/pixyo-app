@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display, Poppins, Space_Grotesk, Bebas_Neue, Lora, Oswald } from "next/font/google";
+import { Inter, Playfair_Display, Poppins, Space_Grotesk, Bebas_Neue, Lora, Oswald, Dancing_Script } from "next/font/google";
 import localFont from "next/font/local";
 import { StackProvider, StackTheme } from "@stackframe/stack";
 import { stackServerApp } from "@/lib/stack";
@@ -44,6 +44,12 @@ const oswald = Oswald({
   subsets: ["latin"],
 });
 
+const dancingScript = Dancing_Script({
+  variable: "--font-dancing-script",
+  subsets: ["latin"],
+  weight: ["400", "700"],
+});
+
 // Local font: Cera Pro (for 1001Frucht and elforyn)
 const ceraPro = localFont({
   src: [
@@ -75,6 +81,7 @@ export default function RootLayout({
           ${bebasNeue.variable}
           ${lora.variable}
           ${oswald.variable}
+          ${dancingScript.variable}
           ${ceraPro.variable}
           font-sans antialiased
         `}

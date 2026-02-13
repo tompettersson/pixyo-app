@@ -2,16 +2,6 @@
 
 import { AnimatedSection } from './AnimatedSection';
 
-const testimonials = [
-  {
-    quote:
-      'Product Scenes hat bei uns mehrere Fotoshootings ersetzt. Die Qualität der KI-generierten Produktbilder ist unfassbar hoch — das hätten wir so nicht erwartet.',
-    author: 'Canton',
-    role: 'Premium Audio',
-    tool: 'Product Scenes',
-  },
-];
-
 export function TestimonialSection() {
   return (
     <section className="px-6 py-20 sm:py-28">
@@ -25,41 +15,56 @@ export function TestimonialSection() {
           </div>
         </AnimatedSection>
 
-        <div className="space-y-16">
-          {testimonials.map((t, i) => (
-            <AnimatedSection key={i} delay={i * 0.1}>
-              <div className="grid md:grid-cols-12 gap-8 md:gap-12 items-start">
-                {/* Quote mark */}
-                <div className="md:col-span-1">
-                  <span className="font-bebas-neue text-6xl sm:text-7xl text-[#E8710A]/20 leading-none select-none">
-                    &ldquo;
-                  </span>
-                </div>
+        <AnimatedSection delay={0.1}>
+          <div className="grid md:grid-cols-12 gap-8 md:gap-12 items-start">
+            {/* Quote mark */}
+            <div className="md:col-span-1">
+              <span className="font-bebas-neue text-6xl sm:text-7xl text-[#E8710A]/20 leading-none select-none">
+                &ldquo;
+              </span>
+            </div>
 
-                {/* Quote text */}
-                <div className="md:col-span-8">
-                  <blockquote className="text-xl sm:text-2xl md:text-3xl text-white/80 leading-relaxed font-light">
-                    {t.quote}
-                  </blockquote>
-                </div>
+            {/* Quote text */}
+            <div className="md:col-span-8">
+              <blockquote className="text-xl sm:text-2xl md:text-3xl text-white/80 leading-relaxed font-light">
+                Product Scenes hat bei uns mehrere Fotoshootings ersetzt. Die Qualität der
+                KI-generierten Produktbilder ist unfassbar hoch — das hätten wir so nicht erwartet.
+              </blockquote>
 
-                {/* Attribution */}
-                <div className="md:col-span-3 md:text-right">
-                  <div className="w-8 h-px bg-[#E8710A]/40 mb-4 md:ml-auto" />
-                  <p className="font-bebas-neue text-xl text-white tracking-wide">
-                    {t.author}
+              {/* Signature */}
+              <div className="mt-10 flex items-end gap-6">
+                <div>
+                  <p className="font-dancing-script text-3xl sm:text-4xl text-white/70 mb-1">
+                    Moritz Jung
                   </p>
-                  <p className="text-xs text-white/40 font-oswald tracking-[0.15em] uppercase mt-1">
-                    {t.role}
-                  </p>
-                  <p className="text-[10px] text-[#E8710A]/50 font-oswald tracking-[0.2em] uppercase mt-3">
-                    Nutzt: {t.tool}
-                  </p>
+                  <div className="w-24 h-px bg-gradient-to-r from-[#E8710A]/40 to-transparent" />
                 </div>
               </div>
-            </AnimatedSection>
-          ))}
-        </div>
+            </div>
+
+            {/* Attribution with logo */}
+            <div className="md:col-span-3 md:text-right">
+              <div className="flex md:justify-end mb-5">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/logos/canton-logo.svg"
+                  alt="Canton"
+                  className="h-10 sm:h-12 w-auto opacity-60"
+                />
+              </div>
+              <div className="w-8 h-px bg-[#E8710A]/40 mb-4 md:ml-auto" />
+              <p className="font-bebas-neue text-xl text-white tracking-wide">
+                Canton
+              </p>
+              <p className="text-xs text-white/40 font-oswald tracking-[0.15em] uppercase mt-1">
+                Premium Audio
+              </p>
+              <p className="text-[10px] text-[#E8710A]/50 font-oswald tracking-[0.2em] uppercase mt-3">
+                Nutzt: Product Scenes
+              </p>
+            </div>
+          </div>
+        </AnimatedSection>
       </div>
     </section>
   );
