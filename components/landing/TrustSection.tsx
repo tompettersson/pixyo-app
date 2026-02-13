@@ -3,48 +3,13 @@
 import { AnimatedSection } from './AnimatedSection';
 
 const logos = [
-  {
-    name: 'Hanako Koi',
-    src: '/logos/HanakoKoiLogo-white.svg',
-    className: 'h-8 sm:h-10',
-    invert: false,
-  },
-  {
-    name: '1001 Frucht',
-    src: '/logos/1001frucht-black.svg',
-    className: 'h-7 sm:h-9',
-    invert: true,
-  },
-  {
-    name: 'JOQORA',
-    src: '/logos/joqora-logo.svg',
-    className: 'h-6 sm:h-8',
-    invert: false,
-  },
-  {
-    name: 'Canton',
-    src: '/logos/canton-logo.svg',
-    className: 'h-5 sm:h-7',
-    invert: false,
-  },
-  {
-    name: 'elforyn',
-    src: '/logos/elforyn-black.svg',
-    className: 'h-6 sm:h-8',
-    invert: true,
-  },
-  {
-    name: 'BKT',
-    src: '/logos/bkt-logo.svg',
-    className: 'h-5 sm:h-7',
-    invert: true,
-  },
-  {
-    name: 'GovGuru',
-    src: '/logos/govguru-logo.svg',
-    className: 'h-6 sm:h-8',
-    invert: true,
-  },
+  { name: 'Hanako Koi', src: '/logos/HanakoKoiLogo-white.svg', className: 'h-10 sm:h-14' },
+  { name: '1001 Frucht', src: '/logos/1001frucht-black.svg', className: 'h-9 sm:h-12' },
+  { name: 'JOQORA', src: '/logos/joqora-logo.svg', className: 'h-8 sm:h-11' },
+  { name: 'Canton', src: '/logos/canton-logo.svg', className: 'h-7 sm:h-10' },
+  { name: 'elforyn', src: '/logos/elforyn-black.svg', className: 'h-8 sm:h-11' },
+  { name: 'BKT', src: '/logos/bkt-logo.svg', className: 'h-7 sm:h-10' },
+  { name: 'GovGuru', src: '/logos/govguru-logo.svg', className: 'h-8 sm:h-11' },
 ];
 
 export function TrustSection() {
@@ -58,18 +23,18 @@ export function TrustSection() {
                 Im Einsatz bei
               </span>
 
-              <div className="flex items-center flex-wrap justify-center gap-8 sm:gap-10">
+              <div className="flex items-center flex-wrap justify-center gap-8 sm:gap-12">
                 {logos.map((logo) => (
                   <div
                     key={logo.name}
-                    className="opacity-50 hover:opacity-80 transition-opacity duration-500"
+                    className="opacity-60 hover:opacity-90 transition-opacity duration-500"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={logo.src}
                       alt={logo.name}
                       className={logo.className}
-                      style={logo.invert ? { filter: 'invert(1)' } : undefined}
+                      style={{ filter: 'brightness(0) invert(1)' }}
                     />
                   </div>
                 ))}

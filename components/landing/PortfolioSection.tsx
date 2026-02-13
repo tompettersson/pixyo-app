@@ -96,6 +96,76 @@ const projects = [
     tags: ['Shopware 6', '17 Plugins', 'Marktplatz'],
     label: 'Portobello',
   },
+  {
+    number: '14',
+    title: 'Enterprise Shopware Suite',
+    description: 'Premium-Audio-Marke — kompletter Shopware-Shop mit Custom Theme, mehrsprachig, Performance-Optimierung.',
+    tags: ['Shopware 6', 'Multi-Language', 'Premium Audio'],
+    label: 'Canton',
+  },
+  {
+    number: '15',
+    title: 'E-Government Theme',
+    description: 'Barrierefreies Shopware-Theme für Behörden — WCAG-konform, Custom-Plugins, sichere Zahlungsabwicklung.',
+    tags: ['Shopware 6', 'Barrierefreiheit', 'Government'],
+    label: 'EGovC',
+  },
+  {
+    number: '16',
+    title: 'Crystal E-Commerce',
+    description: 'Shopware-Shop für Kristall- und Edelstein-Handel — Konfigurator, Variantenlogik, Custom-Checkout.',
+    tags: ['Shopware 6', 'Konfigurator', 'E-Commerce'],
+    label: 'Celestia',
+  },
+  {
+    number: '17',
+    title: 'B2B Industriehandel',
+    description: 'B2B-Shop für Industrieprodukte — Kundengruppenpreise, Schnellbestellung, ERP-Anbindung.',
+    tags: ['Shopware 6', 'B2B', 'ERP-Integration'],
+    label: 'MMShop24',
+  },
+  {
+    number: '18',
+    title: 'Pontoon-Konfigurator',
+    description: '3D-Konfigurator für Schwimmplattformen — modulare Zusammenstellung, Echtzeit-Visualisierung, Angebotsexport.',
+    tags: ['3D-Konfigurator', 'Next.js', 'Angebotssystem'],
+    label: 'DPC Pontoon',
+  },
+  {
+    number: '19',
+    title: 'Emissions-Management',
+    description: 'SaaS-Plattform zur CO₂-Bilanzierung und Nachhaltigkeitsreporting für Unternehmen.',
+    tags: ['SaaS', 'Nachhaltigkeit', 'Reporting'],
+    label: 'Emiflow',
+  },
+  {
+    number: '20',
+    title: 'Government-Plattform',
+    description: 'Digitale Verwaltungsplattform für Behörden — Antragsmanagement, Bürgerportal, sichere Authentifizierung.',
+    tags: ['Laravel', 'Government', 'Digitalisierung'],
+    label: 'OMNIA',
+  },
+  {
+    number: '21',
+    title: 'Parkettpflege E-Commerce',
+    description: 'Shopware-Shop für Bodenpflege-Produkte — Beratungslogik, Produktfinder, optimierter Checkout.',
+    tags: ['Shopware 6', 'Produktfinder', 'E-Commerce'],
+    label: 'Parkettpflegemittel',
+  },
+  {
+    number: '22',
+    title: 'Reparatur-Service Portal',
+    description: 'Online-Portal für Kletterschuh-Reparaturen — Buchungssystem, Statustracking, automatisierte Kommunikation.',
+    tags: ['Next.js', 'Buchungssystem', 'Service-Portal'],
+    label: 'Kletterschuhe',
+  },
+  {
+    number: '23',
+    title: 'Second Brain',
+    description: 'KI-gestütztes Wissensmanagement — Notizen, Vernetzung, semantische Suche, automatische Verknüpfungen.',
+    tags: ['KI', 'Wissensmanagement', 'Next.js'],
+    label: 'Internes Tool',
+  },
 ];
 
 export function PortfolioSection() {
@@ -118,7 +188,7 @@ export function PortfolioSection() {
               Was wir gebaut haben
             </h2>
             <p className="text-white/50 text-base font-light max-w-2xl">
-              KI-Tools, Shopware-Ökosysteme, SaaS-Plattformen, Google Ads Automation — alles in Produktion bei echten Kunden.
+              23 Projekte. KI-Tools, Shopware-Ökosysteme, SaaS-Plattformen, 3D-Konfiguratoren, Government-Lösungen — alles in Produktion.
             </p>
           </div>
         </AnimatedSection>
