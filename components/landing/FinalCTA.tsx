@@ -144,14 +144,14 @@ export function FinalCTA() {
                       {formState === 'sending' ? 'Wird gesendet...' : 'Erstgespräch vereinbaren'}
                     </button>
 
-                    <div className="flex items-center gap-3 pt-2">
+                    <div className="flex items-center flex-wrap gap-3 pt-2">
                       <div className="w-4 h-px bg-white/10" />
-                      <span className="text-xs text-white/40">Oder direkt schreiben:</span>
+                      <span className="text-xs text-white/40">Oder direkt:</span>
                       <a
-                        href="mailto:hallo@pixyo.de"
+                        href="mailto:info@actualize.de"
                         className="text-xs text-[#E8710A]/60 hover:text-[#E8710A] transition-colors"
                       >
-                        hallo@pixyo.de
+                        info@actualize.de
                       </a>
                     </div>
                   </form>
