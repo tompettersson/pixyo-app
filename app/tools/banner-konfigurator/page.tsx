@@ -9,6 +9,7 @@ import { getPatternComponent } from '@/components/banner-konfigurator/patterns';
 import { downloadBlob } from '@/lib/banner/exportEngine';
 import { createRoot } from 'react-dom/client';
 import type { BannerFormat } from '@/lib/banner/formats';
+import { computeBannerTokens } from '@/lib/banner/tokenBridge';
 
 export default function BannerKonfigurator() {
   const store = useBannerConfigStore();
@@ -42,6 +43,8 @@ export default function BannerKonfigurator() {
       const PatternComponent = getPatternComponent(config.activePattern);
       if (!PatternComponent) return;
       const resolved = getResolvedConfig(config);
+      const designTokens = useBannerConfigStore.getState().designTokens;
+      const tokens = computeBannerTokens(banner.width, banner.height, config, designTokens);
 
       const tempDiv = document.createElement('div');
       tempDiv.style.position = 'fixed';
@@ -54,7 +57,7 @@ export default function BannerKonfigurator() {
 
       const root = createRoot(tempDiv);
       root.render(
-        <PatternComponent width={banner.width} height={banner.height} config={resolved} />
+        <PatternComponent width={banner.width} height={banner.height} config={resolved} tokens={tokens} />
       );
 
       await new Promise((r) => setTimeout(r, 500));

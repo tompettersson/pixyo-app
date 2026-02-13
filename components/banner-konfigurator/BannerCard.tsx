@@ -1,9 +1,10 @@
 'use client';
 
-import React, { memo, useCallback } from 'react';
-import { getResolvedConfig, type BannerConfig } from '@/store/useBannerConfigStore';
+import React, { memo, useCallback, useMemo } from 'react';
+import { getResolvedConfig, useBannerConfigStore, type BannerConfig } from '@/store/useBannerConfigStore';
 import { getPatternComponent } from './patterns';
 import { getScale, type BannerFormat } from '@/lib/banner/formats';
+import { computeBannerTokens } from '@/lib/banner/tokenBridge';
 
 interface BannerCardProps {
   banner: BannerFormat;
@@ -24,7 +25,13 @@ const BannerCard = memo(function BannerCard({
   const displayW = banner.width * scale;
   const displayH = banner.height * scale;
   const resolved = getResolvedConfig(config);
+  const designTokens = useBannerConfigStore((s) => s.designTokens);
   const PatternComponent = getPatternComponent(config.activePattern);
+
+  const tokens = useMemo(
+    () => computeBannerTokens(banner.width, banner.height, config, designTokens),
+    [banner.width, banner.height, config, designTokens]
+  );
 
   const handleExport = useCallback(() => {
     onExport?.(banner);
@@ -68,6 +75,7 @@ const BannerCard = memo(function BannerCard({
               width={banner.width}
               height={banner.height}
               config={resolved}
+              tokens={tokens}
             />
           </div>
         </div>

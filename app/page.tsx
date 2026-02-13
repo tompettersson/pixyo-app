@@ -25,7 +25,11 @@ function ToolCard({
                  hover:shadow-lg hover:shadow-black/20"
     >
       {badge && (
-        <span className="absolute top-4 right-4 px-2 py-0.5 text-xs font-medium bg-violet-500/20 text-violet-300 rounded-full">
+        <span className={`absolute top-4 right-4 px-2 py-0.5 text-xs font-medium rounded-full ${
+          badge === 'In Entwicklung'
+            ? 'bg-amber-500/20 text-amber-300'
+            : 'bg-violet-500/20 text-violet-300'
+        }`}>
           {badge}
         </span>
       )}
@@ -86,7 +90,7 @@ export default async function Home() {
         href: "/tools/banner-konfigurator",
         title: "Banner-Konfigurator",
         description: "16 Banner-Formate in 4 Kategorien. Ein Design-Pattern wählen, Brand-Farben setzen, alle Formate gleichzeitig als ZIP exportieren.",
-        badge: "Neu",
+        badge: "In Entwicklung",
         icon: (
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
@@ -99,7 +103,7 @@ export default async function Home() {
         href: "/tools/brand-design",
         title: "Brand Design",
         description: "Vollständiges Design-System aus deinen Brand-Farben und Logo. Typografie, Spacing, Buttons, Schatten — alles live editierbar mit Preview.",
-        badge: "Neu",
+        badge: "In Entwicklung",
         icon: (
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}

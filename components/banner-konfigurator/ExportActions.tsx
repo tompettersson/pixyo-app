@@ -2,10 +2,11 @@
 
 import React, { useState, useCallback, useRef } from 'react';
 import { BANNERS, type BannerFormat } from '@/lib/banner/formats';
-import { getResolvedConfig, type BannerConfig } from '@/store/useBannerConfigStore';
+import { getResolvedConfig, useBannerConfigStore, type BannerConfig } from '@/store/useBannerConfigStore';
 import { getPatternComponent } from './patterns';
 import { exportAllBannersAsZip, downloadBlob } from '@/lib/banner/exportEngine';
 import { createRoot } from 'react-dom/client';
+import { computeBannerTokens } from '@/lib/banner/tokenBridge';
 
 interface ExportActionsProps {
   config: BannerConfig;
@@ -21,6 +22,8 @@ export default function ExportActions({ config }: ExportActionsProps) {
       const PatternComponent = getPatternComponent(config.activePattern);
       if (!PatternComponent) return null;
       const resolved = getResolvedConfig(config);
+      const designTokens = useBannerConfigStore.getState().designTokens;
+      const tokens = computeBannerTokens(banner.width, banner.height, config, designTokens);
 
       // Create a temporary hidden container at full size
       const tempDiv = document.createElement('div');
@@ -35,7 +38,7 @@ export default function ExportActions({ config }: ExportActionsProps) {
       // Render the pattern into it
       const root = createRoot(tempDiv);
       root.render(
-        <PatternComponent width={banner.width} height={banner.height} config={resolved} />
+        <PatternComponent width={banner.width} height={banner.height} config={resolved} tokens={tokens} />
       );
 
       // Wait for render + images to load

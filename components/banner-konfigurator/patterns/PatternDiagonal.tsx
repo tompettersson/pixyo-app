@@ -1,42 +1,33 @@
 'use client';
 
 import React from 'react';
-import { Logo, CTAButton, fontSizes, headlineStyle, isVertical, isHorizontal, type PatternProps } from './shared';
+import { Logo, headlineStyle, sublineStyle, ctaStyle, type PatternProps } from './shared';
 
 /**
  * P2: Diagonal Split
  * Image background with a diagonal clip-path gradient overlay.
  * clip-path adapts dynamically to aspect ratio.
  */
-export default function PatternDiagonal({ width, height, config }: PatternProps) {
-  const fs = fontSizes(width, height);
-  const vert = isVertical(width, height);
-  const horiz = isHorizontal(width, height);
+export default function PatternDiagonal({ width, height, config, tokens }: PatternProps) {
+  const { flags, spacing, fontSize, colors } = tokens;
+  const ratio = width / height;
 
   // Dynamic clip-path based on aspect ratio
-  // Wider formats → more aggressive diagonal, taller → gentler
-  const ratio = width / height;
   let leftEdge: number;
   let rightEdge: number;
 
-  if (horiz) {
-    // Leaderboard-type: diagonal starts further right
+  if (flags.isHorizontal) {
     leftEdge = Math.min(45, 30 + ratio * 5);
     rightEdge = Math.min(70, leftEdge + 20);
-  } else if (vert) {
-    // Skyscraper-type: gentler diagonal
+  } else if (flags.isVertical) {
     leftEdge = 15;
     rightEdge = 65;
   } else {
-    // Rectangle-type: balanced diagonal
     leftEdge = 35;
     rightEdge = 55;
   }
 
   const clipPath = `polygon(${leftEdge}% 0, 100% 0, 100% 100%, ${rightEdge}% 100%)`;
-
-  // Content alignment: right-aligned on the gradient area
-  const contentPadding = vert ? 'p-3' : `pr-[${Math.max(8, 20 - ratio * 3)}%] pl-4`;
 
   return (
     <div className="relative w-full h-full overflow-hidden">
@@ -53,24 +44,34 @@ export default function PatternDiagonal({ width, height, config }: PatternProps)
       <div
         className="absolute inset-0"
         style={{
-          background: `linear-gradient(${config.gradientAngle}deg, ${config.colorFrom}, ${config.colorTo})`,
+          background: `linear-gradient(${config.gradientAngle}deg, ${colors.gradientFrom}, ${colors.gradientTo})`,
           clipPath,
         }}
       />
       {/* Content (positioned on the gradient side) */}
       <div
-        className={`absolute inset-0 flex flex-col justify-center ${vert ? 'items-center text-center p-3' : 'items-end text-right'} gap-0.5`}
-        style={!vert ? { paddingRight: '10%', paddingLeft: '4%' } : undefined}
+        className={`absolute inset-0 flex flex-col justify-center ${
+          flags.isVertical ? 'items-center text-center' : 'items-end text-right'
+        }`}
+        style={{
+          padding: spacing.padding,
+          gap: spacing.gap,
+          ...(!flags.isVertical ? { paddingRight: '10%', paddingLeft: '4%' } : {}),
+        }}
       >
-        <Logo url={config.logoUrl} size={fs.logo} fallbackColor={config.resolvedTextColor} />
-        <p style={headlineStyle(config, fs)} className="leading-tight">
+        {!flags.hideLogo && (
+          <Logo url={config.logoUrl} size={fontSize.logo} />
+        )}
+        <p style={headlineStyle(tokens)}>
           {config.headline}
         </p>
-        <p style={{ fontSize: fs.sub, color: config.resolvedTextColor }} className="opacity-90">
-          {config.subline}
-        </p>
-        <div className="mt-1">
-          <CTAButton config={config} small={fs.cta} />
+        {!flags.hideSubline && (
+          <p style={sublineStyle(tokens)}>
+            {config.subline}
+          </p>
+        )}
+        <div style={{ marginTop: spacing.ctaMarginTop }}>
+          <span style={ctaStyle(tokens)}>{config.ctaText}</span>
         </div>
       </div>
     </div>

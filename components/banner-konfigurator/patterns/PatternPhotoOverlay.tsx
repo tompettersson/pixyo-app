@@ -1,17 +1,17 @@
 'use client';
 
 import React from 'react';
-import { Logo, CTAButton, fontSizes, headlineStyle, isTiny, isVertical, type PatternProps } from './shared';
+import { Logo, headlineStyle, sublineStyle, ctaStyle, type PatternProps } from './shared';
+import { hexToRgba } from '@/lib/banner/colorUtils';
 
 /**
- * P6: Photo Overlay (renamed from "Darkened")
+ * P6: Photo Overlay
  * Full image with colored tint overlay + dark overlay.
  * overlayStrength controls the darkness. Brand colors tint the image.
+ * Text color from tokens (not hardcoded white).
  */
-export default function PatternPhotoOverlay({ width, height, config }: PatternProps) {
-  const fs = fontSizes(width, height);
-  const tiny = isTiny(width, height);
-  const vert = isVertical(width, height);
+export default function PatternPhotoOverlay({ width, height, config, tokens }: PatternProps) {
+  const { flags, spacing, fontSize, colors } = tokens;
 
   return (
     <div className="relative w-full h-full overflow-hidden">
@@ -28,7 +28,7 @@ export default function PatternPhotoOverlay({ width, height, config }: PatternPr
       <div
         className="absolute inset-0"
         style={{
-          background: `linear-gradient(${config.gradientAngle}deg, ${config.colorFrom}bb, ${config.colorTo}99)`,
+          background: `linear-gradient(${config.gradientAngle}deg, ${hexToRgba(config.colorFrom, 0.73)}, ${hexToRgba(config.colorTo, 0.6)})`,
           mixBlendMode: 'multiply',
         }}
       />
@@ -40,28 +40,28 @@ export default function PatternPhotoOverlay({ width, height, config }: PatternPr
       {/* Content */}
       <div
         className={`absolute inset-0 flex flex-col ${
-          vert ? 'justify-center items-center text-center' : 'justify-center items-start'
-        } p-3 gap-0.5`}
+          flags.isVertical
+            ? 'justify-center items-center text-center'
+            : 'justify-center items-start'
+        }`}
+        style={{
+          padding: spacing.padding,
+          gap: spacing.gap,
+        }}
       >
-        {!tiny && <Logo url={config.logoUrl} size={fs.logo} fallbackColor="#fff" />}
-        <p
-          style={{
-            fontSize: fs.headline,
-            fontFamily: config.headlineFont,
-            fontWeight: config.headlineWeight,
-            textTransform: config.headlineUppercase ? 'uppercase' : 'none',
-          }}
-          className="leading-tight text-white"
-        >
+        {!flags.hideLogo && (
+          <Logo url={config.logoUrl} size={fontSize.logo} />
+        )}
+        <p style={{ ...headlineStyle(tokens), textShadow: tokens.shadows.textShadow }}>
           {config.headline}
         </p>
-        {!tiny && (
-          <p style={{ fontSize: fs.sub }} className="text-white/80">
+        {!flags.hideSubline && (
+          <p style={{ ...sublineStyle(tokens), textShadow: tokens.shadows.textShadow }}>
             {config.subline}
           </p>
         )}
-        <div className="mt-1">
-          <CTAButton config={config} small={fs.cta} />
+        <div style={{ marginTop: spacing.ctaMarginTop }}>
+          <span style={ctaStyle(tokens)}>{config.ctaText}</span>
         </div>
       </div>
     </div>

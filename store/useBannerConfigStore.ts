@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import { temporal } from 'zundo';
 import type { Customer } from '@/types/customer';
 import type { PatternId } from '@/lib/banner/formats';
+import type { DesignTokens } from '@/types/designTokens';
+import { getContrastColorForGradient } from '@/lib/banner/colorUtils';
 
 export interface BannerConfig {
   activePattern: PatternId;
@@ -37,28 +39,25 @@ export interface BannerConfig {
 
 interface BannerConfigState extends BannerConfig {
   profileId: string | null;
+  designTokens: DesignTokens | null;
 
   // Single updater — replaces all individual setters
   updateConfig: (partial: Partial<BannerConfig>) => void;
   loadFromProfile: (profile: Customer) => void;
 }
 
-// ─── Resolve text color based on background luminance ──────────
-function resolveTextColor(mode: 'white' | 'dark' | 'auto', colorFrom: string): string {
+// ─── Resolve text color based on gradient luminance ──────────
+function resolveTextColor(mode: 'white' | 'dark' | 'auto', colorFrom: string, colorTo: string): string {
   if (mode === 'white') return '#ffffff';
   if (mode === 'dark') return '#1a1a1a';
-  const hex = colorFrom.replace('#', '');
-  const r = parseInt(hex.substring(0, 2), 16);
-  const g = parseInt(hex.substring(2, 4), 16);
-  const b = parseInt(hex.substring(4, 6), 16);
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return luminance > 0.5 ? '#1a1a1a' : '#ffffff';
+  // Auto: average luminance of both gradient stops
+  return getContrastColorForGradient(colorFrom, colorTo);
 }
 
 export function getResolvedConfig(state: BannerConfig): BannerConfig & { resolvedTextColor: string } {
   return {
     ...state,
-    resolvedTextColor: resolveTextColor(state.textColor, state.colorFrom),
+    resolvedTextColor: resolveTextColor(state.textColor, state.colorFrom, state.colorTo),
   };
 }
 
@@ -102,6 +101,7 @@ export const useBannerConfigStore = create<BannerConfigState>()(
     (set) => ({
       ...DEFAULT_CONFIG,
       profileId: null,
+      designTokens: null,
 
       updateConfig: (partial) => set(partial),
 
@@ -112,6 +112,7 @@ export const useBannerConfigStore = create<BannerConfigState>()(
           const radius = parseInt(dt.borders?.radius?.default || '8');
           set({
             profileId: profile.id,
+            designTokens: dt as DesignTokens,
             logoUrl: dt.media?.logoVariants?.primary || profile.logo || null,
             colorFrom: dt.colors?.semantic?.primary || profile.colors.dark,
             colorTo: dt.colors?.semantic?.secondary || profile.colors.light,
@@ -125,6 +126,7 @@ export const useBannerConfigStore = create<BannerConfigState>()(
           // Legacy profile fields
           set({
             profileId: profile.id,
+            designTokens: null,
             logoUrl: profile.logo || null,
             colorFrom: profile.colors.dark,
             colorTo: profile.colors.light,

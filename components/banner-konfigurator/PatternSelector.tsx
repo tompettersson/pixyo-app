@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { PATTERNS } from './patterns';
-import { getResolvedConfig, type BannerConfig } from '@/store/useBannerConfigStore';
+import { getResolvedConfig, useBannerConfigStore, type BannerConfig } from '@/store/useBannerConfigStore';
 import type { PatternId } from '@/lib/banner/formats';
+import { computeBannerTokens } from '@/lib/banner/tokenBridge';
 
 interface PatternSelectorProps {
   activePattern: PatternId;
@@ -17,6 +18,13 @@ interface PatternSelectorProps {
  */
 export default function PatternSelector({ activePattern, config, onSelect }: PatternSelectorProps) {
   const resolved = getResolvedConfig(config);
+  const designTokens = useBannerConfigStore((s) => s.designTokens);
+
+  // Compute tokens once for the thumbnail size (300x250)
+  const tokens = useMemo(
+    () => computeBannerTokens(300, 250, config, designTokens),
+    [config, designTokens]
+  );
 
   return (
     <div className="space-y-2">
@@ -55,6 +63,7 @@ export default function PatternSelector({ activePattern, config, onSelect }: Pat
                     width={300}
                     height={250}
                     config={resolved}
+                    tokens={tokens}
                   />
                 </div>
               </div>

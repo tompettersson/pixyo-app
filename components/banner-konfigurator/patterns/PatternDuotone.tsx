@@ -1,29 +1,27 @@
 'use client';
 
 import React from 'react';
-import { Logo, CTAButton, fontSizes, headlineStyle, isTiny, isVertical, isHorizontal, type PatternProps } from './shared';
+import { Logo, headlineStyle, sublineStyle, ctaStyle, type PatternProps } from './shared';
 
 /**
- * P7: Duotone (NEW — replaces Wave)
+ * P7: Duotone
  * Photo colorized with brand colors via mix-blend-mode.
  * Creates a striking duotone effect using colorFrom and colorTo.
+ * Text color from tokens (not hardcoded white).
  */
-export default function PatternDuotone({ width, height, config }: PatternProps) {
-  const fs = fontSizes(width, height);
-  const tiny = isTiny(width, height);
-  const vert = isVertical(width, height);
-  const horiz = isHorizontal(width, height);
+export default function PatternDuotone({ width, height, config, tokens }: PatternProps) {
+  const { flags, spacing, fontSize, colors } = tokens;
 
   return (
     <div className="relative w-full h-full overflow-hidden">
-      {/* Duotone effect: base color + grayscale image + multiply blend */}
+      {/* Duotone effect: base gradient + grayscale image + luminosity blend */}
       <div
         className="absolute inset-0"
         style={{
-          background: `linear-gradient(${config.gradientAngle}deg, ${config.colorFrom}, ${config.colorTo})`,
+          background: `linear-gradient(${config.gradientAngle}deg, ${colors.gradientFrom}, ${colors.gradientTo})`,
         }}
       />
-      {/* Image with multiply blend to create duotone */}
+      {/* Image with luminosity blend to create duotone */}
       <div
         className="absolute inset-0"
         style={{
@@ -34,42 +32,42 @@ export default function PatternDuotone({ width, height, config }: PatternProps) 
           opacity: 0.6,
         }}
       />
-      {/* Slight dark overlay for text readability */}
+      {/* Gradient scrim for text readability */}
       <div
         className="absolute inset-0"
         style={{
-          background: `linear-gradient(to ${vert ? 'bottom' : 'right'}, rgba(0,0,0,0.1) 0%, rgba(0,0,0,${config.overlayStrength * 0.5}) 100%)`,
+          background: `linear-gradient(to ${
+            flags.isVertical ? 'bottom' : 'right'
+          }, rgba(0,0,0,0.1) 0%, rgba(0,0,0,${config.overlayStrength * 0.5}) 100%)`,
         }}
       />
       {/* Content */}
       <div
         className={`absolute inset-0 flex flex-col ${
-          vert
-            ? 'justify-end items-center text-center pb-6'
-            : horiz
-              ? 'justify-center items-start pl-4'
-              : 'justify-end items-start pb-4 pl-3'
-        } gap-0.5 p-3`}
+          flags.isVertical
+            ? 'justify-end items-center text-center'
+            : flags.isHorizontal
+              ? 'justify-center items-start'
+              : 'justify-end items-start'
+        }`}
+        style={{
+          padding: spacing.padding,
+          gap: spacing.gap,
+        }}
       >
-        {!tiny && <Logo url={config.logoUrl} size={fs.logo} fallbackColor="#fff" />}
-        <p
-          style={{
-            fontSize: fs.headline,
-            fontFamily: config.headlineFont,
-            fontWeight: config.headlineWeight,
-            textTransform: config.headlineUppercase ? 'uppercase' : 'none',
-          }}
-          className="leading-tight text-white drop-shadow-md"
-        >
+        {!flags.hideLogo && (
+          <Logo url={config.logoUrl} size={fontSize.logo} />
+        )}
+        <p style={{ ...headlineStyle(tokens), textShadow: tokens.shadows.textShadow }}>
           {config.headline}
         </p>
-        {!tiny && (
-          <p style={{ fontSize: fs.sub }} className="text-white/85 drop-shadow-sm">
+        {!flags.hideSubline && (
+          <p style={{ ...sublineStyle(tokens), textShadow: tokens.shadows.textShadow }}>
             {config.subline}
           </p>
         )}
-        <div className="mt-1">
-          <CTAButton config={config} small={fs.cta} />
+        <div style={{ marginTop: spacing.ctaMarginTop }}>
+          <span style={ctaStyle(tokens)}>{config.ctaText}</span>
         </div>
       </div>
     </div>

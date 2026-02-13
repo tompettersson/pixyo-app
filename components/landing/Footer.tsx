@@ -2,21 +2,31 @@
 
 export function Footer() {
   return (
-    <footer className="px-6 py-8 border-t border-zinc-800/50">
-      <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logos/pixyo.svg" alt="Pixyo" className="h-6" />
-          <span className="text-sm text-zinc-500">&copy; 2025 Pixyo. Alle Rechte vorbehalten.</span>
-        </div>
+    <footer className="px-6 py-8">
+      <div className="max-w-7xl mx-auto border-t border-white/[0.04] pt-8">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logos/pixyo.svg" alt="Pixyo" className="h-5 opacity-40" />
+            <span className="text-[11px] text-white/30 tracking-wider uppercase font-oswald">
+              &copy; 2025
+            </span>
+          </div>
 
-        <div className="flex items-center gap-6 text-sm text-zinc-500">
-          <a href="#" className="hover:text-zinc-300 transition-colors">
-            Impressum
-          </a>
-          <a href="#" className="hover:text-zinc-300 transition-colors">
-            Datenschutz
-          </a>
+          <div className="flex items-center gap-8">
+            <a
+              href="#"
+              className="text-[11px] text-white/30 hover:text-white/40 transition-colors tracking-wider uppercase font-oswald"
+            >
+              Impressum
+            </a>
+            <a
+              href="#"
+              className="text-[11px] text-white/30 hover:text-white/40 transition-colors tracking-wider uppercase font-oswald"
+            >
+              Datenschutz
+            </a>
+          </div>
         </div>
       </div>
     </footer>
