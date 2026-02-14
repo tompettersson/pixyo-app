@@ -3,12 +3,15 @@
 import { AnimatedSection } from './AnimatedSection';
 
 const logos = [
-  { name: 'Hanako Koi', src: '/logos/HanakoKoiLogo-white.svg' },
-  { name: '1001 Frucht', src: '/logos/1001frucht-black.svg' },
-  { name: 'JOQORA', src: '/logos/joqora-logo.svg' },
+  { name: 'F.A.Z. Selection', src: '/logos/faz-selection-logo.svg' },
   { name: 'Canton', src: '/logos/canton-logo.svg' },
+  { name: 'JOQORA', src: '/logos/joqora-logo.svg' },
+  { name: '1001 Frucht', src: '/logos/1001frucht-black.svg' },
+  { name: 'Hanako Koi', src: '/logos/HanakoKoiLogo-white.svg' },
+  { name: 'Portobello', src: '/logos/portobello-logo.png' },
   { name: 'elforyn', src: '/logos/elforyn-black.svg' },
   { name: 'BKT', src: '/logos/bkt-logo.svg' },
+  { name: 'MMShop24', src: '/logos/mmshop24-logo.png' },
   { name: 'GovGuru', src: '/logos/govguru-logo.svg' },
   { name: 'EGovC', src: '/logos/egovc-logo.svg' },
   { name: 'Shoptic', src: '/logos/shoptic-logo.svg' },
