@@ -1,16 +1,16 @@
 'use client';
 
-import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { BauhausCanvas } from './BauhausCanvas';
 import { HeroSection } from './HeroSection';
 import { ManifestoSection } from './ManifestoSection';
-import { PortfolioSection } from './PortfolioSection';
+// Hidden sections — uncomment when ready for full launch:
+// import { PortfolioSection } from './PortfolioSection';
 import { TestimonialSection } from './TestimonialSection';
-import { AgencySection } from './AgencySection';
-import { ServicesGrid } from './ServicesGrid';
+// import { AgencySection } from './AgencySection';
+// import { ServicesGrid } from './ServicesGrid';
 import { PricingSection } from './PricingSection';
-import { TrustSection } from './TrustSection';
+// import { TrustSection } from './TrustSection';
 import { FinalCTA } from './FinalCTA';
 import { Footer } from './Footer';
 
@@ -20,7 +20,7 @@ export function LandingPage() {
       {/* Bauhaus geometric background */}
       <BauhausCanvas />
 
-      {/* Sticky Header */}
+      {/* Sticky Header — no login buttons until launch */}
       <motion.header
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -31,20 +31,16 @@ export function LandingPage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logos/pixyo.svg" alt="Pixyo" className="h-8 sm:h-9" />
         </div>
+        {/* Login buttons hidden until launch
         <div className="flex items-center gap-4">
-          <Link
-            href="/handler/sign-in"
-            className="px-5 py-2 text-[11px] font-oswald tracking-[0.2em] uppercase text-white/60 hover:text-white transition-colors duration-300"
-          >
+          <Link href="/handler/sign-in" className="px-5 py-2 text-[11px] font-oswald tracking-[0.2em] uppercase text-white/60 hover:text-white transition-colors duration-300">
             Anmelden
           </Link>
-          <Link
-            href="/handler/sign-in"
-            className="px-5 py-2.5 text-[11px] font-oswald tracking-[0.2em] uppercase bg-[#E8710A] hover:bg-[#d4670a] text-white transition-colors duration-300"
-          >
+          <Link href="/handler/sign-in" className="px-5 py-2.5 text-[11px] font-oswald tracking-[0.2em] uppercase bg-[#E8710A] hover:bg-[#d4670a] text-white transition-colors duration-300">
             Pixyo testen
           </Link>
         </div>
+        */}
       </motion.header>
 
       {/* Content */}
@@ -54,12 +50,14 @@ export function LandingPage() {
         <ManifestoSection />
         <PricingSection />
         <TestimonialSection />
-        <TrustSection />
 
-        {/* === DARÜBER HINAUS — Agentur & Portfolio === */}
+        {/* Hidden until launch — Agency & Portfolio sections:
+        <TrustSection />
         <AgencySection />
         <ServicesGrid />
         <PortfolioSection />
+        */}
+
         <FinalCTA />
       </main>
 

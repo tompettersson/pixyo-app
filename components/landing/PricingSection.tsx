@@ -2,7 +2,6 @@
 
 import { AnimatedSection } from './AnimatedSection';
 import { DotGridPattern } from './PatternElements';
-import Link from 'next/link';
 
 const tiers = [
   {
@@ -18,8 +17,8 @@ const tiers = [
       'Alle Tools verfügbar',
       'Community-Support',
     ],
-    cta: 'Kostenlos starten',
-    href: '/handler/sign-in',
+    cta: 'Benachrichtigen lassen',
+    href: '#waitlist',
     highlight: false,
   },
   {
@@ -36,8 +35,8 @@ const tiers = [
       'E-Mail-Support (24h)',
       'Team-Zugang (bis 5 User)',
     ],
-    cta: 'Zugang anfragen',
-    href: '#kontakt',
+    cta: 'Benachrichtigen lassen',
+    href: '#waitlist',
     highlight: true,
   },
   {
@@ -54,8 +53,8 @@ const tiers = [
       'SLA & Priority-Support',
       'On-Premise möglich',
     ],
-    cta: 'Erstgespräch vereinbaren',
-    href: '#kontakt',
+    cta: 'Benachrichtigen lassen',
+    href: '#waitlist',
     highlight: false,
   },
 ];
@@ -68,7 +67,7 @@ export function PricingSection() {
         <AnimatedSection>
           <div className="flex items-baseline gap-6 mb-6">
             <span className="font-oswald text-xs tracking-[0.3em] uppercase text-white/50">
-              Preise
+              Voraussichtliche Preise
             </span>
             <div className="flex-1 h-px bg-white/[0.06]" />
           </div>
@@ -82,7 +81,7 @@ export function PricingSection() {
               <span className="text-[#E8710A]">Drei klare Optionen.</span>
             </h2>
             <p className="text-white/50 text-base font-light max-w-2xl">
-              Starte kostenlos, skaliere wenn&apos;s ernst wird. Keine versteckten Kosten, keine Überraschungen.
+              Pixyo ist noch nicht öffentlich verfügbar. Lass dich benachrichtigen, wenn es losgeht.
             </p>
           </div>
         </AnimatedSection>
@@ -151,7 +150,7 @@ export function PricingSection() {
                 </ul>
 
                 {/* CTA */}
-                <Link
+                <a
                   href={tier.href}
                   className={`block w-full text-center py-4 text-sm font-oswald tracking-[0.15em] uppercase transition-colors duration-300 ${
                     tier.highlight
@@ -160,7 +159,7 @@ export function PricingSection() {
                   }`}
                 >
                   {tier.cta}
-                </Link>
+                </a>
               </div>
             </AnimatedSection>
           ))}
