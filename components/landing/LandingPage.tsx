@@ -6,7 +6,7 @@ import { HeroSection } from './HeroSection';
 import { ManifestoSection } from './ManifestoSection';
 // Hidden sections — uncomment when ready for full launch:
 // import { PortfolioSection } from './PortfolioSection';
-import { TestimonialSection } from './TestimonialSection';
+// import { TestimonialSection } from './TestimonialSection';
 // import { AgencySection } from './AgencySection';
 // import { ServicesGrid } from './ServicesGrid';
 import { PricingSection } from './PricingSection';
@@ -49,9 +49,9 @@ export function LandingPage() {
         <HeroSection />
         <ManifestoSection />
         <PricingSection />
-        <TestimonialSection />
 
-        {/* Hidden until launch — Agency & Portfolio sections:
+        {/* Hidden until launch — needs client approval:
+        <TestimonialSection />
         <TrustSection />
         <AgencySection />
         <ServicesGrid />
