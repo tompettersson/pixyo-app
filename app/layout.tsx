@@ -61,6 +61,17 @@ const ceraPro = localFont({
   display: "swap",
 });
 
+// Local font: Brown Pro (for JOQORA)
+const brownPro = localFont({
+  src: [
+    { path: "../public/fonts/lineto-brown-pro-light.woff2", weight: "300", style: "normal" },
+    { path: "../public/fonts/lineto-brown-pro-regular.woff2", weight: "400", style: "normal" },
+    { path: "../public/fonts/lineto-brown-pro-bold.woff2", weight: "700", style: "normal" },
+  ],
+  variable: "--font-brown-pro",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Pixyo - KI-Kreativtools für deine Marke",
   description: "Erstelle professionelle Social Media Grafiken und Produktszenen mit KI. Pixyo kombiniert intelligente Bildgenerierung mit einem intuitiven Editor.",
@@ -84,6 +95,7 @@ export default function RootLayout({
           ${oswald.variable}
           ${dancingScript.variable}
           ${ceraPro.variable}
+          ${brownPro.variable}
           font-sans antialiased
         `}
       >
