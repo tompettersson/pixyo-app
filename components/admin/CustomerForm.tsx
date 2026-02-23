@@ -3,16 +3,9 @@
 import { useState, useRef, useCallback } from "react";
 import { Button, Input } from "@/components/ui";
 import { UserAssignmentSelect } from "./UserAssignmentSelect";
+import { AVAILABLE_FONTS } from "@/lib/stylePresets";
 
-const FONT_OPTIONS = [
-  "Inter",
-  "Poppins",
-  "Space Grotesk",
-  "Bebas Neue",
-  "Playfair Display",
-  "Lora",
-  "Oswald",
-];
+const FONT_OPTIONS = AVAILABLE_FONTS.map((f) => f.value);
 
 const DEFAULT_PROFILE = {
   name: "",
