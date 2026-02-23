@@ -12,6 +12,7 @@ import { FloorPlanEditor } from '@/components/product-scenes/FloorPlanEditor';
 import { ProfileSelector } from '@/components/product-scenes/ProfileSelector';
 import { useBackgroundRemoval } from '@/hooks/useBackgroundRemoval';
 import { UserUsage } from '@/components/product-scenes/UserUsage';
+import type { SceneConfig } from '@/types/customer';
 
 // Zoom levels
 const ZOOM_LEVELS = [0.5, 0.75, 1, 1.25, 1.5, 2] as const;
@@ -28,6 +29,7 @@ export default function ProductScenesPage() {
   const imageContainerRef = useRef<HTMLDivElement>(null);
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
+  const [selectedSceneConfig, setSelectedSceneConfig] = useState<SceneConfig | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [canvasScale, setCanvasScale] = useState(0.6);
@@ -703,7 +705,10 @@ export default function ProductScenesPage() {
           <div className="h-6 w-px bg-zinc-800" />
           <ProfileSelector
             selectedProfileId={selectedProfileId}
-            onProfileChange={setSelectedProfileId}
+            onProfileChange={(profileId, sceneConfig) => {
+              setSelectedProfileId(profileId);
+              setSelectedSceneConfig(sceneConfig);
+            }}
           />
         </div>
 
@@ -822,9 +827,9 @@ export default function ProductScenesPage() {
               Hintergrund
             </h2>
             {mode === 'oneshot' ? (
-              <BackgroundPrompt onGenerate={handleGenerateOneshot} />
+              <BackgroundPrompt onGenerate={handleGenerateOneshot} sceneCategories={selectedSceneConfig?.categories} />
             ) : (
-              <BackgroundPrompt onGenerate={handleGenerateBackground} />
+              <BackgroundPrompt onGenerate={handleGenerateBackground} sceneCategories={selectedSceneConfig?.categories} />
             )}
           </div>
 

@@ -106,6 +106,7 @@ export const profileUpdateSchema = z.object({
   }).optional(),
   systemPrompt: z.string().optional(),
   designTokens: z.any().optional(),
+  sceneConfig: z.any().optional(),
 });
 
 // Ensure slug is unique, appending timestamp if needed

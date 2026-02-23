@@ -1,5 +1,23 @@
 // Customer/Profile types for the multi-customer design editor
 
+// Scene preset configuration for Product Scenes tool
+export interface ScenePreset {
+  id: string;
+  label: string;
+  icon: string;
+  prompt: string;
+}
+
+export interface SceneCategory {
+  id: string;
+  label: string;
+  presets: ScenePreset[];
+}
+
+export interface SceneConfig {
+  categories: SceneCategory[];
+}
+
 export interface CustomerColors {
   dark: string;
   light: string;
@@ -39,6 +57,7 @@ export interface Customer {
   layout: CustomerLayout;
   systemPrompt: string;
   designTokens?: import('@/types/designTokens').DesignTokens | null;
+  sceneConfig?: SceneConfig | null;
 }
 
 // Design types

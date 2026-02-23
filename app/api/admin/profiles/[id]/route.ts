@@ -102,6 +102,12 @@ export async function PATCH(
       ...(validatedData.fonts !== undefined && { fonts: validatedData.fonts }),
       ...(validatedData.layout !== undefined && { layout: validatedData.layout }),
       ...(validatedData.systemPrompt !== undefined && { systemPrompt: validatedData.systemPrompt }),
+      ...(validatedData.designTokens !== undefined && {
+        designTokens: validatedData.designTokens === null ? Prisma.JsonNull : validatedData.designTokens,
+      }),
+      ...(validatedData.sceneConfig !== undefined && {
+        sceneConfig: validatedData.sceneConfig === null ? Prisma.JsonNull : validatedData.sceneConfig,
+      }),
     };
 
     const profile = await prisma.profile.update({

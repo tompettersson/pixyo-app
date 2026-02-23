@@ -74,6 +74,9 @@ export async function PATCH(
       ...(validatedData.designTokens !== undefined && {
         designTokens: validatedData.designTokens === null ? Prisma.JsonNull : validatedData.designTokens,
       }),
+      ...(validatedData.sceneConfig !== undefined && {
+        sceneConfig: validatedData.sceneConfig === null ? Prisma.JsonNull : validatedData.sceneConfig,
+      }),
     };
 
     const profile = await prisma.profile.update({

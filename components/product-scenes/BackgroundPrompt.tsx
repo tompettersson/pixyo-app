@@ -2,120 +2,8 @@
 
 import { useCallback, useState } from 'react';
 import { useProductScenesStore } from '@/store/useProductScenesStore';
-
-// =============================================================================
-// INTERIOR DESIGN STYLE PRESETS
-// These add atmosphere/style keywords to the user's prompt
-// =============================================================================
-const STYLE_PRESETS = [
-  {
-    id: 'none',
-    label: 'Neutral',
-    icon: '○',
-    prompt: '', // No additional style
-  },
-  {
-    id: 'mediterranean',
-    label: 'Mediterran',
-    icon: '🌊',
-    prompt: 'Mediterranean style with warm terracotta tones, natural stone textures, olive wood accents, soft linen fabrics, and warm sunlight streaming through arched windows',
-  },
-  {
-    id: 'scandinavian',
-    label: 'Skandinavisch',
-    icon: '🌲',
-    prompt: 'Scandinavian style with light oak wood, white walls, minimal decor, cozy hygge atmosphere, natural textiles, and soft diffused daylight',
-  },
-  {
-    id: 'industrial',
-    label: 'Industrial',
-    icon: '🏭',
-    prompt: 'Industrial loft style with exposed brick walls, metal accents, polished concrete floors, Edison bulb lighting, and raw urban textures',
-  },
-  {
-    id: 'midcentury',
-    label: 'Mid-Century',
-    icon: '🪑',
-    prompt: 'Mid-century modern style with walnut furniture, organic curved shapes, muted earth tones, iconic statement lighting, and warm retro atmosphere',
-  },
-  {
-    id: 'luxury',
-    label: 'Luxus',
-    icon: '✨',
-    prompt: 'Luxury hotel style with high-end marble finishes, velvet textures, subtle gold accents, dramatic mood lighting, and sophisticated elegance',
-  },
-  {
-    id: 'country',
-    label: 'Landhaus',
-    icon: '🏡',
-    prompt: 'Country house style with rustic reclaimed wood beams, natural stone walls, linen curtains, dried flower arrangements, warm candlelight, and cozy farmhouse charm',
-  },
-  {
-    id: 'colonial',
-    label: 'Kolonial',
-    icon: '🌴',
-    prompt: 'Colonial style with dark hardwood furniture, rattan and wicker accents, tropical plants, ceiling fans, warm amber lighting, brass hardware, and elegant plantation atmosphere',
-  },
-  {
-    id: 'shabbychic',
-    label: 'Shabby Chic',
-    icon: '🌸',
-    prompt: 'Shabby chic style with distressed painted white furniture, vintage floral fabrics, pastel color palette, antique mirrors, soft romantic lighting, and charming imperfections',
-  },
-] as const;
-
-type StylePresetId = typeof STYLE_PRESETS[number]['id'];
-
-// =============================================================================
-// ROOM TYPE PRESETS
-// Common room types - can be combined with style presets
-// =============================================================================
-const ROOM_PRESETS = [
-  {
-    id: 'none',
-    label: 'Keiner',
-    icon: '○',
-    prompt: '', // No room specified - user defines in prompt
-  },
-  {
-    id: 'living',
-    label: 'Wohnzimmer',
-    icon: '🛋️',
-    prompt: 'in a modern living room',
-  },
-  {
-    id: 'kitchen',
-    label: 'Küche',
-    icon: '🍳',
-    prompt: 'in a bright kitchen',
-  },
-  {
-    id: 'dining',
-    label: 'Esszimmer',
-    icon: '🍽️',
-    prompt: 'in an elegant dining room',
-  },
-  {
-    id: 'terrace',
-    label: 'Terrasse',
-    icon: '☀️',
-    prompt: 'on a sunny terrace',
-  },
-  {
-    id: 'garden',
-    label: 'Garten',
-    icon: '🌳',
-    prompt: 'in a beautiful garden setting',
-  },
-  {
-    id: 'office',
-    label: 'Büro',
-    icon: '💼',
-    prompt: 'in a professional home office',
-  },
-] as const;
-
-type RoomPresetId = typeof ROOM_PRESETS[number]['id'];
+import type { SceneCategory } from '@/types/customer';
+import { DEFAULT_SCENE_CATEGORIES } from '@/lib/product-scenes/defaultPresets';
 
 // Generated prompt type
 interface GeneratedPrompt {
@@ -123,11 +11,20 @@ interface GeneratedPrompt {
   prompt: string;
 }
 
+// Color palette for category chips (cycles through these)
+const CATEGORY_COLORS = [
+  { active: 'bg-violet-500/20 text-violet-300 border-violet-500/50', label: 'text-zinc-500' },
+  { active: 'bg-blue-500/20 text-blue-300 border-blue-500/50', label: 'text-zinc-500' },
+  { active: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50', label: 'text-zinc-500' },
+  { active: 'bg-amber-500/20 text-amber-300 border-amber-500/50', label: 'text-zinc-500' },
+] as const;
+
 interface BackgroundPromptProps {
   onGenerate: () => void;
+  sceneCategories?: SceneCategory[];
 }
 
-export function BackgroundPrompt({ onGenerate }: BackgroundPromptProps) {
+export function BackgroundPrompt({ onGenerate, sceneCategories }: BackgroundPromptProps) {
   const backgroundPrompt = useProductScenesStore((state) => state.backgroundPrompt);
   const setBackgroundPrompt = useProductScenesStore((state) => state.setBackgroundPrompt);
   const productImage = useProductScenesStore((state) => state.productImage);
@@ -140,39 +37,60 @@ export function BackgroundPrompt({ onGenerate }: BackgroundPromptProps) {
   const [generatedPrompts, setGeneratedPrompts] = useState<GeneratedPrompt[]>([]);
   const [promptError, setPromptError] = useState<string | null>(null);
 
-  // Selected presets
-  const [selectedStyle, setSelectedStyle] = useState<StylePresetId>('none');
-  const [selectedRoom, setSelectedRoom] = useState<RoomPresetId>('none');
+  // Dynamic categories: use provided scene categories or fall back to defaults
+  const categories = sceneCategories ?? DEFAULT_SCENE_CATEGORIES;
+
+  // Selected preset per category: Record<categoryId, presetId>
+  const [selections, setSelections] = useState<Record<string, string>>(() => {
+    const initial: Record<string, string> = {};
+    for (const cat of categories) {
+      initial[cat.id] = cat.presets[0]?.id ?? 'none';
+    }
+    return initial;
+  });
+
+  // Reset selections when categories change (profile switch)
+  const [prevCategoriesKey, setPrevCategoriesKey] = useState(() =>
+    categories.map((c) => c.id).join(',')
+  );
+  const currentKey = categories.map((c) => c.id).join(',');
+  if (currentKey !== prevCategoriesKey) {
+    const initial: Record<string, string> = {};
+    for (const cat of categories) {
+      initial[cat.id] = cat.presets[0]?.id ?? 'none';
+    }
+    setSelections(initial);
+    setPrevCategoriesKey(currentKey);
+  }
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (productImage && backgroundPrompt.trim()) {
-      // Combine user prompt with room and style presets
-      const stylePreset = STYLE_PRESETS.find(s => s.id === selectedStyle);
-      const roomPreset = ROOM_PRESETS.find(r => r.id === selectedRoom);
-      const stylePrompt = stylePreset?.prompt || '';
-      const roomPrompt = roomPreset?.prompt || '';
+      // Collect prompt fragments from all selected presets
+      const promptParts = [backgroundPrompt.trim()];
+      for (const cat of categories) {
+        const selectedId = selections[cat.id];
+        if (selectedId && selectedId !== 'none') {
+          const preset = cat.presets.find((p) => p.id === selectedId);
+          if (preset?.prompt) {
+            promptParts.push(preset.prompt);
+          }
+        }
+      }
 
-      // Build combined prompt: [user prompt] [room] [style]
-      const parts = [backgroundPrompt.trim()];
-      if (roomPrompt) parts.push(roomPrompt);
-      if (stylePrompt) parts.push(stylePrompt);
-      const combinedPrompt = parts.join('. ');
+      const combinedPrompt = promptParts.join('. ');
 
       if (combinedPrompt !== backgroundPrompt.trim()) {
-        // Temporarily set combined prompt for generation
         setBackgroundPrompt(combinedPrompt);
-        // Use timeout to ensure state update before generation
         setTimeout(() => {
           onGenerate();
-          // Restore original prompt after a short delay
           setTimeout(() => setBackgroundPrompt(backgroundPrompt.trim()), 100);
         }, 10);
       } else {
         onGenerate();
       }
     }
-  }, [productImage, backgroundPrompt, selectedStyle, selectedRoom, setBackgroundPrompt, onGenerate]);
+  }, [productImage, backgroundPrompt, categories, selections, setBackgroundPrompt, onGenerate]);
 
   // Generate 3 optimized prompts via Claude
   const handleGeneratePrompts = useCallback(async () => {
@@ -213,7 +131,7 @@ export function BackgroundPrompt({ onGenerate }: BackgroundPromptProps) {
   // Select a generated prompt
   const handleSelectPrompt = useCallback((prompt: string) => {
     setBackgroundPrompt(prompt);
-    setGeneratedPrompts([]); // Clear suggestions after selection
+    setGeneratedPrompts([]);
   }, [setBackgroundPrompt]);
 
   const canGenerate = productImage && backgroundPrompt.trim() && !isGenerating;
@@ -221,58 +139,46 @@ export function BackgroundPrompt({ onGenerate }: BackgroundPromptProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-      {/* Interior Design Style Selector */}
-      <div>
-        <label className="block text-xs text-zinc-500 mb-1.5 uppercase tracking-wider">
-          Innenarchitektur-Stil
-        </label>
-        <div className="flex flex-wrap gap-1">
-          {STYLE_PRESETS.map((style) => (
-            <button
-              key={style.id}
-              type="button"
-              onClick={() => setSelectedStyle(style.id)}
-              className={`px-2 py-1 rounded-lg text-[11px] font-medium transition-all flex items-center gap-1
-                ${selectedStyle === style.id
-                  ? 'bg-violet-500/20 text-violet-300 border border-violet-500/50'
-                  : 'bg-zinc-800/50 text-zinc-400 border border-zinc-700/50 hover:bg-zinc-700/50 hover:text-zinc-300'
-                }`}
-            >
-              <span className="text-xs">{style.icon}</span>
-              <span>{style.label}</span>
-            </button>
-          ))}
-        </div>
-        {selectedStyle !== 'none' && (
-          <p className="mt-1.5 text-[10px] text-zinc-500">
-            {STYLE_PRESETS.find(s => s.id === selectedStyle)?.prompt.slice(0, 60)}...
-          </p>
-        )}
-      </div>
+      {/* Dynamic Scene Category Selectors */}
+      {categories.map((category, catIdx) => {
+        const colorScheme = CATEGORY_COLORS[catIdx % CATEGORY_COLORS.length];
+        const selectedId = selections[category.id] ?? 'none';
 
-      {/* Room Type Selector */}
-      <div>
-        <label className="block text-xs text-zinc-500 mb-1.5 uppercase tracking-wider">
-          Raum
-        </label>
-        <div className="flex flex-wrap gap-1">
-          {ROOM_PRESETS.map((room) => (
-            <button
-              key={room.id}
-              type="button"
-              onClick={() => setSelectedRoom(room.id)}
-              className={`px-2 py-1 rounded-lg text-[11px] font-medium transition-all flex items-center gap-1
-                ${selectedRoom === room.id
-                  ? 'bg-blue-500/20 text-blue-300 border border-blue-500/50'
-                  : 'bg-zinc-800/50 text-zinc-400 border border-zinc-700/50 hover:bg-zinc-700/50 hover:text-zinc-300'
-                }`}
-            >
-              <span className="text-xs">{room.icon}</span>
-              <span>{room.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+        return (
+          <div key={category.id}>
+            <label className="block text-xs text-zinc-500 mb-1.5 uppercase tracking-wider">
+              {category.label}
+            </label>
+            <div className="flex flex-wrap gap-1">
+              {category.presets.map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() =>
+                    setSelections((prev) => ({ ...prev, [category.id]: preset.id }))
+                  }
+                  className={`px-2 py-1 rounded-lg text-[11px] font-medium transition-all flex items-center gap-1
+                    ${selectedId === preset.id
+                      ? `${colorScheme.active} border`
+                      : 'bg-zinc-800/50 text-zinc-400 border border-zinc-700/50 hover:bg-zinc-700/50 hover:text-zinc-300'
+                    }`}
+                >
+                  <span className="text-xs">{preset.icon}</span>
+                  <span>{preset.label}</span>
+                </button>
+              ))}
+            </div>
+            {selectedId !== 'none' && (() => {
+              const preset = category.presets.find((p) => p.id === selectedId);
+              return preset?.prompt ? (
+                <p className="mt-1.5 text-[10px] text-zinc-500">
+                  {preset.prompt.slice(0, 60)}...
+                </p>
+              ) : null;
+            })()}
+          </div>
+        );
+      })}
 
       {/* Custom prompt input */}
       <div>

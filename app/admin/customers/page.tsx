@@ -109,6 +109,7 @@ export default function AdminCustomersPage() {
           fonts: data.fonts,
           layout: data.layout,
           systemPrompt: data.systemPrompt,
+          sceneConfig: data.sceneConfig,
         }),
       }
     );
@@ -153,6 +154,7 @@ export default function AdminCustomersPage() {
     fonts: profile.fonts,
     layout: profile.layout,
     systemPrompt: profile.systemPrompt,
+    sceneConfig: profile.sceneConfig ?? null,
   });
 
   return (

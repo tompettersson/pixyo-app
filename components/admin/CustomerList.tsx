@@ -67,6 +67,7 @@ interface AdminProfile {
     button: { radius: number; paddingX: number; paddingY: number };
   };
   systemPrompt: string;
+  sceneConfig: import('@/types/customer').SceneConfig | null;
   createdAt: string;
   updatedAt: string;
   _count: { assets: number; designs: number };

@@ -1,16 +1,18 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import type { SceneConfig } from '@/types/customer';
 
 interface Profile {
   id: string;
   name: string;
   logo: string;
+  sceneConfig: SceneConfig | null;
 }
 
 interface ProfileSelectorProps {
   selectedProfileId: string | null;
-  onProfileChange: (profileId: string) => void;
+  onProfileChange: (profileId: string, sceneConfig: SceneConfig | null) => void;
 }
 
 export function ProfileSelector({ selectedProfileId, onProfileChange }: ProfileSelectorProps) {
@@ -38,7 +40,8 @@ export function ProfileSelector({ selectedProfileId, onProfileChange }: ProfileS
           setProfiles(data.profiles);
           // Auto-select first profile if none selected
           if (!selectedProfileId) {
-            onProfileChange(data.profiles[0].id);
+            const first = data.profiles[0];
+            onProfileChange(first.id, first.sceneConfig ?? null);
           }
         } else {
           console.warn('No profiles found in API response');
@@ -132,7 +135,7 @@ export function ProfileSelector({ selectedProfileId, onProfileChange }: ProfileS
                 <button
                   key={profile.id}
                   onClick={() => {
-                    onProfileChange(profile.id);
+                    onProfileChange(profile.id, profile.sceneConfig ?? null);
                     setIsOpen(false);
                   }}
                   className={`w-full px-3 py-2 text-left text-sm transition-colors flex items-center gap-2
