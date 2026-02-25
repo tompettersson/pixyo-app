@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { BauhausCanvas } from './BauhausCanvas';
 import { HeroSection } from './HeroSection';
 import { ManifestoSection } from './ManifestoSection';
+import { AdvantagesSection } from './AdvantagesSection';
 // Hidden sections — uncomment when ready for full launch:
 // import { PortfolioSection } from './PortfolioSection';
 // import { TestimonialSection } from './TestimonialSection';
@@ -45,6 +46,7 @@ export function LandingPage() {
         {/* === PIXYO — Das Tool === */}
         <HeroSection />
         <ManifestoSection />
+        <AdvantagesSection />
         <PricingSection />
 
         {/* Hidden until launch — needs client approval:

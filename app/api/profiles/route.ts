@@ -16,15 +16,18 @@ export async function GET() {
     const serverMetadata = user.serverMetadata as UserServerMetadata | null;
     const admin = isAdmin(serverMetadata);
 
+    // Build profile query based on user role and permissions
     const profiles = await prisma.profile.findMany({
       where: admin
         ? undefined // Admins see all profiles
-        : {
-            OR: [
-              { userId: user.id },
-              { userId: 'system-seed-user' },
-            ],
-          },
+        : serverMetadata?.allowedProfiles && serverMetadata.allowedProfiles.length > 0
+          ? { slug: { in: serverMetadata.allowedProfiles } } // Restricted users see only allowed profiles
+          : {
+              OR: [
+                { userId: user.id },
+                { userId: 'system-seed-user' },
+              ],
+            },
       orderBy: { updatedAt: 'desc' },
     });
     return NextResponse.json({ profiles });

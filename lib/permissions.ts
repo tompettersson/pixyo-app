@@ -24,6 +24,7 @@ const TOOL_ROUTES: Record<string, ToolId> = {
 // Server metadata shape from Stack Auth
 export interface UserServerMetadata {
   allowedTools?: ToolId[];
+  allowedProfiles?: string[]; // Profile slugs this user can access (undefined = all)
   role?: "admin" | "user";
 }
 
