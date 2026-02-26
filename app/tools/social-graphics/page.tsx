@@ -1358,15 +1358,14 @@ export default function EditorPage() {
               {/* Sale Badge */}
               {content.saleBadgeEnabled && Circle && (() => {
                 const badgeRadius = content.saleBadgeSize ?? 110;
-                const badgePadding = content.saleBadgePadding ?? 20;
+                const textScale = (content.saleBadgeTextScale ?? 100) / 100;
                 const badgeCx = Math.round(CANVAS_WIDTH * (content.saleBadgeX ?? 85) / 100);
                 const badgeCy = Math.round(CANVAS_HEIGHT * (content.saleBadgeY ?? 15) / 100);
                 const badgeColor = content.saleBadgeColor || '#d93025';
                 const pctText = `-${content.saleBadgePercent ?? 20}%`;
                 const labelText = (content.saleBadgeLabel || 'Sale').toUpperCase();
-                // Scale fonts based on usable radius (after padding)
-                const usableRadius = badgeRadius - badgePadding;
-                const scale = usableRadius / 90; // 90 = reference usable radius (110 - 20)
+                // Scale fonts: base scale from radius, then apply user text scale
+                const scale = (badgeRadius / 110) * textScale;
                 const pctFontSize = Math.round(52 * scale);
                 const labelFontSize = Math.round(24 * scale);
                 const gap = Math.round(6 * scale);
@@ -1988,19 +1987,19 @@ export default function EditorPage() {
                     </div>
                   </div>
 
-                  {/* Row 2b: Inner padding */}
+                  {/* Row 2b: Text size */}
                   <div>
                     <div className="flex justify-between text-xs text-zinc-500 mb-1">
-                      <span>Innenabstand</span>
-                      <span>{content.saleBadgePadding ?? 20}px</span>
+                      <span>Textgröße</span>
+                      <span>{content.saleBadgeTextScale ?? 100}%</span>
                     </div>
                     <input
                       type="range"
-                      min="5"
-                      max="40"
-                      step="1"
-                      value={content.saleBadgePadding ?? 20}
-                      onChange={(e) => setContent({ saleBadgePadding: Number(e.target.value) })}
+                      min="50"
+                      max="200"
+                      step="5"
+                      value={content.saleBadgeTextScale ?? 100}
+                      onChange={(e) => setContent({ saleBadgeTextScale: Number(e.target.value) })}
                       className="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer
                                  [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3
                                  [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer"

@@ -320,15 +320,14 @@ export async function renderFormat(
     // 6. Sale Badge
     if (snapshot.content.saleBadgeEnabled) {
       const baseRadius = snapshot.content.saleBadgeSize ?? 110;
-      const basePadding = snapshot.content.saleBadgePadding ?? 20;
+      const textScale = (snapshot.content.saleBadgeTextScale ?? 100) / 100;
       const badgeRadius = Math.round(baseRadius * layout.scaleFactor);
       const badgeCx = Math.round(target.width * (snapshot.content.saleBadgeX ?? 85) / 100);
       const badgeCy = Math.round(target.height * (snapshot.content.saleBadgeY ?? 15) / 100);
       const badgeColor = snapshot.content.saleBadgeColor || '#d93025';
 
-      // Scale fonts based on usable radius (after padding)
-      const usableRadius = Math.max(baseRadius - basePadding, 20) * layout.scaleFactor;
-      const scale = usableRadius / (90 * layout.scaleFactor) * layout.scaleFactor;
+      // Scale fonts: base from radius + scaleFactor, then user text scale
+      const scale = (badgeRadius / 110) * textScale;
       const pctFontSize = Math.round(52 * scale);
       const labelFontSize = Math.round(24 * scale);
       const gap = Math.round(6 * scale);
