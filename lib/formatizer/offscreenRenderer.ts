@@ -27,6 +27,47 @@ const blendModeToComposite: Record<BlendMode, GlobalCompositeOperation> = {
   overlay: 'overlay',
 };
 
+/** Blend customer accent into red for sale badge (same logic as page.tsx) */
+function getBrandedRedForExport(accentHex: string): string {
+  const hexToHsl = (hex: string): [number, number, number] => {
+    const r = parseInt(hex.slice(1, 3), 16) / 255;
+    const g = parseInt(hex.slice(3, 5), 16) / 255;
+    const b = parseInt(hex.slice(5, 7), 16) / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    const l = (max + min) / 2;
+    if (max === min) return [0, 0, l];
+    const d = max - min;
+    const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    let h = 0;
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+    else if (max === g) h = ((b - r) / d + 2) / 6;
+    else h = ((r - g) / d + 4) / 6;
+    return [h * 360, s, l];
+  };
+  const hslToHex = (h: number, s: number, l: number): string => {
+    const hue2rgb = (p: number, q: number, t: number) => {
+      if (t < 0) t += 1; if (t > 1) t -= 1;
+      if (t < 1/6) return p + (q - p) * 6 * t;
+      if (t < 1/2) return q;
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      return p;
+    };
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    const hNorm = h / 360;
+    const r = Math.round(hue2rgb(p, q, hNorm + 1/3) * 255);
+    const g = Math.round(hue2rgb(p, q, hNorm) * 255);
+    const b = Math.round(hue2rgb(p, q, hNorm - 1/3) * 255);
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+  };
+  const [accentH] = hexToHsl(accentHex);
+  let delta = accentH - 0;
+  if (delta > 180) delta -= 360;
+  if (delta < -180) delta += 360;
+  const blendedH = (0 + delta * 0.2 + 360) % 360;
+  return hslToHex(blendedH, 0.85, 0.48);
+}
+
 /** Load an image with CORS enabled. Returns null on error. */
 function loadImage(url: string): Promise<HTMLImageElement | null> {
   return new Promise((resolve) => {
@@ -317,7 +358,65 @@ export async function renderFormat(
       }
     }
 
-    // 6. Photo credit (Unsplash)
+    // 6. Sale Badge (top right)
+    if (snapshot.content.saleBadgeEnabled) {
+      const badgeRadius = Math.round(90 * layout.scaleFactor);
+      const badgeCx = target.width - layout.padding.left - badgeRadius;
+      const badgeCy = layout.padding.top + badgeRadius;
+      const accentColor = snapshot.customer.colors?.accent || '#4f46e5';
+      const badgeColor = getBrandedRedForExport(accentColor);
+
+      // Shadow
+      const shadowCircle = new Konva.Circle({
+        x: badgeCx + 3,
+        y: badgeCy + 4,
+        radius: badgeRadius,
+        fill: 'black',
+        opacity: 0.25,
+      });
+      layer.add(shadowCircle);
+
+      // Main circle
+      const mainCircle = new Konva.Circle({
+        x: badgeCx,
+        y: badgeCy,
+        radius: badgeRadius,
+        fill: badgeColor,
+      });
+      layer.add(mainCircle);
+
+      // Percentage text
+      const pctText = new Konva.Text({
+        text: `-${snapshot.content.saleBadgePercent ?? 20}%`,
+        fontSize: Math.round(48 * layout.scaleFactor),
+        fontFamily: snapshot.customer.fonts.headline.family || 'Inter',
+        fontStyle: 'bold',
+        fill: '#ffffff',
+        align: 'center',
+        width: badgeRadius * 2,
+        x: badgeCx - badgeRadius,
+        y: badgeCy - Math.round(30 * layout.scaleFactor),
+      });
+      layer.add(pctText);
+
+      // Label text
+      const labelText = new Konva.Text({
+        text: (snapshot.content.saleBadgeLabel || 'Sale').toUpperCase(),
+        fontSize: Math.round(22 * layout.scaleFactor),
+        fontFamily: snapshot.customer.fonts.headline.family || 'Inter',
+        fontStyle: '600',
+        fill: '#ffffff',
+        opacity: 0.9,
+        align: 'center',
+        width: badgeRadius * 2,
+        x: badgeCx - badgeRadius,
+        y: badgeCy + Math.round(22 * layout.scaleFactor),
+        letterSpacing: 2,
+      });
+      layer.add(labelText);
+    }
+
+    // 7. Photo credit (Unsplash)
     if (snapshot.backgroundImage?.credit) {
       const credit = snapshot.backgroundImage.credit;
       const creditFontSize = Math.round(18 * layout.scaleFactor);

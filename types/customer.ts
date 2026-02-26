@@ -86,6 +86,10 @@ export interface DesignContent {
   bodyBgOpacity?: number;
   buttonText: string;
   showButton: boolean; // Toggle for CTA button visibility
+  // Sale badge
+  saleBadgeEnabled?: boolean;
+  saleBadgePercent?: number; // e.g., 20, 50
+  saleBadgeLabel?: string;   // e.g., "Sale", "Rabatt", "Reduziert"
 }
 
 // Background image state

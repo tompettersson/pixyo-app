@@ -36,6 +36,7 @@ let Rect: typeof import("react-konva").Rect | null = null;
 let Text: typeof import("react-konva").Text | null = null;
 let Group: typeof import("react-konva").Group | null = null;
 let KonvaImage: typeof import("react-konva").Image | null = null;
+let Circle: typeof import("react-konva").Circle | null = null;
 
 if (typeof window !== "undefined") {
   const konvaModule = require("react-konva");
@@ -45,6 +46,55 @@ if (typeof window !== "undefined") {
   Text = konvaModule.Text;
   Group = konvaModule.Group;
   KonvaImage = konvaModule.Image;
+  Circle = konvaModule.Circle;
+}
+
+/** Convert hex color to HSL */
+function hexToHsl(hex: string): [number, number, number] {
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  if (max === min) return [0, 0, l];
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h = 0;
+  if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+  else if (max === g) h = ((b - r) / d + 2) / 6;
+  else h = ((r - g) / d + 4) / 6;
+  return [h * 360, s, l];
+}
+
+/** Convert HSL to hex */
+function hslToHex(h: number, s: number, l: number): string {
+  const hue2rgb = (p: number, q: number, t: number) => {
+    if (t < 0) t += 1; if (t > 1) t -= 1;
+    if (t < 1/6) return p + (q - p) * 6 * t;
+    if (t < 1/2) return q;
+    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+    return p;
+  };
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  const hNorm = h / 360;
+  const r = Math.round(hue2rgb(p, q, hNorm + 1/3) * 255);
+  const g = Math.round(hue2rgb(p, q, hNorm) * 255);
+  const b = Math.round(hue2rgb(p, q, hNorm - 1/3) * 255);
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
+
+/** Blend customer accent color into red for sale badge.
+ *  Shifts red's hue ~25% toward the accent hue, keeps saturation high. */
+function getBrandedRed(accentHex: string): string {
+  const [accentH] = hexToHsl(accentHex);
+  const baseRedH = 0;
+  // Calculate shortest angular distance
+  let delta = accentH - baseRedH;
+  if (delta > 180) delta -= 360;
+  if (delta < -180) delta += 360;
+  const blendedH = (baseRedH + delta * 0.2 + 360) % 360;
+  return hslToHex(blendedH, 0.85, 0.48);
 }
 
 // Layout constants (in pixels) - scaled for 1080x1080 canvas
@@ -1353,6 +1403,60 @@ export default function EditorPage() {
                 />
               )}
 
+              {/* Sale Badge — top right */}
+              {content.saleBadgeEnabled && Circle && (() => {
+                const badgeRadius = 90;
+                const badgeCx = CANVAS_WIDTH - LAYOUT.padding.left - badgeRadius;
+                const badgeCy = LAYOUT.padding.top + badgeRadius;
+                const accentColor = currentCustomer?.colors?.accent || '#4f46e5';
+                const badgeColor = getBrandedRed(accentColor);
+                const pctText = `-${content.saleBadgePercent ?? 20}%`;
+                const labelText = (content.saleBadgeLabel || 'Sale').toUpperCase();
+                return (
+                  <Group x={badgeCx} y={badgeCy}>
+                    {/* Shadow circle */}
+                    <Circle
+                      radius={badgeRadius}
+                      fill="black"
+                      opacity={0.25}
+                      offsetX={-3}
+                      offsetY={-4}
+                    />
+                    {/* Main circle */}
+                    <Circle
+                      radius={badgeRadius}
+                      fill={badgeColor}
+                    />
+                    {/* Percentage text */}
+                    <Text
+                      text={pctText}
+                      fontSize={48}
+                      fontFamily={resolveFont(currentCustomer?.fonts?.headline?.family || 'Inter')}
+                      fontStyle="bold"
+                      fill="#ffffff"
+                      align="center"
+                      width={badgeRadius * 2}
+                      offsetX={badgeRadius}
+                      y={-30}
+                    />
+                    {/* Label text */}
+                    <Text
+                      text={labelText}
+                      fontSize={22}
+                      fontFamily={resolveFont(currentCustomer?.fonts?.headline?.family || 'Inter')}
+                      fontStyle="600"
+                      fill="#ffffff"
+                      opacity={0.9}
+                      align="center"
+                      width={badgeRadius * 2}
+                      offsetX={badgeRadius}
+                      y={22}
+                      letterSpacing={2}
+                    />
+                  </Group>
+                );
+              })()}
+
               {/* Photo Credit */}
               {photoCredit && (
                 <Text
@@ -1856,6 +1960,65 @@ export default function EditorPage() {
                              focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/50 text-sm"
                   placeholder="z.B. MEHR ERFAHREN"
                 />
+              )}
+            </div>
+
+            {/* Sale Badge */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs text-zinc-500 uppercase tracking-wider">
+                  Sale-Badge
+                </label>
+                <button
+                  onClick={() => setContent({ saleBadgeEnabled: !content.saleBadgeEnabled })}
+                  className={`relative w-10 h-5 rounded-full transition-colors ${
+                    content.saleBadgeEnabled ? 'bg-emerald-500' : 'bg-zinc-700'
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+                      content.saleBadgeEnabled ? 'translate-x-5' : ''
+                    }`}
+                  />
+                </button>
+              </div>
+              {content.saleBadgeEnabled && (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-xs text-zinc-500 mb-1 block">Prozent</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="99"
+                        value={content.saleBadgePercent ?? 20}
+                        onChange={(e) => setContent({ saleBadgePercent: Math.min(99, Math.max(1, Number(e.target.value))) })}
+                        className="w-full px-3 py-1.5 rounded bg-zinc-800/50 border border-zinc-700/50 text-zinc-100 text-sm
+                                   focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-zinc-500 mb-1 block">Label</label>
+                      <input
+                        type="text"
+                        value={content.saleBadgeLabel ?? 'Sale'}
+                        onChange={(e) => setContent({ saleBadgeLabel: e.target.value })}
+                        className="w-full px-3 py-1.5 rounded bg-zinc-800/50 border border-zinc-700/50 text-zinc-100 text-sm
+                                   focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/50"
+                        placeholder="Sale"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-zinc-500">Badge-Farbe</span>
+                    <div
+                      className="w-5 h-5 rounded-full border border-zinc-600"
+                      style={{ backgroundColor: getBrandedRed(currentCustomer?.colors?.accent || '#4f46e5') }}
+                      title="Automatisch aus Kundenfarbe + Rot berechnet"
+                    />
+                    <span className="text-xs text-zinc-600">{getBrandedRed(currentCustomer?.colors?.accent || '#4f46e5')}</span>
+                  </div>
+                </div>
               )}
             </div>
           </div>
