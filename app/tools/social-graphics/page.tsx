@@ -819,12 +819,10 @@ export default function EditorPage() {
   const effectiveBodySize = content.bodySize ?? LAYOUT.bodySize;
   const effectiveBodyWeight = content.bodyWeight ?? 400;
   const hasBody = content.body.trim().length > 0;
-  const estimatedBodyLines = Math.ceil(
-    (content.body.length * effectiveBodySize * 0.5) / contentWidth
-  );
+  const bodyLines = hasBody ? measureTextLines(content.body, effectiveBodySize, contentWidth) : 0;
   // Wenn Body leer ist, keine min-height - Button wandert nach oben
   const bodyHeight = hasBody
-    ? Math.max(estimatedBodyLines * effectiveBodySize * 1.4, effectiveBodySize * 1.4)
+    ? Math.max(bodyLines * effectiveBodySize * 1.5, effectiveBodySize * 1.5)
     : 0;
   // Gap nur wenn Body vorhanden
   yPos += bodyHeight + (hasBody ? LAYOUT.gapBodyToButton : 0);
@@ -1287,16 +1285,16 @@ export default function EditorPage() {
                   lineHeight={LAYOUT.headlineLineHeight}
                   wrap="word"
                 />
-                {/* Body text background */}
+                {/* Body text background — sits on the content block with 5px padding */}
                 {content.bodyBgEnabled && hasBody && (
                   <Rect
-                    x={-12}
-                    y={bodyY - 8}
-                    width={contentWidth + 24}
-                    height={bodyHeight + 16}
+                    x={-5}
+                    y={bodyY - 5}
+                    width={contentWidth + 10}
+                    height={bodyHeight + 10}
                     fill={content.bodyBgColor || '#000000'}
                     opacity={content.bodyBgOpacity ?? 0.6}
-                    cornerRadius={6}
+                    cornerRadius={4}
                     listening={false}
                   />
                 )}
@@ -1473,14 +1471,14 @@ export default function EditorPage() {
               <input
                 type="range"
                 min="0"
-                max="1"
+                max="2"
                 step="0.05"
                 value={overlayIntensity}
                 onChange={(e) =>
                   setDesignOverlay({ intensity: parseFloat(e.target.value) })
                 }
                 className="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer
-                           [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 
+                           [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3
                            [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer
                            [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-125"
               />

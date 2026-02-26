@@ -211,12 +211,12 @@ export async function renderFormat(
             lineHeight: layout.body.lineHeight,
             wrap: 'word',
           });
-          const bgPad = 12 * (layout.body.fontSize / 32); // scale padding
+          const bgPad = 5 * (layout.body.fontSize / 32); // scale padding
           const bgRect = new Konva.Rect({
             x: -bgPad,
-            y: layout.body.y - bgPad * 0.7,
+            y: layout.body.y - bgPad,
             width: layout.contentWidth + bgPad * 2,
-            height: bodyText.height() + bgPad * 1.4,
+            height: bodyText.height() + bgPad * 2,
             fill: snapshot.content.bodyBgColor || '#000000',
             opacity: snapshot.content.bodyBgOpacity ?? 0.6,
             cornerRadius: 6,
