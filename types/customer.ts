@@ -91,6 +91,7 @@ export interface DesignContent {
   saleBadgePercent?: number;  // e.g., 20, 50
   saleBadgeLabel?: string;    // e.g., "Sale", "Rabatt", "Reduziert"
   saleBadgeSize?: number;     // radius in px (default 110, range 60–160)
+  saleBadgePadding?: number;  // inner padding in px (default 20, range 5–40)
   saleBadgeColor?: string;    // hex color (default #d93025, classic red)
   saleBadgeX?: number;        // x position 0–100 (% of canvas width, default 85)
   saleBadgeY?: number;        // y position 0–100 (% of canvas height, default 15)

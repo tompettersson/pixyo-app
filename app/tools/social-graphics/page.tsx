@@ -1358,13 +1358,15 @@ export default function EditorPage() {
               {/* Sale Badge */}
               {content.saleBadgeEnabled && Circle && (() => {
                 const badgeRadius = content.saleBadgeSize ?? 110;
+                const badgePadding = content.saleBadgePadding ?? 20;
                 const badgeCx = Math.round(CANVAS_WIDTH * (content.saleBadgeX ?? 85) / 100);
                 const badgeCy = Math.round(CANVAS_HEIGHT * (content.saleBadgeY ?? 15) / 100);
                 const badgeColor = content.saleBadgeColor || '#d93025';
                 const pctText = `-${content.saleBadgePercent ?? 20}%`;
                 const labelText = (content.saleBadgeLabel || 'Sale').toUpperCase();
-                // Scale fonts proportionally to badge size
-                const scale = badgeRadius / 110;
+                // Scale fonts based on usable radius (after padding)
+                const usableRadius = badgeRadius - badgePadding;
+                const scale = usableRadius / 90; // 90 = reference usable radius (110 - 20)
                 const pctFontSize = Math.round(52 * scale);
                 const labelFontSize = Math.round(24 * scale);
                 const gap = Math.round(6 * scale);
@@ -1984,6 +1986,25 @@ export default function EditorPage() {
                                    [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer"
                       />
                     </div>
+                  </div>
+
+                  {/* Row 2b: Inner padding */}
+                  <div>
+                    <div className="flex justify-between text-xs text-zinc-500 mb-1">
+                      <span>Innenabstand</span>
+                      <span>{content.saleBadgePadding ?? 20}px</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="5"
+                      max="40"
+                      step="1"
+                      value={content.saleBadgePadding ?? 20}
+                      onChange={(e) => setContent({ saleBadgePadding: Number(e.target.value) })}
+                      className="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer
+                                 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3
+                                 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer"
+                    />
                   </div>
 
                   {/* Row 3: Position X + Y */}
