@@ -88,8 +88,12 @@ export interface DesignContent {
   showButton: boolean; // Toggle for CTA button visibility
   // Sale badge
   saleBadgeEnabled?: boolean;
-  saleBadgePercent?: number; // e.g., 20, 50
-  saleBadgeLabel?: string;   // e.g., "Sale", "Rabatt", "Reduziert"
+  saleBadgePercent?: number;  // e.g., 20, 50
+  saleBadgeLabel?: string;    // e.g., "Sale", "Rabatt", "Reduziert"
+  saleBadgeSize?: number;     // radius in px (default 110, range 60–160)
+  saleBadgeColor?: string;    // hex color (default #d93025, classic red)
+  saleBadgeX?: number;        // x position 0–100 (% of canvas width, default 85)
+  saleBadgeY?: number;        // y position 0–100 (% of canvas height, default 15)
 }
 
 // Background image state

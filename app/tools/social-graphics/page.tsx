@@ -49,54 +49,6 @@ if (typeof window !== "undefined") {
   Circle = konvaModule.Circle;
 }
 
-/** Convert hex color to HSL */
-function hexToHsl(hex: string): [number, number, number] {
-  const r = parseInt(hex.slice(1, 3), 16) / 255;
-  const g = parseInt(hex.slice(3, 5), 16) / 255;
-  const b = parseInt(hex.slice(5, 7), 16) / 255;
-  const max = Math.max(r, g, b), min = Math.min(r, g, b);
-  const l = (max + min) / 2;
-  if (max === min) return [0, 0, l];
-  const d = max - min;
-  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-  let h = 0;
-  if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
-  else if (max === g) h = ((b - r) / d + 2) / 6;
-  else h = ((r - g) / d + 4) / 6;
-  return [h * 360, s, l];
-}
-
-/** Convert HSL to hex */
-function hslToHex(h: number, s: number, l: number): string {
-  const hue2rgb = (p: number, q: number, t: number) => {
-    if (t < 0) t += 1; if (t > 1) t -= 1;
-    if (t < 1/6) return p + (q - p) * 6 * t;
-    if (t < 1/2) return q;
-    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-    return p;
-  };
-  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-  const p = 2 * l - q;
-  const hNorm = h / 360;
-  const r = Math.round(hue2rgb(p, q, hNorm + 1/3) * 255);
-  const g = Math.round(hue2rgb(p, q, hNorm) * 255);
-  const b = Math.round(hue2rgb(p, q, hNorm - 1/3) * 255);
-  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-}
-
-/** Blend customer accent color into red for sale badge.
- *  Shifts red's hue ~25% toward the accent hue, keeps saturation high. */
-function getBrandedRed(accentHex: string): string {
-  const [accentH] = hexToHsl(accentHex);
-  const baseRedH = 0;
-  // Calculate shortest angular distance
-  let delta = accentH - baseRedH;
-  if (delta > 180) delta -= 360;
-  if (delta < -180) delta += 360;
-  const blendedH = (baseRedH + delta * 0.2 + 360) % 360;
-  return hslToHex(blendedH, 0.85, 0.48);
-}
-
 // Layout constants (in pixels) - scaled for 1080x1080 canvas
 const LAYOUT = {
   padding: {
@@ -1403,46 +1355,40 @@ export default function EditorPage() {
                 />
               )}
 
-              {/* Sale Badge — top right */}
+              {/* Sale Badge */}
               {content.saleBadgeEnabled && Circle && (() => {
-                const badgeRadius = 90;
-                const badgeCx = CANVAS_WIDTH - LAYOUT.padding.left - badgeRadius;
-                const badgeCy = LAYOUT.padding.top + badgeRadius;
-                const accentColor = currentCustomer?.colors?.accent || '#4f46e5';
-                const badgeColor = getBrandedRed(accentColor);
+                const badgeRadius = content.saleBadgeSize ?? 110;
+                const badgeCx = Math.round(CANVAS_WIDTH * (content.saleBadgeX ?? 85) / 100);
+                const badgeCy = Math.round(CANVAS_HEIGHT * (content.saleBadgeY ?? 15) / 100);
+                const badgeColor = content.saleBadgeColor || '#d93025';
                 const pctText = `-${content.saleBadgePercent ?? 20}%`;
                 const labelText = (content.saleBadgeLabel || 'Sale').toUpperCase();
+                // Scale fonts proportionally to badge size
+                const scale = badgeRadius / 110;
+                const pctFontSize = Math.round(52 * scale);
+                const labelFontSize = Math.round(24 * scale);
+                const gap = Math.round(6 * scale);
+                // Center text block vertically
+                const totalTextH = pctFontSize + gap + labelFontSize;
+                const topY = -totalTextH / 2;
                 return (
                   <Group x={badgeCx} y={badgeCy}>
-                    {/* Shadow circle */}
-                    <Circle
-                      radius={badgeRadius}
-                      fill="black"
-                      opacity={0.25}
-                      offsetX={-3}
-                      offsetY={-4}
-                    />
-                    {/* Main circle */}
-                    <Circle
-                      radius={badgeRadius}
-                      fill={badgeColor}
-                    />
-                    {/* Percentage text */}
+                    <Circle radius={badgeRadius} fill="black" opacity={0.2} offsetX={-3} offsetY={-4} />
+                    <Circle radius={badgeRadius} fill={badgeColor} />
                     <Text
                       text={pctText}
-                      fontSize={48}
+                      fontSize={pctFontSize}
                       fontFamily={resolveFont(currentCustomer?.fonts?.headline?.family || 'Inter')}
                       fontStyle="bold"
                       fill="#ffffff"
                       align="center"
                       width={badgeRadius * 2}
                       offsetX={badgeRadius}
-                      y={-30}
+                      y={topY}
                     />
-                    {/* Label text */}
                     <Text
                       text={labelText}
-                      fontSize={22}
+                      fontSize={labelFontSize}
                       fontFamily={resolveFont(currentCustomer?.fonts?.headline?.family || 'Inter')}
                       fontStyle="600"
                       fill="#ffffff"
@@ -1450,8 +1396,8 @@ export default function EditorPage() {
                       align="center"
                       width={badgeRadius * 2}
                       offsetX={badgeRadius}
-                      y={22}
-                      letterSpacing={2}
+                      y={topY + pctFontSize + gap}
+                      letterSpacing={Math.round(2 * scale)}
                     />
                   </Group>
                 );
@@ -1963,27 +1909,24 @@ export default function EditorPage() {
               )}
             </div>
 
-            {/* Sale Badge */}
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs text-zinc-500 uppercase tracking-wider">
-                  Sale-Badge
-                </label>
-                <button
-                  onClick={() => setContent({ saleBadgeEnabled: !content.saleBadgeEnabled })}
-                  className={`relative w-10 h-5 rounded-full transition-colors ${
-                    content.saleBadgeEnabled ? 'bg-emerald-500' : 'bg-zinc-700'
-                  }`}
-                >
-                  <span
-                    className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                      content.saleBadgeEnabled ? 'translate-x-5' : ''
-                    }`}
-                  />
-                </button>
-              </div>
+            {/* Sale Badge — collapsible */}
+            <div className="border border-zinc-800/50 rounded-lg overflow-hidden">
+              <button
+                onClick={() => setContent({ saleBadgeEnabled: !content.saleBadgeEnabled })}
+                className="w-full flex items-center justify-between px-3 py-2 hover:bg-zinc-800/30 transition-colors"
+              >
+                <span className="text-xs text-zinc-500 uppercase tracking-wider">Sale-Badge</span>
+                <div className={`relative w-10 h-5 rounded-full transition-colors ${
+                  content.saleBadgeEnabled ? 'bg-emerald-500' : 'bg-zinc-700'
+                }`}>
+                  <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+                    content.saleBadgeEnabled ? 'translate-x-5' : ''
+                  }`} />
+                </div>
+              </button>
               {content.saleBadgeEnabled && (
-                <div className="space-y-2">
+                <div className="px-3 pb-3 space-y-3 border-t border-zinc-800/50 pt-3">
+                  {/* Row 1: Percent + Label */}
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="text-xs text-zinc-500 mb-1 block">Prozent</label>
@@ -1993,7 +1936,7 @@ export default function EditorPage() {
                         max="99"
                         value={content.saleBadgePercent ?? 20}
                         onChange={(e) => setContent({ saleBadgePercent: Math.min(99, Math.max(1, Number(e.target.value))) })}
-                        className="w-full px-3 py-1.5 rounded bg-zinc-800/50 border border-zinc-700/50 text-zinc-100 text-sm
+                        className="w-full px-2 py-1.5 rounded bg-zinc-800/50 border border-zinc-700/50 text-zinc-100 text-sm
                                    focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/50"
                       />
                     </div>
@@ -2003,20 +1946,82 @@ export default function EditorPage() {
                         type="text"
                         value={content.saleBadgeLabel ?? 'Sale'}
                         onChange={(e) => setContent({ saleBadgeLabel: e.target.value })}
-                        className="w-full px-3 py-1.5 rounded bg-zinc-800/50 border border-zinc-700/50 text-zinc-100 text-sm
+                        className="w-full px-2 py-1.5 rounded bg-zinc-800/50 border border-zinc-700/50 text-zinc-100 text-sm
                                    focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/50"
                         placeholder="Sale"
                       />
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-zinc-500">Badge-Farbe</span>
-                    <div
-                      className="w-5 h-5 rounded-full border border-zinc-600"
-                      style={{ backgroundColor: getBrandedRed(currentCustomer?.colors?.accent || '#4f46e5') }}
-                      title="Automatisch aus Kundenfarbe + Rot berechnet"
-                    />
-                    <span className="text-xs text-zinc-600">{getBrandedRed(currentCustomer?.colors?.accent || '#4f46e5')}</span>
+
+                  {/* Row 2: Color + Size */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-xs text-zinc-500 mb-1 block">Farbe</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={content.saleBadgeColor || '#d93025'}
+                          onChange={(e) => setContent({ saleBadgeColor: e.target.value })}
+                          className="w-8 h-8 rounded-full cursor-pointer bg-transparent border border-zinc-600"
+                        />
+                        <span className="text-xs text-zinc-500">{content.saleBadgeColor || '#d93025'}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-xs text-zinc-500 mb-1">
+                        <span>Größe</span>
+                        <span>{content.saleBadgeSize ?? 110}px</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="60"
+                        max="160"
+                        step="5"
+                        value={content.saleBadgeSize ?? 110}
+                        onChange={(e) => setContent({ saleBadgeSize: Number(e.target.value) })}
+                        className="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer
+                                   [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3
+                                   [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Row 3: Position X + Y */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <div className="flex justify-between text-xs text-zinc-500 mb-1">
+                        <span>Position X</span>
+                        <span>{content.saleBadgeX ?? 85}%</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="10"
+                        max="95"
+                        step="1"
+                        value={content.saleBadgeX ?? 85}
+                        onChange={(e) => setContent({ saleBadgeX: Number(e.target.value) })}
+                        className="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer
+                                   [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3
+                                   [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer"
+                      />
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-xs text-zinc-500 mb-1">
+                        <span>Position Y</span>
+                        <span>{content.saleBadgeY ?? 15}%</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="5"
+                        max="90"
+                        step="1"
+                        value={content.saleBadgeY ?? 15}
+                        onChange={(e) => setContent({ saleBadgeY: Number(e.target.value) })}
+                        className="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer
+                                   [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3
+                                   [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer"
+                      />
+                    </div>
                   </div>
                 </div>
               )}
