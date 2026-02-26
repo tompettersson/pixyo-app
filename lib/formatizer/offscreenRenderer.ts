@@ -211,7 +211,7 @@ export async function renderFormat(
             lineHeight: layout.body.lineHeight,
             wrap: 'word',
           });
-          const bgPad = 5 * (layout.body.fontSize / 32); // scale padding
+          const bgPad = 10 * (layout.body.fontSize / 32); // scale padding
           const bgRect = new Konva.Rect({
             x: -bgPad,
             y: layout.body.y - bgPad,

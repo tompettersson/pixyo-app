@@ -1285,16 +1285,16 @@ export default function EditorPage() {
                   lineHeight={LAYOUT.headlineLineHeight}
                   wrap="word"
                 />
-                {/* Body text background — sits on the content block with 5px padding */}
+                {/* Body text background — sits on the content block with 10px padding */}
                 {content.bodyBgEnabled && hasBody && (
                   <Rect
-                    x={-5}
-                    y={bodyY - 5}
-                    width={contentWidth + 10}
-                    height={bodyHeight + 10}
+                    x={-10}
+                    y={bodyY - 10}
+                    width={contentWidth + 20}
+                    height={bodyHeight + 20}
                     fill={content.bodyBgColor || '#000000'}
                     opacity={content.bodyBgOpacity ?? 0.6}
-                    cornerRadius={4}
+                    cornerRadius={6}
                     listening={false}
                   />
                 )}
@@ -1471,8 +1471,8 @@ export default function EditorPage() {
               <input
                 type="range"
                 min="0"
-                max="2"
-                step="0.05"
+                max={overlayType === "solid" ? "1" : "2"}
+                step="0.01"
                 value={overlayIntensity}
                 onChange={(e) =>
                   setDesignOverlay({ intensity: parseFloat(e.target.value) })

@@ -1,6 +1,7 @@
 // Overlay effect types and generators for canvas
 
 export type OverlayType =
+  | "solid"
   | "gradient"
   | "halftone"
   | "grain"
@@ -81,6 +82,13 @@ export const OVERLAY_PRESETS: OverlayPreset[] = [
     lightenBlendMode: "normal",
   },
   {
+    id: "solid",
+    label: "Vollflächig",
+    description: "Gleichmäßige Abdunklung / Aufhellung über das gesamte Bild",
+    darkenBlendMode: "normal",
+    lightenBlendMode: "normal",
+  },
+  {
     id: "gradient",
     label: "Gradient",
     description: "Linearer Verlauf für Tiefe und Kontrast",
@@ -130,6 +138,26 @@ export const OVERLAY_PRESETS: OverlayPreset[] = [
     lightenBlendMode: "screen",
   },
 ];
+
+// Generate solid (uniform) overlay — simple semi-transparent fill
+export function generateSolidOverlay(
+  width: number,
+  height: number,
+  intensity: number,
+  mode: OverlayMode = "darken"
+): HTMLCanvasElement {
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d")!;
+
+  // Clamp alpha to 0-1 range (Canvas API does this anyway, but explicit is clearer)
+  const alpha = Math.min(1, Math.max(0, intensity));
+  ctx.fillStyle = modeRgba(mode, alpha);
+  ctx.fillRect(0, 0, width, height);
+
+  return canvas;
+}
 
 // Generate gradient overlay
 export function generateGradientOverlay(
@@ -490,6 +518,8 @@ export function generateOverlay(
   if (type === "none" || intensity <= 0) return null;
 
   switch (type) {
+    case "solid":
+      return generateSolidOverlay(width, height, intensity, mode);
     case "gradient":
       return generateGradientOverlay(width, height, intensity, mode);
     case "halftone":

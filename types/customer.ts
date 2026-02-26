@@ -107,7 +107,7 @@ export interface DesignBackgroundImage {
 
 // Overlay settings - must match OverlayType from lib/overlayEffects.ts
 export interface DesignOverlay {
-  type: 'none' | 'gradient' | 'halftone' | 'grain' | 'duotone' | 'diagonal-stripes' | 'scanlines' | 'mesh-gradient';
+  type: 'none' | 'solid' | 'gradient' | 'halftone' | 'grain' | 'duotone' | 'diagonal-stripes' | 'scanlines' | 'mesh-gradient';
   mode: 'darken' | 'lighten';
   intensity: number;
 }
