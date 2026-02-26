@@ -49,8 +49,8 @@ const CUSTOMERS = [
       accent: '#f5a623', // Orange/fruit color
     },
     fonts: {
-      headline: { family: 'Cera Pro', weight: 'bold', uppercase: false },
-      body: { family: 'Cera Pro', weight: 'normal' },
+      headline: { family: 'Cera Basic', weight: 'bold', uppercase: false },
+      body: { family: 'Cera Basic', weight: 'normal' },
     },
     layout: {
       padding: { top: 60, right: 60, bottom: 60, left: 60 },
@@ -74,8 +74,8 @@ const CUSTOMERS = [
       accent: '#2e7d32', // Green for sustainability
     },
     fonts: {
-      headline: { family: 'Cera Pro', weight: 'bold', uppercase: true }, // UPPERCASE
-      body: { family: 'Cera Pro', weight: 'normal' },
+      headline: { family: 'Cera Basic', weight: 'bold', uppercase: true }, // UPPERCASE
+      body: { family: 'Cera Basic', weight: 'normal' },
     },
     layout: {
       padding: { top: 60, right: 60, bottom: 60, left: 60 },

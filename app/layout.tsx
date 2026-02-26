@@ -52,13 +52,13 @@ const dancingScript = Dancing_Script({
   weight: ["400", "700"],
 });
 
-// Local font: Cera Pro (for 1001Frucht and elforyn)
-const ceraPro = localFont({
+// Local font: Cera Basic (for 1001Frucht and elforyn)
+const ceraBasic = localFont({
   src: [
-    { path: "../public/fonts/CeraPro-Regular.woff", weight: "400", style: "normal" },
-    { path: "../public/fonts/CeraPro-Bold.woff", weight: "700", style: "normal" },
+    { path: "../public/fonts/CeraBasic-Regular.woff2", weight: "400", style: "normal" },
+    { path: "../public/fonts/CeraBasic-Bold.woff2", weight: "700", style: "normal" },
   ],
-  variable: "--font-cera-pro",
+  variable: "--font-cera-basic",
   display: "swap",
 });
 
@@ -95,7 +95,7 @@ export default function RootLayout({
           ${lora.variable}
           ${oswald.variable}
           ${dancingScript.variable}
-          ${ceraPro.variable}
+          ${ceraBasic.variable}
           ${brown.variable}
           font-sans antialiased
         `}

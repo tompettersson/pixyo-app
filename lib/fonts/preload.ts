@@ -1,8 +1,8 @@
 /**
  * Preload local custom fonts for Canvas/Konva rendering.
  *
- * next/font/local registers fonts under auto-generated names (e.g. "brown", "ceraPro").
- * Canvas/Konva uses human-readable names (e.g. "Brown", "Cera Pro").
+ * next/font/local registers fonts under auto-generated names (e.g. "brown", "ceraBasic").
+ * Canvas/Konva uses human-readable names (e.g. "Brown", "Cera Basic").
  * This module bridges the gap by creating FontFace aliases.
  */
 
@@ -10,7 +10,7 @@
 // The internal names come from the `localFont()` variable names in layout.tsx.
 const FONT_ALIASES: { displayName: string; internalName: string; weights: string[] }[] = [
   { displayName: 'Brown', internalName: 'brown', weights: ['300', '400', '700'] },
-  { displayName: 'Cera Pro', internalName: 'ceraPro', weights: ['400', '700'] },
+  { displayName: 'Cera Basic', internalName: 'ceraBasic', weights: ['400', '700'] },
 ];
 
 let preloadPromise: Promise<void> | null = null;

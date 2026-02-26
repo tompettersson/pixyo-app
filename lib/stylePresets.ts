@@ -126,7 +126,7 @@ export const getPresetById = (id: string): StylePreset | undefined => {
 export const AVAILABLE_FONTS = [
   { value: 'Inter', label: 'Inter', category: 'sans-serif' },
   { value: 'Brown', label: 'Brown', category: 'sans-serif' },
-  { value: 'Cera Pro', label: 'Cera Pro', category: 'sans-serif' },
+  { value: 'Cera Basic', label: 'Cera Basic', category: 'sans-serif' },
   { value: 'Poppins', label: 'Poppins', category: 'sans-serif' },
   { value: 'Space Grotesk', label: 'Space Grotesk', category: 'sans-serif' },
   { value: 'Bebas Neue', label: 'Bebas Neue', category: 'display' },

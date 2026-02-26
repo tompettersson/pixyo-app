@@ -205,7 +205,7 @@ export default function EditorPage() {
       "Playfair Display": "--font-playfair",
       Lora: "--font-lora",
       Oswald: "--font-oswald",
-      "Cera Pro": "--font-cera-pro",
+      "Cera Basic": "--font-cera-basic",
     };
     const varName = CSS_VAR_MAP[familyName];
     if (!varName) return familyName;
