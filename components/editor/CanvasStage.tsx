@@ -3,7 +3,8 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { useEditorStore } from '@/store/useEditorStore';
 import { preloadLocalFonts } from '@/lib/fonts/preload';
-import type { TextLayer, LogoLayer, BackgroundLayer } from '@/types/layers';
+import type { TextLayer, LogoLayer, BackgroundLayer, TextShadowPreset } from '@/types/layers';
+import { TEXT_SHADOW_PRESETS } from '@/types/layers';
 
 // Lazy load react-konva only on client
 let Stage: typeof import('react-konva').Stage | null = null;
@@ -71,44 +72,60 @@ function BackgroundLayerComponent({ layer }: { layer: BackgroundLayer }) {
 }
 
 // Text layer component
-function TextLayerComponent({ 
-  layer, 
+function TextLayerComponent({
+  layer,
   isSelected,
   onSelect,
   onDragEnd,
   onTransformEnd,
-}: { 
+}: {
   layer: TextLayer;
   isSelected: boolean;
   onSelect: () => void;
   onDragEnd: (x: number, y: number) => void;
   onTransformEnd: (updates: Partial<TextLayer>) => void;
 }) {
+  const groupRef = useRef<any>(null);
   const textRef = useRef<any>(null);
   const trRef = useRef<any>(null);
+  const [textDims, setTextDims] = useState({ width: 0, height: 0 });
+
+  // Measure text dimensions for background rect
+  useEffect(() => {
+    if (textRef.current) {
+      setTextDims({
+        width: textRef.current.width(),
+        height: textRef.current.height(),
+      });
+    }
+  }, [layer.text, layer.fontSize, layer.fontFamily, layer.fontWeight, layer.lineHeight]);
 
   useEffect(() => {
-    if (isSelected && trRef.current && textRef.current) {
-      trRef.current.nodes([textRef.current]);
+    if (isSelected && trRef.current && groupRef.current) {
+      trRef.current.nodes([groupRef.current]);
       trRef.current.getLayer()?.batchDraw();
     }
   }, [isSelected]);
 
-  if (!layer.visible || !Text || !Transformer) return null;
+  if (!layer.visible || !Text || !Transformer || !Group || !Rect) return null;
+
+  // Resolve shadow preset
+  const shadow = layer.shadowEnabled
+    ? TEXT_SHADOW_PRESETS[layer.shadowPreset || 'medium']
+    : null;
+
+  // Text background padding
+  const bgPad = 12;
+
+  // Convert numeric fontWeight to Konva fontStyle string
+  const fontStyle = String(layer.fontWeight);
 
   return (
     <>
-      <Text
-        ref={textRef}
-        text={layer.text}
+      <Group
+        ref={groupRef}
         x={layer.x}
         y={layer.y}
-        fontFamily={layer.fontFamily}
-        fontSize={layer.fontSize}
-        fontStyle={layer.fontWeight}
-        fill={layer.fill}
-        align={layer.align}
-        opacity={layer.opacity}
         rotation={layer.rotation}
         draggable={!layer.locked}
         onClick={onSelect}
@@ -117,16 +134,16 @@ function TextLayerComponent({
           onDragEnd(e.target.x(), e.target.y());
         }}
         onTransformEnd={() => {
-          const node = textRef.current;
+          const node = groupRef.current;
           if (!node) return;
-          
+
           const scaleX = node.scaleX();
           const scaleY = node.scaleY();
-          
+
           // Reset scale and update font size
           node.scaleX(1);
           node.scaleY(1);
-          
+
           onTransformEnd({
             x: node.x(),
             y: node.y(),
@@ -134,7 +151,38 @@ function TextLayerComponent({
             fontSize: Math.round(layer.fontSize * Math.max(scaleX, scaleY)),
           });
         }}
-      />
+      >
+        {/* Semi-transparent text background */}
+        {layer.textBgEnabled && textDims.width > 0 && (
+          <Rect
+            x={-bgPad}
+            y={-bgPad}
+            width={textDims.width + bgPad * 2}
+            height={textDims.height + bgPad * 2}
+            fill={layer.textBgColor || '#000000'}
+            opacity={layer.textBgOpacity ?? 0.6}
+            cornerRadius={6}
+            listening={false}
+          />
+        )}
+        <Text
+          ref={textRef}
+          text={layer.text}
+          fontFamily={layer.fontFamily}
+          fontSize={layer.fontSize}
+          fontStyle={fontStyle}
+          fill={layer.fill}
+          align={layer.align}
+          opacity={layer.opacity}
+          lineHeight={layer.lineHeight}
+          // Shadow
+          shadowEnabled={!!shadow}
+          shadowColor={shadow ? `rgba(0,0,0,${shadow.opacity})` : undefined}
+          shadowOffsetX={shadow?.offsetX}
+          shadowOffsetY={shadow?.offsetY}
+          shadowBlur={shadow?.blur}
+        />
+      </Group>
       {isSelected && (
         <Transformer
           ref={trRef}

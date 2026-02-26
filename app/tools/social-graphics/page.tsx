@@ -27,6 +27,7 @@ import {
   type OverlayMode,
   type BlendMode,
 } from "@/lib/overlayEffects";
+import { TEXT_SHADOW_PRESETS, type TextShadowPreset } from "@/types/layers";
 
 // Lazy load react-konva
 let Stage: typeof import("react-konva").Stage | null = null;
@@ -815,13 +816,15 @@ export default function EditorPage() {
     headlineLines * effectiveHeadlineSize * LAYOUT.headlineLineHeight;
   yPos += headlineHeight + LAYOUT.gapHeadlineToBody;
   const bodyY = yPos;
+  const effectiveBodySize = content.bodySize ?? LAYOUT.bodySize;
+  const effectiveBodyWeight = content.bodyWeight ?? 400;
   const hasBody = content.body.trim().length > 0;
   const estimatedBodyLines = Math.ceil(
-    (content.body.length * LAYOUT.bodySize * 0.5) / contentWidth
+    (content.body.length * effectiveBodySize * 0.5) / contentWidth
   );
   // Wenn Body leer ist, keine min-height - Button wandert nach oben
   const bodyHeight = hasBody
-    ? Math.max(estimatedBodyLines * LAYOUT.bodySize * 1.4, LAYOUT.bodySize * 1.4)
+    ? Math.max(estimatedBodyLines * effectiveBodySize * 1.4, effectiveBodySize * 1.4)
     : 0;
   // Gap nur wenn Body vorhanden
   yPos += bodyHeight + (hasBody ? LAYOUT.gapBodyToButton : 0);
@@ -1284,18 +1287,36 @@ export default function EditorPage() {
                   lineHeight={LAYOUT.headlineLineHeight}
                   wrap="word"
                 />
+                {/* Body text background */}
+                {content.bodyBgEnabled && hasBody && (
+                  <Rect
+                    x={-12}
+                    y={bodyY - 8}
+                    width={contentWidth + 24}
+                    height={bodyHeight + 16}
+                    fill={content.bodyBgColor || '#000000'}
+                    opacity={content.bodyBgOpacity ?? 0.6}
+                    cornerRadius={6}
+                    listening={false}
+                  />
+                )}
                 <Text
                   x={0}
                   y={bodyY}
                   width={contentWidth}
                   text={content.body}
                   fontFamily={resolveFont(currentCustomer?.fonts?.body?.family || "Inter")}
-                  fontSize={LAYOUT.bodySize}
-                  fontStyle="normal"
+                  fontSize={effectiveBodySize}
+                  fontStyle={String(effectiveBodyWeight)}
                   fill={textColor}
                   opacity={0.85}
                   lineHeight={1.5}
                   wrap="word"
+                  shadowEnabled={!!content.bodyShadowEnabled}
+                  shadowColor={content.bodyShadowEnabled ? `rgba(0,0,0,${TEXT_SHADOW_PRESETS[content.bodyShadowPreset || 'medium'].opacity})` : undefined}
+                  shadowOffsetX={content.bodyShadowEnabled ? TEXT_SHADOW_PRESETS[content.bodyShadowPreset || 'medium'].offsetX : undefined}
+                  shadowOffsetY={content.bodyShadowEnabled ? TEXT_SHADOW_PRESETS[content.bodyShadowPreset || 'medium'].offsetY : undefined}
+                  shadowBlur={content.bodyShadowEnabled ? TEXT_SHADOW_PRESETS[content.bodyShadowPreset || 'medium'].blur : undefined}
                 />
                 {content.showButton && (
                   <Group x={0} y={buttonY}>
@@ -1684,10 +1705,128 @@ export default function EditorPage() {
                   setContent({ body: e.target.value })
                 }
                 rows={3}
-                className="w-full px-3 py-2 rounded bg-zinc-800/50 backdrop-blur border border-zinc-700/50 text-zinc-100 
+                className="w-full px-3 py-2 rounded bg-zinc-800/50 backdrop-blur border border-zinc-700/50 text-zinc-100
                            focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/50 text-sm resize-none"
                 placeholder="Dein Beschreibungstext..."
               />
+
+              {/* Body text styling controls */}
+              <div className="mt-2 space-y-2">
+                {/* Size slider */}
+                <div>
+                  <div className="flex justify-between text-xs text-zinc-500 mb-1">
+                    <span>Schriftgröße</span>
+                    <span>{content.bodySize ?? LAYOUT.bodySize}px</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="16"
+                    max="64"
+                    step="1"
+                    value={content.bodySize ?? LAYOUT.bodySize}
+                    onChange={(e) => setContent({ bodySize: Number(e.target.value) })}
+                    className="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer
+                               [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3
+                               [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer
+                               [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-125"
+                  />
+                </div>
+
+                {/* Weight select */}
+                <div>
+                  <div className="flex justify-between text-xs text-zinc-500 mb-1">
+                    <span>Schriftstärke</span>
+                  </div>
+                  <select
+                    value={content.bodyWeight ?? 400}
+                    onChange={(e) => setContent({ bodyWeight: Number(e.target.value) })}
+                    className="w-full px-2 py-1.5 rounded bg-zinc-800/50 border border-zinc-700/50 text-zinc-100 text-sm
+                               focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/50"
+                  >
+                    <option value={300}>Light</option>
+                    <option value={400}>Regular</option>
+                    <option value={500}>Medium</option>
+                    <option value={600}>Semibold</option>
+                    <option value={700}>Bold</option>
+                  </select>
+                </div>
+
+                {/* Text effects row */}
+                <div className="flex gap-3 pt-1">
+                  {/* Shadow toggle */}
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={content.bodyShadowEnabled || false}
+                      onChange={(e) => setContent({
+                        bodyShadowEnabled: e.target.checked,
+                        ...(!content.bodyShadowPreset && e.target.checked ? { bodyShadowPreset: 'medium' as TextShadowPreset } : {}),
+                      })}
+                      className="rounded border-zinc-600 bg-zinc-800 text-violet-500 w-3.5 h-3.5 focus:ring-0"
+                    />
+                    <span className="text-xs text-zinc-400">Schatten</span>
+                  </label>
+
+                  {/* Background toggle */}
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={content.bodyBgEnabled || false}
+                      onChange={(e) => setContent({ bodyBgEnabled: e.target.checked })}
+                      className="rounded border-zinc-600 bg-zinc-800 text-violet-500 w-3.5 h-3.5 focus:ring-0"
+                    />
+                    <span className="text-xs text-zinc-400">Hintergrund</span>
+                  </label>
+                </div>
+
+                {/* Shadow preset (only when enabled) */}
+                {content.bodyShadowEnabled && (
+                  <select
+                    value={content.bodyShadowPreset || 'medium'}
+                    onChange={(e) => setContent({ bodyShadowPreset: e.target.value as TextShadowPreset })}
+                    className="w-full px-2 py-1.5 rounded bg-zinc-800/50 border border-zinc-700/50 text-zinc-100 text-xs
+                               focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/50"
+                  >
+                    <option value="subtle">Subtil</option>
+                    <option value="medium">Mittel</option>
+                    <option value="strong">Stark</option>
+                    <option value="glow">Glow</option>
+                  </select>
+                )}
+
+                {/* Background controls (only when enabled) */}
+                {content.bodyBgEnabled && (
+                  <div className="space-y-2">
+                    <div>
+                      <div className="flex justify-between text-xs text-zinc-500 mb-1">
+                        <span>Deckkraft</span>
+                        <span>{Math.round((content.bodyBgOpacity ?? 0.6) * 100)}%</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="20"
+                        max="90"
+                        step="5"
+                        value={Math.round((content.bodyBgOpacity ?? 0.6) * 100)}
+                        onChange={(e) => setContent({ bodyBgOpacity: Number(e.target.value) / 100 })}
+                        className="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer
+                                   [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3
+                                   [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer
+                                   [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-125"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-zinc-500">Farbe</span>
+                      <input
+                        type="color"
+                        value={content.bodyBgColor || '#000000'}
+                        onChange={(e) => setContent({ bodyBgColor: e.target.value })}
+                        className="w-6 h-6 rounded cursor-pointer bg-transparent border border-zinc-600"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div>

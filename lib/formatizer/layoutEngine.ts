@@ -112,7 +112,7 @@ export function computeLayout(
   // Scale font sizes
   const taglineFontSize = Math.round(BASE.taglineSize * sf);
   const headlineFontSize = Math.round(BASE.headlineSize * sf);
-  const bodyFontSize = Math.round(BASE.bodySize * sf);
+  const bodyFontSize = Math.round((snapshot.content.bodySize ?? BASE.bodySize) * sf);
   const buttonFontSize = Math.round(BASE.buttonSize * sf);
 
   // Scale gaps

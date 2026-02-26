@@ -68,12 +68,22 @@ export interface DesignCanvasState {
   backgroundColor: string;
 }
 
+// Text shadow presets (re-export from layers for convenience)
+export type { TextShadowPreset } from './layers';
+
 // Content state for text elements
 export interface DesignContent {
   tagline: string;
   headline: string;
   headlineSize: number; // Font size for headline (default: 112, range: 48–160)
   body: string;
+  bodySize?: number; // Font size for body text (default: 32, range: 16–64)
+  bodyWeight?: number; // Font weight for body text (default: 400, range: 300–700)
+  bodyShadowEnabled?: boolean;
+  bodyShadowPreset?: import('./layers').TextShadowPreset;
+  bodyBgEnabled?: boolean;
+  bodyBgColor?: string;
+  bodyBgOpacity?: number;
   buttonText: string;
   showButton: boolean; // Toggle for CTA button visibility
 }

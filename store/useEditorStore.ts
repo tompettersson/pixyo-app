@@ -361,7 +361,7 @@ export const useEditorStore = create<EditorState & EditorActions>()(
           locked: false,
           fontFamily: 'Inter',
           fontSize: 48,
-          fontWeight: 'bold',
+          fontWeight: 700,
           fill: '#ffffff',
           align: 'center',
           lineHeight: 1.2,
@@ -511,7 +511,16 @@ export const useEditorStore = create<EditorState & EditorActions>()(
 
         // SCHRITT 2: Design-State laden
         const canvasState = design.canvasState as CanvasState;
-        const layers = design.layers as Layer[];
+        const layers = (design.layers as Layer[]).map((l) => {
+          // Migrate legacy fontWeight strings ('normal'/'bold') to numeric
+          if (l.type === 'text') {
+            const t = l as TextLayer;
+            if (typeof t.fontWeight === 'string') {
+              (t as any).fontWeight = t.fontWeight === 'bold' ? 700 : 400;
+            }
+          }
+          return l;
+        });
         const content = { ...defaultContent, ...(design.content as Partial<DesignContent>) };
         // NEW: Load complete visual state
         const backgroundImageState = design.backgroundImage as DesignBackgroundImage | null;

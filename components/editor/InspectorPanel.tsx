@@ -3,7 +3,7 @@
 import { useEditorStore, useTemporalStore } from '@/store/useEditorStore';
 import { Button, Slider, ColorPicker, Select, Input } from '@/components/ui';
 import { AVAILABLE_FONTS } from '@/lib/stylePresets';
-import type { TextLayer, LogoLayer, Layer } from '@/types/layers';
+import type { TextLayer, LogoLayer, Layer, TextShadowPreset } from '@/types/layers';
 
 export function InspectorPanel() {
   const {
@@ -36,8 +36,17 @@ export function InspectorPanel() {
     { value: 'right', label: 'Right' },
   ];
   const weightOptions = [
-    { value: 'normal', label: 'Normal' },
-    { value: 'bold', label: 'Bold' },
+    { value: '300', label: 'Light' },
+    { value: '400', label: 'Regular' },
+    { value: '500', label: 'Medium' },
+    { value: '600', label: 'Semibold' },
+    { value: '700', label: 'Bold' },
+  ];
+  const shadowPresetOptions = [
+    { value: 'subtle', label: 'Subtle' },
+    { value: 'medium', label: 'Medium' },
+    { value: 'strong', label: 'Strong' },
+    { value: 'glow', label: 'Glow' },
   ];
   const bgShapeOptions = [
     { value: 'none', label: 'None' },
@@ -218,48 +227,109 @@ export function InspectorPanel() {
           />
 
           {/* Text Layer Controls */}
-          {selectedLayer.type === 'text' && (
-            <>
-              <Input
-                label="Text"
-                value={(selectedLayer as TextLayer).text}
-                onChange={(e) => handleUpdateLayer({ text: e.target.value })}
-              />
-              <Select
-                label="Font"
-                options={fontOptions}
-                value={(selectedLayer as TextLayer).fontFamily}
-                onChange={(e) => handleUpdateLayer({ fontFamily: e.target.value })}
-              />
-              <div className="grid grid-cols-2 gap-2">
+          {selectedLayer.type === 'text' && (() => {
+            const textLayer = selectedLayer as TextLayer;
+            return (
+              <>
                 <Input
+                  label="Text"
+                  value={textLayer.text}
+                  onChange={(e) => handleUpdateLayer({ text: e.target.value })}
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <Select
+                    label="Font"
+                    options={fontOptions}
+                    value={textLayer.fontFamily}
+                    onChange={(e) => handleUpdateLayer({ fontFamily: e.target.value })}
+                  />
+                  <Select
+                    label="Alignment"
+                    options={alignOptions}
+                    value={textLayer.align}
+                    onChange={(e) => handleUpdateLayer({ align: e.target.value as 'left' | 'center' | 'right' })}
+                  />
+                </div>
+                <Slider
                   label="Size"
-                  type="number"
                   min={8}
                   max={200}
-                  value={(selectedLayer as TextLayer).fontSize}
+                  value={textLayer.fontSize}
                   onChange={(e) => handleUpdateLayer({ fontSize: Number(e.target.value) })}
+                  valueFormatter={(v) => `${v}px`}
                 />
                 <Select
                   label="Weight"
                   options={weightOptions}
-                  value={(selectedLayer as TextLayer).fontWeight}
-                  onChange={(e) => handleUpdateLayer({ fontWeight: e.target.value as 'normal' | 'bold' })}
+                  value={String(textLayer.fontWeight)}
+                  onChange={(e) => handleUpdateLayer({ fontWeight: Number(e.target.value) })}
                 />
-              </div>
-              <Select
-                label="Alignment"
-                options={alignOptions}
-                value={(selectedLayer as TextLayer).align}
-                onChange={(e) => handleUpdateLayer({ align: e.target.value as 'left' | 'center' | 'right' })}
-              />
-              <ColorPicker
-                label="Color"
-                value={(selectedLayer as TextLayer).fill}
-                onChange={(e) => handleUpdateLayer({ fill: e.target.value })}
-              />
-            </>
-          )}
+                <ColorPicker
+                  label="Color"
+                  value={textLayer.fill}
+                  onChange={(e) => handleUpdateLayer({ fill: e.target.value })}
+                />
+
+                {/* Text Effects */}
+                <div className="pt-2 border-t border-zinc-800 space-y-3">
+                  <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Text Effects</h4>
+
+                  {/* Shadow toggle + preset */}
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={textLayer.shadowEnabled || false}
+                        onChange={(e) => handleUpdateLayer({
+                          shadowEnabled: e.target.checked,
+                          ...(!textLayer.shadowPreset && e.target.checked ? { shadowPreset: 'medium' as TextShadowPreset } : {}),
+                        })}
+                        className="rounded border-zinc-600 bg-zinc-800 text-violet-500 focus:ring-violet-500 focus:ring-offset-0"
+                      />
+                      <span className="text-sm text-zinc-300">Text Shadow</span>
+                    </label>
+                    {textLayer.shadowEnabled && (
+                      <Select
+                        options={shadowPresetOptions}
+                        value={textLayer.shadowPreset || 'medium'}
+                        onChange={(e) => handleUpdateLayer({ shadowPreset: e.target.value as TextShadowPreset })}
+                      />
+                    )}
+                  </div>
+
+                  {/* Text background toggle + opacity */}
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={textLayer.textBgEnabled || false}
+                        onChange={(e) => handleUpdateLayer({ textBgEnabled: e.target.checked })}
+                        className="rounded border-zinc-600 bg-zinc-800 text-violet-500 focus:ring-violet-500 focus:ring-offset-0"
+                      />
+                      <span className="text-sm text-zinc-300">Text Background</span>
+                    </label>
+                    {textLayer.textBgEnabled && (
+                      <div className="space-y-2">
+                        <Slider
+                          label="BG Opacity"
+                          min={20}
+                          max={90}
+                          value={Math.round((textLayer.textBgOpacity ?? 0.6) * 100)}
+                          onChange={(e) => handleUpdateLayer({ textBgOpacity: Number(e.target.value) / 100 })}
+                          valueFormatter={(v) => `${v}%`}
+                        />
+                        <ColorPicker
+                          label="BG Color"
+                          value={textLayer.textBgColor || '#000000'}
+                          onChange={(e) => handleUpdateLayer({ textBgColor: e.target.value })}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            );
+          })()}
 
           {/* Logo Layer Controls */}
           {selectedLayer.type === 'logo' && (

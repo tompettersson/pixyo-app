@@ -40,17 +40,38 @@ export interface RectLayer extends BaseLayer {
   fill: string;
 }
 
+// Text shadow presets
+export type TextShadowPreset = 'subtle' | 'medium' | 'strong' | 'glow';
+
+export const TEXT_SHADOW_PRESETS: Record<TextShadowPreset, {
+  offsetX: number;
+  offsetY: number;
+  blur: number;
+  opacity: number;
+}> = {
+  subtle:  { offsetX: 1, offsetY: 1, blur: 3, opacity: 0.4 },
+  medium:  { offsetX: 2, offsetY: 2, blur: 5, opacity: 0.6 },
+  strong:  { offsetX: 2, offsetY: 2, blur: 8, opacity: 0.8 },
+  glow:    { offsetX: 0, offsetY: 0, blur: 8, opacity: 0.7 },
+};
+
 // Text layer
 export interface TextLayer extends BaseLayer {
   type: 'text';
   text: string;
   fontFamily: string;
   fontSize: number;
-  fontWeight: 'normal' | 'bold';
+  fontWeight: number; // 300-700
   fill: string;
   align: 'left' | 'center' | 'right';
   lineHeight: number;
   maxWidth?: number;
+  // Text effects
+  shadowEnabled?: boolean;
+  shadowPreset?: TextShadowPreset;
+  textBgEnabled?: boolean;
+  textBgColor?: string;
+  textBgOpacity?: number;
 }
 
 // Logo layer (PNG or SVG)
