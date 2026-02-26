@@ -125,7 +125,7 @@ export const getPresetById = (id: string): StylePreset | undefined => {
 // Available fonts list (for font picker)
 export const AVAILABLE_FONTS = [
   { value: 'Inter', label: 'Inter', category: 'sans-serif' },
-  { value: 'Brown Pro', label: 'Brown Pro', category: 'sans-serif' },
+  { value: 'Brown', label: 'Brown', category: 'sans-serif' },
   { value: 'Cera Pro', label: 'Cera Pro', category: 'sans-serif' },
   { value: 'Poppins', label: 'Poppins', category: 'sans-serif' },
   { value: 'Space Grotesk', label: 'Space Grotesk', category: 'sans-serif' },
@@ -133,6 +133,7 @@ export const AVAILABLE_FONTS = [
   { value: 'Playfair Display', label: 'Playfair Display', category: 'serif' },
   { value: 'Lora', label: 'Lora', category: 'serif' },
   { value: 'Oswald', label: 'Oswald', category: 'sans-serif' },
+  { value: 'Dancing Script', label: 'Dancing Script', category: 'cursive' },
 ];
 
 

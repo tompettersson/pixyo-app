@@ -1,45 +1,116 @@
 /**
  * Preload local custom fonts for Canvas/Konva rendering.
  *
- * CSS @font-face alone only triggers a download when an HTML element
- * references the font. Canvas (Konva) needs the font already loaded
- * in the browser's font system before drawing. This utility forces
- * the browser to load all local custom fonts eagerly.
+ * next/font/local registers fonts under auto-generated names (e.g. "brown", "ceraPro").
+ * Canvas/Konva uses human-readable names (e.g. "Brown", "Cera Pro").
+ * This module bridges the gap by creating FontFace aliases.
  */
 
-// Local fonts registered via @font-face in globals.css
-const LOCAL_FONTS: { family: string; weights: number[] }[] = [
-  { family: 'Brown', weights: [300, 400, 700] },
-  { family: 'Cera Pro', weights: [400, 700] },
+// Maps human-readable font names (used by Konva) to next/font internal names.
+// The internal names come from the `localFont()` variable names in layout.tsx.
+const FONT_ALIASES: { displayName: string; internalName: string; weights: string[] }[] = [
+  { displayName: 'Brown', internalName: 'brown', weights: ['300', '400', '700'] },
+  { displayName: 'Cera Pro', internalName: 'ceraPro', weights: ['400', '700'] },
 ];
 
-let preloaded = false;
+let preloadPromise: Promise<void> | null = null;
 
 /**
- * Preload all local custom fonts. Safe to call multiple times.
- * Returns a promise that resolves when all fonts are loaded.
+ * Preload custom fonts and register aliases for Canvas/Konva.
+ *
+ * 1. Waits for stylesheets to be parsed (document.fonts.ready)
+ * 2. Triggers download of fonts registered by next/font/local
+ * 3. Creates FontFace aliases with the human-readable names
+ *
+ * Safe to call multiple times — returns the same promise.
  */
-export async function preloadLocalFonts(): Promise<void> {
-  if (typeof window === 'undefined') return;
-  if (preloaded) return;
-  preloaded = true;
+export function preloadLocalFonts(): Promise<void> {
+  if (typeof window === 'undefined') return Promise.resolve();
+  if (preloadPromise) return preloadPromise;
 
-  const promises: Promise<FontFace[]>[] = [];
+  preloadPromise = (async () => {
+    // Wait for @font-face rules to be parsed
+    await document.fonts.ready;
 
-  for (const { family, weights } of LOCAL_FONTS) {
-    for (const weight of weights) {
-      // document.fonts.load() triggers the browser to fetch the font
-      // from the matching @font-face rule and returns when ready
-      promises.push(
-        document.fonts.load(`${weight} 16px "${family}"`)
-      );
+    const results = await Promise.allSettled(
+      FONT_ALIASES.flatMap(({ displayName, internalName, weights }) =>
+        weights.map(async (weight) => {
+          // Check if the display name is already registered
+          let hasAlias = false;
+          for (const f of document.fonts) {
+            if (f.family === displayName && f.weight === weight) {
+              hasAlias = true;
+              break;
+            }
+          }
+          if (hasAlias) return;
+
+          // Find the internal FontFace registered by next/font/local
+          let internalFont: FontFace | null = null;
+          for (const f of document.fonts) {
+            if (f.family === internalName && f.weight === weight) {
+              internalFont = f;
+              break;
+            }
+          }
+
+          if (!internalFont) return;
+
+          // Trigger download of the internal font if not already loaded
+          if (internalFont.status !== 'loaded') {
+            await internalFont.load();
+          }
+
+          // Find the @font-face src URL from stylesheets and resolve it
+          // relative to the stylesheet's own URL (not the page URL).
+          let absoluteSrc: string | null = null;
+          for (const sheet of document.styleSheets) {
+            try {
+              for (const rule of sheet.cssRules) {
+                if (!(rule instanceof CSSFontFaceRule)) continue;
+                const family = rule.style.getPropertyValue('font-family');
+                const ruleWeight = rule.style.getPropertyValue('font-weight');
+                if (family === internalName && ruleWeight === weight) {
+                  const rawSrc = rule.style.getPropertyValue('src');
+                  // Extract the URL from the src value: url("../media/xxx.woff2") format("woff2")
+                  const urlMatch = rawSrc.match(/url\("([^"]+)"\)/);
+                  if (urlMatch && sheet.href) {
+                    // Resolve relative URL against the stylesheet's URL
+                    const resolved = new URL(urlMatch[1], sheet.href).href;
+                    absoluteSrc = `url("${resolved}")`;
+                  } else if (urlMatch) {
+                    // Inline stylesheet — URL is already absolute or relative to page
+                    absoluteSrc = rawSrc;
+                  }
+                  break;
+                }
+              }
+            } catch {
+              // Cross-origin stylesheet
+            }
+            if (absoluteSrc) break;
+          }
+
+          if (!absoluteSrc) return;
+
+          // Create a FontFace alias with the human-readable name
+          const alias = new FontFace(displayName, absoluteSrc, {
+            weight,
+            style: 'normal',
+            display: 'swap',
+          });
+
+          const loaded = await alias.load();
+          document.fonts.add(loaded);
+        })
+      )
+    );
+
+    const failed = results.filter((r) => r.status === 'rejected');
+    if (failed.length > 0) {
+      console.warn(`${failed.length}/${results.length} font aliases failed to create`);
     }
-  }
+  })();
 
-  try {
-    await Promise.all(promises);
-  } catch {
-    // Font loading failures are non-critical — Canvas will use fallback
-    console.warn('Some custom fonts failed to preload');
-  }
+  return preloadPromise;
 }
