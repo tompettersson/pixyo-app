@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { useEditorStore } from '@/store/useEditorStore';
+import { preloadLocalFonts } from '@/lib/fonts/preload';
 import type { TextLayer, LogoLayer, BackgroundLayer } from '@/types/layers';
 
 // Lazy load react-konva only on client
@@ -260,9 +261,12 @@ export function CanvasStage() {
     setBackgroundImage,
   } = useEditorStore();
 
-  // Ensure we're on the client
+  const [fontsReady, setFontsReady] = useState(false);
+
+  // Ensure we're on the client + preload custom fonts for Canvas
   useEffect(() => {
     setIsClient(true);
+    preloadLocalFonts().then(() => setFontsReady(true));
   }, []);
 
   // Calculate scale to fit canvas in container
@@ -377,7 +381,7 @@ export function CanvasStage() {
           onClick={handleStageClick}
           onTap={handleStageClick}
         >
-          <KonvaLayer>
+          <KonvaLayer key={fontsReady ? 'fonts-ready' : 'fonts-loading'}>
             {/* Canvas background */}
             <Rect
               x={0}

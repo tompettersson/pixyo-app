@@ -5,6 +5,7 @@ import { StackProvider, StackTheme } from "@stackframe/stack";
 import { stackServerApp } from "@/lib/stack";
 import { Toaster } from 'sonner';
 import { CookieBanner } from '@/components/CookieBanner';
+import { FontPreloader } from '@/components/FontPreloader';
 import "./globals.css";
 
 // Load all fonts needed for the editor
@@ -61,14 +62,14 @@ const ceraPro = localFont({
   display: "swap",
 });
 
-// Local font: Brown Pro (for JOQORA)
-const brownPro = localFont({
+// Local font: Brown / Lineto Brown (for JOQORA)
+const brown = localFont({
   src: [
     { path: "../public/fonts/lineto-brown-pro-light.woff2", weight: "300", style: "normal" },
     { path: "../public/fonts/lineto-brown-pro-regular.woff2", weight: "400", style: "normal" },
     { path: "../public/fonts/lineto-brown-pro-bold.woff2", weight: "700", style: "normal" },
   ],
-  variable: "--font-brown-pro",
+  variable: "--font-brown",
   display: "swap",
 });
 
@@ -95,10 +96,11 @@ export default function RootLayout({
           ${oswald.variable}
           ${dancingScript.variable}
           ${ceraPro.variable}
-          ${brownPro.variable}
+          ${brown.variable}
           font-sans antialiased
         `}
       >
+        <FontPreloader />
         <StackProvider app={stackServerApp} lang="de-DE">
           <StackTheme>
             {children}
