@@ -18,15 +18,7 @@ const updateDesignSchema = z.object({
     .optional(),
   layers: z.array(z.any()).optional(),
   overlayOpacity: z.number().optional(),
-  content: z
-    .object({
-      tagline: z.string(),
-      headline: z.string(),
-      body: z.string(),
-      buttonText: z.string(),
-      showButton: z.boolean().optional(),
-    })
-    .optional(),
+  content: z.any().optional(),
   // NEW: Complete visual state
   backgroundImage: z
     .object({
@@ -50,7 +42,7 @@ const updateDesignSchema = z.object({
     .optional(),
   overlay: z
     .object({
-      type: z.enum(['none', 'gradient', 'halftone', 'grain', 'duotone', 'diagonal-stripes', 'scanlines', 'mesh-gradient']),
+      type: z.enum(['none', 'solid', 'gradient', 'halftone', 'grain', 'duotone', 'diagonal-stripes', 'scanlines', 'mesh-gradient']),
       mode: z.enum(['darken', 'lighten']),
       intensity: z.number(),
     })

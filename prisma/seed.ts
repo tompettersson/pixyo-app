@@ -1,7 +1,7 @@
 import { config } from 'dotenv';
 config({ path: '.env.local' });
 
-import { PrismaClient } from '../lib/generated/prisma/client.js';
+import { PrismaClient, Prisma } from '../lib/generated/prisma/client.js';
 import { PrismaNeon } from '@prisma/adapter-neon';
 
 const connectionString = process.env.POSTGRES_URL!;
@@ -86,6 +86,28 @@ const CUSTOMERS = [
       'Sustainable materials, ivory alternative, eco-friendly luxury, natural textures, ethical craftsmanship, premium quality, musical instruments',
   },
   {
+    slug: 'joqora',
+    name: 'JOQORA',
+    logo: '/logos/joqora-logo.svg',
+    logoVariants: null,
+    colors: {
+      dark: '#1a1a1a',
+      light: '#ffffff',
+      accent: '#0a0a0a', // Black/minimal
+    },
+    fonts: {
+      headline: { family: 'Inter', weight: 'bold', uppercase: true },
+      body: { family: 'Inter', weight: 'normal' },
+    },
+    layout: {
+      padding: { top: 72, right: 72, bottom: 72, left: 72 },
+      gaps: { taglineToHeadline: 20, headlineToBody: 24, bodyToButton: 16 },
+      button: { radius: 0, paddingX: 32, paddingY: 14 },
+    },
+    systemPrompt:
+      'Minimalist architectural photography, clean lines, modern design, editorial aesthetics, premium quality, technical precision, lifestyle imagery',
+  },
+  {
     slug: 'canton',
     name: 'Canton',
     logo: '/logos/canton.svg',
@@ -131,7 +153,7 @@ async function main() {
         data: {
           name: customer.name,
           logo: customer.logo,
-          logoVariants: customer.logoVariants,
+          logoVariants: customer.logoVariants === null ? Prisma.JsonNull : customer.logoVariants,
           colors: customer.colors,
           fonts: customer.fonts,
           layout: customer.layout,
@@ -146,7 +168,7 @@ async function main() {
           slug: customer.slug,
           name: customer.name,
           logo: customer.logo,
-          logoVariants: customer.logoVariants,
+          logoVariants: customer.logoVariants === null ? Prisma.JsonNull : customer.logoVariants,
           colors: customer.colors,
           fonts: customer.fonts,
           layout: customer.layout,
