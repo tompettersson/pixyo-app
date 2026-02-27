@@ -64,7 +64,7 @@ function formatEur(amount: number): string {
     style: "currency",
     currency: "EUR",
     minimumFractionDigits: 2,
-    maximumFractionDigits: 3,
+    maximumFractionDigits: 2,
   });
 }
 
