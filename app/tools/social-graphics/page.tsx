@@ -1075,23 +1075,23 @@ export default function EditorPage() {
         <div className="flex items-center gap-1 p-0.5 bg-zinc-800/50 rounded-lg">
           <button
             onClick={() => setImageModel('flash')}
-            className={`flex-1 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+            className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-medium transition-colors ${
               imageModel === 'flash'
                 ? 'bg-white text-black'
                 : 'text-zinc-400 hover:text-zinc-300'
             }`}
           >
-            Schnell
+            Gemini Flash
           </button>
           <button
             onClick={() => setImageModel('pro')}
-            className={`flex-1 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+            className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-medium transition-colors ${
               imageModel === 'pro'
                 ? 'bg-white text-black'
                 : 'text-zinc-400 hover:text-zinc-300'
             }`}
           >
-            Profi
+            Gemini Pro
           </button>
         </div>
 

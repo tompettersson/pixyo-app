@@ -843,7 +843,7 @@ export default function ProductScenesPage() {
                       : 'text-zinc-400 hover:text-zinc-300'
                   }`}
                 >
-                  Schnell
+                  Gemini Flash
                 </button>
                 <button
                   onClick={() => setImageModel('pro')}
@@ -853,7 +853,7 @@ export default function ProductScenesPage() {
                       : 'text-zinc-400 hover:text-zinc-300'
                   }`}
                 >
-                  Profi
+                  Gemini Pro
                 </button>
               </div>
             </div>

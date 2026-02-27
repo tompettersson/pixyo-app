@@ -3,12 +3,12 @@
 export const IMAGE_MODELS = {
   pro: {
     id: 'gemini-3-pro-image-preview',
-    label: 'Profi',
+    label: 'Gemini Pro',
     costEur: 0.03,
   },
   flash: {
     id: 'gemini-3.1-flash-image-preview',
-    label: 'Schnell',
+    label: 'Gemini Flash',
     costEur: 0.015,
   },
 } as const;
