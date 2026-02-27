@@ -43,6 +43,8 @@ export default function ProductScenesPage() {
   const [generationStep, setGenerationStep] = useState<1 | 2>(1);
   // Generation log ID for download tracking
   const [generationLogId, setGenerationLogId] = useState<string | null>(null);
+  // Image model selection (default: Profi for Product Scenes)
+  const [imageModel, setImageModel] = useState<'pro' | 'flash'>('pro');
 
   // Canvas view tab: 'edit' (compositing canvas) or 'result' (generated/harmonized scene)
   const [canvasViewTab, setCanvasViewTab] = useState<'edit' | 'result'>('edit');
@@ -213,6 +215,7 @@ export default function ProductScenesPage() {
         aspectRatio: string;
         imageSize: string;
         productScaleLevel: number;
+        imageModel: 'pro' | 'flash';
         referenceImage?: { data: string; mimeType: string };
         productAnalysis?: ProductAnalysis;
         floorPlanImage?: { data: string; mimeType: string };
@@ -228,6 +231,7 @@ export default function ProductScenesPage() {
         aspectRatio,
         imageSize,
         productScaleLevel,
+        imageModel,
       };
 
       // Include product analysis for intelligent placement
@@ -343,6 +347,7 @@ export default function ProductScenesPage() {
         backgroundPrompt: string;
         aspectRatio: string;
         lensType: string;
+        imageModel: 'pro' | 'flash';
         layoutImage?: { data: string; mimeType: string };
         productImage?: { data: string; mimeType: string };
         referenceImage?: { data: string; mimeType: string };
@@ -360,6 +365,7 @@ export default function ProductScenesPage() {
           y: compositing.productTransform.y,
           scale: compositing.productTransform.scale,
         },
+        imageModel,
       };
 
       // Include full analysis if available
@@ -822,10 +828,35 @@ export default function ProductScenesPage() {
 
           {/* Background Prompt */}
           <div className="pt-2 border-t border-zinc-800/50">
-            <h2 className="text-xs text-zinc-500 mb-2 uppercase tracking-wider flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] font-bold">2</span>
-              Hintergrund
-            </h2>
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-xs text-zinc-500 uppercase tracking-wider flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] font-bold">2</span>
+                Hintergrund
+              </h2>
+              {/* Model Toggle */}
+              <div className="flex items-center gap-0.5 p-0.5 bg-zinc-800/50 rounded-md">
+                <button
+                  onClick={() => setImageModel('flash')}
+                  className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors ${
+                    imageModel === 'flash'
+                      ? 'bg-white text-black'
+                      : 'text-zinc-400 hover:text-zinc-300'
+                  }`}
+                >
+                  Schnell
+                </button>
+                <button
+                  onClick={() => setImageModel('pro')}
+                  className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors ${
+                    imageModel === 'pro'
+                      ? 'bg-white text-black'
+                      : 'text-zinc-400 hover:text-zinc-300'
+                  }`}
+                >
+                  Profi
+                </button>
+              </div>
+            </div>
             {mode === 'oneshot' ? (
               <BackgroundPrompt onGenerate={handleGenerateOneshot} sceneCategories={selectedSceneConfig?.categories} />
             ) : (

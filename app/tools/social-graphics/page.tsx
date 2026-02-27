@@ -233,7 +233,7 @@ export default function EditorPage() {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [generationError, setGenerationError] = useState<string | null>(null);
   const [generationLogId, setGenerationLogId] = useState<string | null>(null);
-
+  const [imageModel, setImageModel] = useState<'pro' | 'flash'>('flash');
 
   // Unsplash state
   const [isUnsplashOpen, setIsUnsplashOpen] = useState(false);
@@ -505,10 +505,12 @@ export default function EditorPage() {
         aspectRatio: string;
         promptSource: "ai-improved" | "user-direct";
         productImage?: { data: string; mimeType: string };
+        imageModel: 'pro' | 'flash';
       } = {
         prompt: finalPrompt,
         aspectRatio: "1:1",
         promptSource: generatedPrompt ? "ai-improved" : "user-direct",
+        imageModel,
       };
 
       // Include product image if uploaded (for Gemini Image-to-Image)
@@ -1068,6 +1070,30 @@ export default function EditorPage() {
             />
           </div>
         )}
+
+        {/* Model Toggle */}
+        <div className="flex items-center gap-1 p-0.5 bg-zinc-800/50 rounded-lg">
+          <button
+            onClick={() => setImageModel('flash')}
+            className={`flex-1 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+              imageModel === 'flash'
+                ? 'bg-white text-black'
+                : 'text-zinc-400 hover:text-zinc-300'
+            }`}
+          >
+            Schnell
+          </button>
+          <button
+            onClick={() => setImageModel('pro')}
+            className={`flex-1 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+              imageModel === 'pro'
+                ? 'bg-white text-black'
+                : 'text-zinc-400 hover:text-zinc-300'
+            }`}
+          >
+            Profi
+          </button>
+        </div>
 
         <Button
           variant="primary"

@@ -6,6 +6,7 @@ import { requireAuthForRoute } from "@/lib/permissions";
 import { logUsage } from "@/lib/usage";
 import { prisma } from "@/lib/db";
 import { AI_COSTS_EUR, AI_MODELS } from "@/lib/costs";
+import { IMAGE_MODELS, type ImageModelKey } from "@/lib/ai/models";
 import type { ApiError } from "@/types/api";
 
 // Product Analysis schema (simplified)
@@ -66,6 +67,8 @@ const requestSchema = z.object({
     })
     .optional(),
   floorPlanDescription: z.string().optional(),
+  // Image model selection
+  imageModel: z.enum(["pro", "flash"]).optional(),
 }).refine(
   (data) => data.productImage || (data.productImages && data.productImages.length > 0),
   { message: "Either productImage or productImages must be provided" }
@@ -274,7 +277,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(error, { status: 400 });
     }
 
-    const { productImage, productImages, backgroundPrompt, aspectRatio, imageSize, productScaleLevel, referenceImage, productAnalysis, floorPlanImage, floorPlanDescription } = validationResult.data;
+    const { productImage, productImages, backgroundPrompt, aspectRatio, imageSize, productScaleLevel, referenceImage, productAnalysis, floorPlanImage, floorPlanDescription, imageModel: imageModelParam } = validationResult.data;
     const scaleParams = getScaleParameters(productScaleLevel);
 
     // Normalize images: support both single productImage and productImages array
@@ -387,9 +390,10 @@ export async function POST(request: NextRequest) {
     // FALLBACK: Gemini API (original implementation)
     // =======================================================
     const env = getServerEnv();
-    const model = "gemini-3-pro-image-preview";
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GOOGLE_API_KEY}`;
-    console.log("Using Gemini API fallback");
+    const selectedModel = imageModelParam as ImageModelKey | undefined;
+    const modelId = IMAGE_MODELS[selectedModel ?? 'pro'].id;
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${env.GOOGLE_API_KEY}`;
+    console.log(`Using Gemini API: ${modelId}`);
 
     // =================================================================
     // PROMPT CONSTRUCTION - Based on Research Documents:
@@ -572,12 +576,13 @@ ${floorPlanNote}`;
     console.log("Scene generated successfully");
 
     // Log usage (fire-and-forget)
+    const sceneCostKey = selectedModel === 'flash' ? 'generate-product-scene-flash' : 'generate-product-scene';
     logUsage({
       userId: auth.user.id,
       userEmail: auth.user.primaryEmail ?? "unknown",
-      operation: "generate-product-scene",
-      costEur: AI_COSTS_EUR["generate-product-scene"],
-      model: AI_MODELS["generate-product-scene"],
+      operation: sceneCostKey,
+      costEur: AI_COSTS_EUR[sceneCostKey],
+      model: AI_MODELS[sceneCostKey],
     });
 
     // Log generation for prompt tracking
@@ -593,7 +598,7 @@ ${floorPlanNote}`;
             aspectRatio,
             imageSize,
             productScaleLevel,
-            model: AI_MODELS["generate-product-scene"],
+            model: AI_MODELS[sceneCostKey],
           },
         },
       });

@@ -4,6 +4,7 @@ import { getServerEnv } from "@/lib/env";
 import { requireAuthForRoute } from "@/lib/permissions";
 import { logUsage } from "@/lib/usage";
 import { AI_COSTS_EUR, AI_MODELS } from "@/lib/costs";
+import { IMAGE_MODELS, type ImageModelKey } from "@/lib/ai/models";
 import type { ApiError } from "@/types/api";
 
 // Product Analysis schema (from analyze-product API) - SIMPLIFIED
@@ -72,6 +73,8 @@ const requestSchema = z.object({
     .optional(),
   // Product analysis from AI (optional, enhances generation)
   productAnalysis: productAnalysisSchema,
+  // Image model selection
+  imageModel: z.enum(["pro", "flash"]).optional(),
 });
 
 // Lens type to prompt description mapping
@@ -141,7 +144,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(error, { status: 400 });
     }
 
-    const { backgroundPrompt, aspectRatio, lensType, layoutImage, productImage, referenceImage, productPlacement, productAnalysis } =
+    const { backgroundPrompt, aspectRatio, lensType, layoutImage, productImage, referenceImage, productPlacement, productAnalysis, imageModel: imageModelParam } =
       validationResult.data;
 
     // Get lens description - prefer analysis data if available
@@ -177,8 +180,9 @@ Match the background perspective to the product's perspective visible in the ima
     }
 
     const env = getServerEnv();
-    const model = "gemini-3-pro-image-preview";
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GOOGLE_API_KEY}`;
+    const selectedModel = imageModelParam as ImageModelKey | undefined;
+    const modelId = IMAGE_MODELS[selectedModel ?? 'pro'].id;
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${env.GOOGLE_API_KEY}`;
 
     // Determine which positioning method we're using
     const hasLayoutImage = !!layoutImage;
@@ -363,12 +367,13 @@ Do NOT include any product placeholder - just the environment.`;
     }
 
     // Log usage (fire-and-forget)
+    const bgCostKey = selectedModel === 'flash' ? 'generate-background-flash' : 'generate-background';
     logUsage({
       userId: auth.user.id,
       userEmail: auth.user.primaryEmail ?? "unknown",
-      operation: "generate-background",
-      costEur: AI_COSTS_EUR["generate-background"],
-      model: AI_MODELS["generate-background"],
+      operation: bgCostKey,
+      costEur: AI_COSTS_EUR[bgCostKey],
+      model: AI_MODELS[bgCostKey],
     });
 
     return NextResponse.json({

@@ -5,6 +5,7 @@ import { requireAuthForRoute } from "@/lib/permissions";
 import { logUsage } from "@/lib/usage";
 import { prisma } from "@/lib/db";
 import { AI_COSTS_EUR, AI_MODELS } from "@/lib/costs";
+import { IMAGE_MODELS, type ImageModelKey } from "@/lib/ai/models";
 import type { GenerateImageRequest, ApiError } from "@/types/api";
 
 // Request validation schema
@@ -22,6 +23,8 @@ const requestSchema = z.object({
     .optional(),
   // Prompt source for generation tracking
   promptSource: z.enum(["ai-improved", "user-direct"]).optional(),
+  // Image model selection
+  imageModel: z.enum(["pro", "flash"]).optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -43,19 +46,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(error, { status: 400 });
     }
 
-    const { promptSource, ...imageRequestData } = validationResult.data;
+    const { promptSource, imageModel: modelKey, ...imageRequestData } = validationResult.data;
+    const selectedModel = modelKey as ImageModelKey | undefined;
+    const modelId = IMAGE_MODELS[selectedModel ?? 'pro'].id;
     const imageRequest: GenerateImageRequest = imageRequestData;
 
     // Generate image using Gemini
-    const response = await generateImage(imageRequest);
+    const response = await generateImage({ ...imageRequest, model: modelId });
 
-    // Log usage (fire-and-forget)
+    // Log usage with correct model cost
+    const costKey = selectedModel === 'flash' ? 'generate-image-flash' : 'generate-image';
     logUsage({
       userId: auth.user.id,
       userEmail: auth.user.primaryEmail ?? "unknown",
-      operation: "generate-image",
-      costEur: AI_COSTS_EUR["generate-image"],
-      model: AI_MODELS["generate-image"],
+      operation: costKey,
+      costEur: AI_COSTS_EUR[costKey],
+      model: AI_MODELS[costKey],
     });
 
     // Log generation for prompt tracking (fire-and-forget, but capture ID)

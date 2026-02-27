@@ -24,8 +24,8 @@ function getMockResponse(): GenerateImageResponse {
   };
 }
 
-// Generate image using Google Imagen 3 API
-export async function generateImage(request: GenerateImageRequest): Promise<GenerateImageResponse> {
+// Generate image using Gemini Image API
+export async function generateImage(request: GenerateImageRequest & { model?: string }): Promise<GenerateImageResponse> {
   // Check for mock mode or missing API key
   const isMockMode = process.env.NEXT_PUBLIC_MOCK_AI === 'true' || !process.env.GOOGLE_API_KEY;
   
@@ -36,9 +36,8 @@ export async function generateImage(request: GenerateImageRequest): Promise<Gene
   }
 
   const env = getServerEnv();
-  // Use gemini-3-pro-image-preview (same as working Laravel project)
-  const model = 'gemini-3-pro-image-preview';
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GOOGLE_API_KEY}`;
+  const modelId = request.model || 'gemini-3-pro-image-preview';
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${env.GOOGLE_API_KEY}`;
 
   // Build the prompt with style hints
   const styleHint = request.mode === 'illustration'
