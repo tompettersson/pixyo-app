@@ -412,6 +412,7 @@ export default function EditorPage() {
       : (currentCustomer.logoVariants?.light || currentCustomer.logo);
 
     const img = new window.Image();
+    img.crossOrigin = "anonymous";
     img.src = logoSrc;
     img.onload = () => {
       // Calculate dimensions preserving aspect ratio
@@ -742,37 +743,51 @@ export default function EditorPage() {
 
   // Export function with format support
   const handleExport = useCallback((format: "jpeg" | "png") => {
-    if (!stageRef.current) return;
+    if (!stageRef.current) {
+      console.error("[Export] Stage ref is null");
+      return;
+    }
 
     const stage = stageRef.current;
     const mimeType = format === "jpeg" ? "image/jpeg" : "image/png";
     const quality = format === "jpeg" ? 0.85 : 1;
     const extension = format === "jpeg" ? "jpg" : "png";
 
-    stage.toBlob({
-      mimeType,
-      quality,
-      pixelRatio: 2, // 2x for Retina = 2400×2400
-      callback: (blob: Blob | null) => {
-        if (!blob) return;
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.download = `social-post-2400x2400.${extension}`;
-        link.href = url;
-        link.click();
-        URL.revokeObjectURL(url);
-        setExportDropdownOpen(false);
+    try {
+      stage.toBlob({
+        mimeType,
+        quality,
+        pixelRatio: 2, // 2x for Retina = 2400×2400
+        callback: (blob: Blob | null) => {
+          if (!blob) {
+            console.error("[Export] toBlob returned null — canvas may be tainted by cross-origin image");
+            alert("Export fehlgeschlagen. Bitte lade die Seite neu (Cmd+Shift+R) und versuche es erneut.");
+            return;
+          }
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.download = `social-post-2400x2400.${extension}`;
+          link.href = url;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+          setExportDropdownOpen(false);
 
-        // Track download (fire-and-forget)
-        if (generationLogId) {
-          fetch("/api/track-download", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ generationLogId }),
-          }).catch((err) => console.error("Download tracking failed:", err));
+          // Track download (fire-and-forget)
+          if (generationLogId) {
+            fetch("/api/track-download", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ generationLogId }),
+            }).catch((err) => console.error("Download tracking failed:", err));
+          }
         }
-      }
-    });
+      });
+    } catch (err) {
+      console.error("[Export] toBlob threw:", err);
+      alert("Export fehlgeschlagen. Bitte lade die Seite neu (Cmd+Shift+R) und versuche es erneut.");
+    }
   }, [generationLogId]);
 
   // Content area dimensions
