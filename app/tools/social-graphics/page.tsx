@@ -1430,21 +1430,7 @@ export default function EditorPage() {
                 );
               })()}
 
-              {/* Photo Credit */}
-              {photoCredit && (
-                <Text
-                  x={CANVAS_WIDTH - LAYOUT.padding.right / 2}
-                  y={CANVAS_HEIGHT - 32}
-                  text={`📷 ${photoCredit.name} / Unsplash`}
-                  fontFamily="Inter"
-                  fontSize={18}
-                  fill={textColor}
-                  opacity={0.5}
-                  align="right"
-                  width={300}
-                  offsetX={300}
-                />
-              )}
+              {/* Photo credit is shown in the sidebar only, not on canvas */}
             </Layer>
           </Stage>
         </div>

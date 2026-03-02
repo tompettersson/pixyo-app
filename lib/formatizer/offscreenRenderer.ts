@@ -27,12 +27,38 @@ const blendModeToComposite: Record<BlendMode, GlobalCompositeOperation> = {
   overlay: 'overlay',
 };
 
-/** Load an image with CORS enabled. Returns null on error. */
+/** Load an image with CORS enabled. Returns null on error.
+ *  SVGs are rendered via a temporary canvas and returned as PNG to avoid
+ *  Konva cross-origin / offscreen-stage quirks with vector sources. */
 function loadImage(url: string): Promise<HTMLImageElement | null> {
   return new Promise((resolve) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    img.onload = () => resolve(img);
+    img.onload = () => {
+      // SVG → rasterise via temp canvas so Konva gets a bitmap
+      if (url.endsWith('.svg') || url.includes('.svg?')) {
+        try {
+          const c = document.createElement('canvas');
+          // Render at 2× natural size for crisp logos
+          const w = (img.naturalWidth || img.width) * 2;
+          const h = (img.naturalHeight || img.height) * 2;
+          c.width = w;
+          c.height = h;
+          const ctx = c.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, w, h);
+            const png = new Image();
+            png.onload = () => resolve(png);
+            png.onerror = () => resolve(img); // fallback to original
+            png.src = c.toDataURL('image/png');
+            return;
+          }
+        } catch {
+          // Canvas taint or other error – fall through to original img
+        }
+      }
+      resolve(img);
+    };
     img.onerror = () => {
       console.warn('[Formatizer] Failed to load image:', url);
       resolve(null);
@@ -290,8 +316,12 @@ export async function renderFormat(
 
     // 5. Logo (bottom left)
     const logoUrl = getLogoUrl(snapshot);
+    console.log('[Formatizer] Logo URL:', logoUrl);
     if (logoUrl) {
       const logoImg = await loadImage(logoUrl);
+      if (!logoImg) {
+        console.warn('[Formatizer] Logo image failed to load:', logoUrl);
+      }
       if (logoImg) {
         const logoNatW = logoImg.naturalWidth || logoImg.width;
         const logoNatH = logoImg.naturalHeight || logoImg.height;
@@ -362,26 +392,7 @@ export async function renderFormat(
       }));
     }
 
-    // 7. Photo credit (Unsplash)
-    if (snapshot.backgroundImage?.credit) {
-      const credit = snapshot.backgroundImage.credit;
-      const creditFontSize = Math.round(18 * layout.scaleFactor);
-      const creditWidth = Math.round(300 * layout.scaleFactor);
-
-      const creditText = new Konva.Text({
-        x: target.width - layout.padding.right / 2,
-        y: target.height - Math.round(32 * layout.scaleFactor),
-        text: `📷 ${credit.name} / Unsplash`,
-        fontFamily: 'Inter',
-        fontSize: creditFontSize,
-        fill: textColor,
-        opacity: 0.5,
-        align: 'right',
-        width: creditWidth,
-        offsetX: creditWidth,
-      });
-      layer.add(creditText);
-    }
+    // Photo credit is shown in the sidebar only, not rendered on exports
 
     // Draw
     layer.draw();
@@ -416,17 +427,18 @@ export async function renderFormat(
 
 /**
  * Get the appropriate logo URL based on overlay mode.
- * Uses dark variant for lighten mode, light variant for darken mode.
+ * Naming: "dark" = logo FOR dark backgrounds (white/light logo)
+ *         "light" = logo FOR light backgrounds (dark logo)
+ * darken mode → dark background → use "dark" variant
+ * lighten mode → light background → use "light" variant
  */
 function getLogoUrl(snapshot: DesignSnapshot): string | null {
   const { logo, logoVariants } = snapshot.customer;
 
   if (logoVariants) {
-    // Darken mode = white/light text → use light logo variant
-    // Lighten mode = dark text → use dark logo variant
     return snapshot.overlay.mode === 'darken'
-      ? logoVariants.light
-      : logoVariants.dark;
+      ? (logoVariants.dark || logo || null)
+      : (logoVariants.light || logo || null);
   }
 
   return logo || null;

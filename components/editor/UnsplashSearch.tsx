@@ -42,6 +42,8 @@ export function UnsplashSearch({ onSelectImage, isOpen, onClose }: UnsplashSearc
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
 
   const handleSearch = useCallback(async () => {
     if (!query.trim()) return;
@@ -49,10 +51,12 @@ export function UnsplashSearch({ onSelectImage, isOpen, onClose }: UnsplashSearc
     setIsLoading(true);
     setError(null);
     setHasSearched(true);
+    setPage(1);
+    setTotalPages(0);
 
     try {
       const response = await fetch(
-        `/api/unsplash/search?query=${encodeURIComponent(query)}&per_page=12&orientation=squarish`
+        `/api/unsplash/search?query=${encodeURIComponent(query)}&per_page=12&page=1&orientation=squarish`
       );
 
       if (!response.ok) {
@@ -62,6 +66,7 @@ export function UnsplashSearch({ onSelectImage, isOpen, onClose }: UnsplashSearc
 
       const data = await response.json();
       setPhotos(data.results);
+      setTotalPages(data.total_pages ?? 0);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Suche fehlgeschlagen');
       setPhotos([]);
@@ -69,6 +74,30 @@ export function UnsplashSearch({ onSelectImage, isOpen, onClose }: UnsplashSearc
       setIsLoading(false);
     }
   }, [query]);
+
+  const handleLoadMore = useCallback(async () => {
+    const nextPage = page + 1;
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(
+        `/api/unsplash/search?query=${encodeURIComponent(query)}&per_page=12&page=${nextPage}&orientation=squarish`
+      );
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Laden fehlgeschlagen');
+      }
+
+      const data = await response.json();
+      setPhotos((prev) => [...prev, ...data.results]);
+      setPage(nextPage);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Laden fehlgeschlagen');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [query, page]);
 
   const handleSelectPhoto = async (photo: UnsplashPhoto) => {
     // Track download (required by Unsplash API guidelines)
@@ -167,31 +196,45 @@ export function UnsplashSearch({ onSelectImage, isOpen, onClose }: UnsplashSearc
           )}
 
           {photos.length > 0 && (
-            <div className="grid grid-cols-3 gap-3">
-              {photos.map((photo) => (
-                <button
-                  key={photo.id}
-                  onClick={() => handleSelectPhoto(photo)}
-                  className="group relative aspect-square overflow-hidden rounded-lg border border-zinc-700/50 
-                             hover:border-zinc-500 transition-all focus:outline-none focus:ring-2 focus:ring-zinc-500"
-                  style={{ backgroundColor: photo.color }}
-                >
-                  <img
-                    src={photo.urls.small}
-                    alt={photo.alt_description || photo.description || 'Unsplash photo'}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                  {/* Hover overlay with credit */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent 
-                                  opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2">
-                    <p className="text-white text-xs truncate">
-                      📷 {photo.user.name}
-                    </p>
-                  </div>
-                </button>
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-3 gap-3">
+                {photos.map((photo) => (
+                  <button
+                    key={photo.id}
+                    onClick={() => handleSelectPhoto(photo)}
+                    className="group relative aspect-square overflow-hidden rounded-lg border border-zinc-700/50
+                               hover:border-zinc-500 transition-all focus:outline-none focus:ring-2 focus:ring-zinc-500"
+                    style={{ backgroundColor: photo.color }}
+                  >
+                    <img
+                      src={photo.urls.small}
+                      alt={photo.alt_description || photo.description || 'Unsplash photo'}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                    {/* Hover overlay with credit */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent
+                                    opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2">
+                      <p className="text-white text-xs truncate">
+                        📷 {photo.user.name}
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {page < totalPages && (
+                <div className="flex justify-center pt-4">
+                  <Button
+                    variant="secondary"
+                    onClick={handleLoadMore}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Lädt...' : 'Mehr Bilder laden'}
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </div>
 
