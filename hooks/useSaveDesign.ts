@@ -6,6 +6,7 @@ import type Konva from 'konva';
 
 const THUMBNAIL_WIDTH = 200;
 const THUMBNAIL_QUALITY = 0.8;
+const AUTO_SAVE_DELAY_MS = 5000;
 
 interface UseSaveDesignOptions {
   stageRef?: React.RefObject<Konva.Stage | null>;
@@ -15,14 +16,15 @@ interface UseSaveDesignOptions {
 }
 
 /**
- * Hook für manuelles Speichern von Designs.
- * Kein Auto-Save - User entscheidet wann gespeichert wird.
- * Thumbnail wird nur beim manuellen Save generiert.
+ * Hook für Design-Speicherung mit Auto-Save.
+ * Auto-Save: 5s nach letzter Änderung (ohne Thumbnail).
+ * Manuelles Save: sofort, mit Thumbnail-Generierung.
  */
 export function useSaveDesign(options: UseSaveDesignOptions = {}) {
   const { stageRef, onSaveStart, onSaveSuccess, onSaveError } = options;
 
   const isSavingRef = useRef(false);
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Get store state and actions
   const activeDesignId = useEditorStore((state) => state.design.activeDesignId);
@@ -80,9 +82,57 @@ export function useSaveDesign(options: UseSaveDesignOptions = {}) {
     }
   }, []);
 
+  // Quiet save (auto-save): no thumbnail, no callbacks
+  const saveQuiet = useCallback(async () => {
+    const currentDesignId = useEditorStore.getState().design.activeDesignId;
+    if (!currentDesignId || isSavingRef.current) return;
+
+    isSavingRef.current = true;
+    try {
+      const designState = getDesignState();
+      const response = await fetch(`/api/designs/${currentDesignId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          canvasState: designState.canvasState,
+          layers: designState.layers,
+          overlayOpacity: designState.overlayOpacity,
+          content: designState.content,
+          backgroundImage: designState.backgroundImage,
+          overlay: designState.overlay,
+          productImage: designState.productImage,
+        }),
+      });
+
+      if (response.ok) {
+        const { design: updatedDesign } = await response.json();
+        updateDesignInList(currentDesignId, {
+          updatedAt: updatedDesign.updatedAt,
+          canvasState: designState.canvasState,
+          layers: designState.layers,
+          overlayOpacity: designState.overlayOpacity,
+          content: designState.content,
+          backgroundImage: designState.backgroundImage,
+          overlay: designState.overlay,
+        });
+        markClean();
+      }
+    } catch (error) {
+      console.error('Auto-save error:', error);
+    } finally {
+      isSavingRef.current = false;
+    }
+  }, [getDesignState, markClean, updateDesignInList]);
+
   // Manual save function
   const save = useCallback(async () => {
     if (!activeDesignId || isSavingRef.current) return;
+
+    // Cancel pending auto-save — manual save supersedes it
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+      autoSaveTimerRef.current = null;
+    }
 
     isSavingRef.current = true;
     setIsSaving(true);
@@ -145,7 +195,7 @@ export function useSaveDesign(options: UseSaveDesignOptions = {}) {
     }
   }, [activeDesignId, getDesignState, setIsSaving, markClean, updateDesignInList, generateThumbnail, uploadThumbnail, onSaveStart, onSaveSuccess, onSaveError]);
 
-  // Subscribe to store changes to track dirty state (no auto-save)
+  // Subscribe to store changes — mark dirty + trigger debounced auto-save
   useEffect(() => {
     const unsubscribe = useEditorStore.subscribe(
       (state, prevState) => {
@@ -163,9 +213,18 @@ export function useSaveDesign(options: UseSaveDesignOptions = {}) {
         const designOverlayChanged = state.designOverlay !== prevState.designOverlay;
 
         if (canvasChanged || layersChanged || overlayChanged || contentChanged || backgroundImageChanged || designOverlayChanged) {
-          // Mark as dirty if we have an active design (no auto-save trigger)
           if (state.design.activeDesignId && !state.design.isDirty) {
             useEditorStore.getState().markDirty();
+          }
+
+          // Debounced auto-save: reset timer on each change
+          if (state.design.activeDesignId) {
+            if (autoSaveTimerRef.current) {
+              clearTimeout(autoSaveTimerRef.current);
+            }
+            autoSaveTimerRef.current = setTimeout(() => {
+              saveQuiet();
+            }, AUTO_SAVE_DELAY_MS);
           }
         }
       }
@@ -173,8 +232,11 @@ export function useSaveDesign(options: UseSaveDesignOptions = {}) {
 
     return () => {
       unsubscribe();
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
     };
-  }, []);
+  }, [saveQuiet]);
 
   return {
     save,
