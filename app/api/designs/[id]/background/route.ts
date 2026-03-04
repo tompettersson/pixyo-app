@@ -8,7 +8,7 @@ import { z } from 'zod';
 const uploadSchema = z.object({
   imageData: z.string(), // Base64 data (without data URL prefix) or full data URL
   mimeType: z.string().optional(), // image/png, image/jpeg, etc.
-  source: z.enum(['GENERATED', 'UNSPLASH']),
+  source: z.enum(['GENERATED', 'UNSPLASH', 'UPLOADED']),
 });
 
 // POST /api/designs/[id]/background - Upload background image to Blob

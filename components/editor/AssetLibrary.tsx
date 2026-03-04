@@ -5,7 +5,7 @@ import * as HoverCard from "@radix-ui/react-hover-card";
 
 interface Asset {
   id: string;
-  type: "GENERATED" | "UNSPLASH" | "PRODUCT_SCENE";
+  type: "GENERATED" | "UNSPLASH" | "PRODUCT_SCENE" | "UPLOADED";
   url: string;
   width: number;
   height: number;
@@ -15,17 +15,18 @@ interface Asset {
 
 interface AssetLibraryProps {
   profileId: string;
-  onSelectAsset: (url: string, credit?: { name: string; username: string; link: string }) => void;
+  onSelectAsset: (url: string, credit?: { name: string; username: string; link: string }, assetType?: string) => void;
+  refreshKey?: number;
 }
 
-export function AssetLibrary({ profileId, onSelectAsset }: AssetLibraryProps) {
+export function AssetLibrary({ profileId, onSelectAsset, refreshKey }: AssetLibraryProps) {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"GENERATED" | "UNSPLASH">("GENERATED");
+  const [activeTab, setActiveTab] = useState<"GENERATED" | "UNSPLASH" | "UPLOADED">("GENERATED");
 
   useEffect(() => {
     loadAssets();
-  }, [profileId]);
+  }, [profileId, refreshKey]);
 
   const loadAssets = async () => {
     try {
@@ -57,7 +58,7 @@ export function AssetLibrary({ profileId, onSelectAsset }: AssetLibraryProps) {
           link: asset.meta.credit.link,
         }
       : undefined;
-    onSelectAsset(asset.url, credit);
+    onSelectAsset(asset.url, credit, asset.type);
   };
 
   return (
@@ -90,6 +91,17 @@ export function AssetLibrary({ profileId, onSelectAsset }: AssetLibraryProps) {
         >
           Unsplash
         </button>
+        <button
+          onClick={() => setActiveTab("UPLOADED")}
+          className={`flex-1 px-3 py-2 rounded-md text-xs font-medium transition-all
+            ${
+              activeTab === "UPLOADED"
+                ? "bg-zinc-700 text-white shadow-sm"
+                : "text-zinc-500 hover:text-zinc-300"
+            }`}
+        >
+          Eigene
+        </button>
       </div>
 
       {/* Thumbnails Grid */}
@@ -97,7 +109,7 @@ export function AssetLibrary({ profileId, onSelectAsset }: AssetLibraryProps) {
         <div className="text-center py-8 text-zinc-600 text-xs">Lädt...</div>
       ) : filteredAssets.length === 0 ? (
         <div className="text-center py-8 text-zinc-600 text-xs">
-          Noch keine {activeTab === "GENERATED" ? "generierten" : "Unsplash"}{" "}
+          Noch keine {activeTab === "GENERATED" ? "generierten" : activeTab === "UNSPLASH" ? "Unsplash" : "eigenen"}{" "}
           Bilder gespeichert
         </div>
       ) : (

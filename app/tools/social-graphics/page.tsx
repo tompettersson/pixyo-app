@@ -153,6 +153,7 @@ export default function EditorPage() {
   const stageRef = useRef<Konva.Stage | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const productImageInputRef = useRef<HTMLInputElement>(null);
+  const backgroundImageInputRef = useRef<HTMLInputElement>(null);
 
   // Get state from store
   const content = useEditorStore((state) => state.content);
@@ -237,6 +238,10 @@ export default function EditorPage() {
 
   // Unsplash state
   const [isUnsplashOpen, setIsUnsplashOpen] = useState(false);
+
+  // Background source tab
+  const [bgSourceTab, setBgSourceTab] = useState<'upload' | 'unsplash'>('upload');
+  const [assetRefreshKey, setAssetRefreshKey] = useState(0);
 
   // Profile settings state
   const [isProfileSettingsOpen, setIsProfileSettingsOpen] = useState(false);
@@ -668,6 +673,73 @@ export default function EditorPage() {
     }
   }, [setProductImage]);
 
+  // Handle background image upload (user's own images)
+  const [isUploadingBackground, setIsUploadingBackground] = useState(false);
+  const handleBackgroundImageUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/png', 'image/jpeg', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      setGenerationError('Nur PNG, JPEG oder WebP Bilder erlaubt');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setGenerationError('Bild darf maximal 10MB groß sein');
+      return;
+    }
+
+    setIsUploadingBackground(true);
+    setGenerationError(null);
+
+    try {
+      const reader = new FileReader();
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      let finalUrl = dataUrl;
+
+      // If design is saved, upload to Blob for persistence
+      if (activeDesignId) {
+        try {
+          const uploadResponse = await fetch(`/api/designs/${activeDesignId}/background`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              imageData: dataUrl,
+              source: 'UPLOADED',
+            }),
+          });
+          if (uploadResponse.ok) {
+            const uploadData = await uploadResponse.json();
+            finalUrl = uploadData.url;
+          }
+        } catch (uploadError) {
+          console.warn('Blob upload error, using data URL as fallback:', uploadError);
+        }
+      }
+
+      setBackgroundImageState({
+        url: finalUrl,
+        source: 'UPLOADED',
+        transform: { scale: 1, positionX: 0, positionY: 0, flipX: false },
+      });
+    } catch (error) {
+      console.error('Background image upload error:', error);
+      setGenerationError('Bild konnte nicht geladen werden');
+    } finally {
+      setIsUploadingBackground(false);
+      // Reset input so same file can be selected again
+      event.target.value = '';
+    }
+  }, [activeDesignId, setBackgroundImageState]);
+
   // Save current background image as asset
   const handleSaveAsset = async () => {
     const imageSource = backgroundImageState?.source;
@@ -682,12 +754,14 @@ export default function EditorPage() {
         meta.styleId = selectedPreset.id;
       } else if (imageSource === "UNSPLASH" && photoCredit) {
         meta.credit = photoCredit;
+      } else if (imageSource === "UPLOADED") {
+        meta.source = "upload";
       }
 
-      // For generated images, we need to get the base64 data
+      // For generated/uploaded images with data URLs, pass base64
       let imageData: string | undefined;
       if (
-        imageSource === "GENERATED" &&
+        (imageSource === "GENERATED" || imageSource === "UPLOADED") &&
         backgroundImage.src.startsWith("data:")
       ) {
         imageData = backgroundImage.src;
@@ -703,8 +777,7 @@ export default function EditorPage() {
           height: CANVAS_HEIGHT,
           meta,
           imageData,
-          url:
-            imageSource === "UNSPLASH" ? backgroundImage.src : undefined,
+          url: !backgroundImage.src.startsWith("data:") ? backgroundImage.src : undefined,
         }),
       });
 
@@ -712,6 +785,7 @@ export default function EditorPage() {
 
       // Success feedback could be added here (toast notification)
       console.log("Asset saved successfully");
+      setAssetRefreshKey(k => k + 1);
     } catch (error) {
       console.error("Failed to save asset:", error);
     } finally {
@@ -940,6 +1014,11 @@ export default function EditorPage() {
           </div>
         </div>
 
+        {/* === KI-Bildgenerierung Section === */}
+        <div className="pb-3 border-b border-zinc-800/50">
+          <span className="text-xs text-zinc-500 uppercase tracking-wider">KI-Bildgenerierung</span>
+        </div>
+
         {/* User Idea */}
         <div>
           <label className="block text-xs text-zinc-500 mb-1.5 uppercase tracking-wider">
@@ -1130,9 +1209,126 @@ export default function EditorPage() {
           </p>
         )}
 
-        {/* Fallback Color */}
+        {/* === Hintergrund Section === */}
+        <div className="pb-2 pt-1 border-b border-zinc-800/50">
+          <span className="text-xs text-zinc-500 uppercase tracking-wider">Hintergrund</span>
+        </div>
+
+        {/* Background Source Tab Toggle */}
+        <div className="flex gap-1 p-0.5 bg-zinc-800/50 rounded-lg">
+          <button
+            onClick={() => setBgSourceTab('upload')}
+            className={`flex-1 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+              bgSourceTab === 'upload'
+                ? 'bg-white/15 text-white'
+                : 'text-zinc-500 hover:text-zinc-300'
+            }`}
+          >
+            Eigenes Bild
+          </button>
+          <button
+            onClick={() => setBgSourceTab('unsplash')}
+            className={`flex-1 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+              bgSourceTab === 'unsplash'
+                ? 'bg-white/15 text-white'
+                : 'text-zinc-500 hover:text-zinc-300'
+            }`}
+          >
+            Stockfotos
+          </button>
+        </div>
+
+        {/* Tab Content: Own Image Upload */}
+        {bgSourceTab === 'upload' && (
+          <div className="space-y-2">
+            <input
+              ref={backgroundImageInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              className="hidden"
+              onChange={handleBackgroundImageUpload}
+            />
+            <button
+              onClick={() => backgroundImageInputRef.current?.click()}
+              disabled={isUploadingBackground}
+              className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-lg border-2 border-dashed border-zinc-700/50 hover:border-zinc-500 text-zinc-400 hover:text-zinc-300 transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.currentTarget.classList.add('border-fuchsia-500', 'bg-fuchsia-500/5');
+              }}
+              onDragLeave={(e) => {
+                e.currentTarget.classList.remove('border-fuchsia-500', 'bg-fuchsia-500/5');
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.currentTarget.classList.remove('border-fuchsia-500', 'bg-fuchsia-500/5');
+                const file = e.dataTransfer.files[0];
+                if (file && backgroundImageInputRef.current) {
+                  const dt = new DataTransfer();
+                  dt.items.add(file);
+                  backgroundImageInputRef.current.files = dt.files;
+                  backgroundImageInputRef.current.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+              }}
+            >
+              {isUploadingBackground ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Wird hochgeladen...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Bild hochladen
+                </>
+              )}
+            </button>
+            <p className="text-[10px] text-zinc-600">PNG, JPEG, WebP — max. 10 MB</p>
+          </div>
+        )}
+
+        {/* Tab Content: Unsplash Search */}
+        {bgSourceTab === 'unsplash' && (
+          <div className="space-y-2">
+            <Button
+              variant="secondary"
+              className="w-full"
+              onClick={() => setIsUnsplashOpen(true)}
+            >
+              <svg
+                className="w-4 h-4 mr-2"
+                viewBox="0 0 32 32"
+                fill="currentColor"
+              >
+                <path d="M10 9V0H22V9H32V22H22V32H10V22H0V9H10ZM22 22H10V9H22V22Z" />
+              </svg>
+              Unsplash durchsuchen
+            </Button>
+            {photoCredit && (
+              <p className="text-xs text-zinc-500">
+                Foto von{" "}
+                <a
+                  href={photoCredit.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-zinc-400 hover:underline"
+                >
+                  {photoCredit.name}
+                </a>{" "}
+                / Unsplash
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Fallback Color — only when no background image */}
         {!backgroundImage && (
-          <div className="space-y-2 pt-3 border-t border-zinc-800/50">
+          <div className="space-y-2">
             <label className="block text-xs text-zinc-500 uppercase tracking-wider">
               Fallback-Farbe
             </label>
@@ -1160,62 +1356,30 @@ export default function EditorPage() {
           </div>
         )}
 
-        {/* Unsplash Search */}
-        <div className="space-y-2 pt-3 border-t border-zinc-800/50">
-          <label className="block text-xs text-zinc-500 uppercase tracking-wider">
-            Stockfotos
-          </label>
-          <Button
-            variant="secondary"
-            className="w-full"
-            onClick={() => setIsUnsplashOpen(true)}
-          >
-            <svg
-              className="w-4 h-4 mr-2"
-              viewBox="0 0 32 32"
-              fill="currentColor"
-            >
-              <path d="M10 9V0H22V9H32V22H22V32H10V22H0V9H10ZM22 22H10V9H22V22Z" />
-            </svg>
-            Unsplash durchsuchen
-          </Button>
-          {photoCredit && (
-            <p className="text-xs text-zinc-500">
-              📷 Foto von{" "}
-              <a
-                href={photoCredit.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-zinc-400 hover:underline"
-              >
-                {photoCredit.name}
-              </a>
-            </p>
-          )}
-        </div>
-
-        {/* Actions */}
-        <div className="space-y-2 pt-3 border-t border-zinc-800/50">
+        {/* Background Actions */}
+        <div className="flex gap-2">
           {backgroundImage && currentProfileId && (
             <Button
               variant="secondary"
-              className="w-full text-xs"
+              className="flex-1 text-xs"
               onClick={handleSaveAsset}
               disabled={isSavingAsset}
             >
               {isSavingAsset ? "Speichert..." : "Bild speichern"}
             </Button>
           )}
-          <Button
-            variant="ghost"
-            className="w-full text-xs"
-            onClick={() => {
-              setBackgroundImageState(null);
-            }}
-            disabled={!backgroundImage}
-          >
-            Hintergrundbild entfernen
-          </Button>
+          {backgroundImage && (
+            <Button
+              variant="ghost"
+              className="flex-1 text-xs"
+              onClick={() => {
+                setBackgroundImageState(null);
+                setBackgroundImage(null);
+              }}
+            >
+              Entfernen
+            </Button>
+          )}
         </div>
 
         {/* Meine Bilder - Asset Library */}
@@ -1226,15 +1390,19 @@ export default function EditorPage() {
             </label>
             <AssetLibrary
               profileId={currentProfileId}
-              onSelectAsset={(url, credit) => {
+              refreshKey={assetRefreshKey}
+              onSelectAsset={(url, credit, assetType) => {
                 // Bild laden
                 const img = new window.Image();
                 img.crossOrigin = "anonymous";
                 img.onload = () => {
                   setBackgroundImage(img);
+                  const source = assetType === "PRODUCT_SCENE" ? "GENERATED"
+                    : assetType === "UPLOADED" ? "UPLOADED"
+                    : credit ? "UNSPLASH" : "GENERATED";
                   setBackgroundImageState({
                     url,
-                    source: credit ? "UNSPLASH" : "GENERATED",
+                    source,
                     credit: credit || undefined,
                     transform: { scale: 1, positionX: 0, positionY: 0, flipX: false },
                   });

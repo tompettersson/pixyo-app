@@ -7,7 +7,7 @@ import { z } from 'zod';
 // Schema for asset creation
 const assetSchema = z.object({
   profileId: z.string(),
-  type: z.enum(['GENERATED', 'UNSPLASH', 'PRODUCT_SCENE']),
+  type: z.enum(['GENERATED', 'UNSPLASH', 'PRODUCT_SCENE', 'UPLOADED']),
   width: z.number(),
   height: z.number(),
   meta: z.record(z.string(), z.any()),
@@ -104,12 +104,21 @@ export async function POST(request: NextRequest) {
       const base64Data = validatedData.imageData.split(',')[1] || validatedData.imageData;
       const buffer = Buffer.from(base64Data, 'base64');
 
+      // Derive content type from data URL prefix or meta
+      let contentType = 'image/png';
+      const dataUrlMatch = validatedData.imageData.match(/^data:([^;]+);base64,/);
+      if (dataUrlMatch) {
+        contentType = dataUrlMatch[1];
+      }
+      const ext = contentType.includes('jpeg') || contentType.includes('jpg') ? 'jpg'
+        : contentType.includes('webp') ? 'webp' : 'png';
+
       const blob = await put(
-        `assets/${Date.now()}-${Math.random().toString(36).substring(7)}.png`,
+        `assets/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`,
         buffer,
         {
           access: 'public',
-          contentType: 'image/png',
+          contentType,
         }
       );
 

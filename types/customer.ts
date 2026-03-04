@@ -100,7 +100,7 @@ export interface DesignContent {
 // Background image state
 export interface DesignBackgroundImage {
   url: string;
-  source: 'GENERATED' | 'UNSPLASH';
+  source: 'GENERATED' | 'UNSPLASH' | 'UPLOADED';
   credit?: {
     name: string;
     username: string;
