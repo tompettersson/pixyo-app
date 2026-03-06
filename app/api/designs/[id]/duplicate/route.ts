@@ -37,7 +37,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    // Create duplicate
+    // Create duplicate with all visual state
     const duplicatedDesign = await prisma.design.create({
       data: {
         profileId: originalDesign.profileId,
@@ -45,7 +45,11 @@ export async function POST(
         canvasState: originalDesign.canvasState as Prisma.InputJsonValue,
         layers: originalDesign.layers as Prisma.InputJsonValue,
         overlayOpacity: originalDesign.overlayOpacity,
-        // Don't copy thumbnailUrl - new design needs its own thumbnail
+        ...(originalDesign.content !== null && { content: originalDesign.content as Prisma.InputJsonValue }),
+        ...(originalDesign.backgroundImage !== null && { backgroundImage: originalDesign.backgroundImage as Prisma.InputJsonValue }),
+        ...(originalDesign.overlay !== null && { overlay: originalDesign.overlay as Prisma.InputJsonValue }),
+        ...(originalDesign.productImage !== null && { productImage: originalDesign.productImage as Prisma.InputJsonValue }),
+        thumbnailUrl: originalDesign.thumbnailUrl,
       },
     });
 

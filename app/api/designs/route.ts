@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stackServerApp } from '@/lib/stack';
 import { prisma } from '@/lib/db';
+import { Prisma } from '@/lib/generated/prisma/client';
 import { z } from 'zod';
 
 // Schema for creating a design
@@ -15,6 +16,10 @@ const createDesignSchema = z.object({
   }),
   layers: z.array(z.any()),
   overlayOpacity: z.number().optional(),
+  content: z.any().optional(),
+  backgroundImage: z.any().nullable().optional(),
+  overlay: z.any().optional(),
+  productImage: z.any().nullable().optional(),
 });
 
 // GET /api/designs?profileId=xxx - List designs for a profile
@@ -92,6 +97,14 @@ export async function POST(request: NextRequest) {
         canvasState: data.canvasState,
         layers: data.layers,
         overlayOpacity: data.overlayOpacity || 0,
+        ...(data.content !== undefined && { content: data.content }),
+        ...(data.backgroundImage !== undefined && {
+          backgroundImage: data.backgroundImage === null ? Prisma.JsonNull : data.backgroundImage,
+        }),
+        ...(data.overlay !== undefined && { overlay: data.overlay }),
+        ...(data.productImage !== undefined && {
+          productImage: data.productImage === null ? Prisma.JsonNull : data.productImage,
+        }),
       },
     });
 
