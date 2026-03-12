@@ -125,8 +125,11 @@ export function computeBannerTokens(
         : minDim * 0.10
   );
   const headline = Math.round(Math.max(9, Math.min(headlineMaxForDim, 48, headlineRaw)));
-  const subline = Math.round(Math.max(7, Math.min(20, sublineRaw)));
-  const cta = Math.round(Math.max(7, Math.min(20, ctaRaw)));
+  // Subline & CTA must never exceed headline (hierarchy preservation)
+  const sublineMax = Math.min(20, Math.round(headline * 0.7));
+  const subline = Math.round(Math.max(7, Math.min(sublineMax, sublineRaw)));
+  const ctaMin = Math.max(7, Math.min(20, headline, Math.round(headline * 0.55)));
+  const cta = Math.round(Math.max(ctaMin, Math.min(20, headline, ctaRaw)));
   const logo = Math.round(Math.max(12, Math.min(36, logoRaw)));
 
   // ── Spacing (proportional to min dimension, capped) ──────
