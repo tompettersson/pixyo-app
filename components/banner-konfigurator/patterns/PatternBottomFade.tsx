@@ -59,7 +59,7 @@ function HorizontalLayout({ config, tokens }: PatternProps) {
       <div
         className="absolute inset-0"
         style={{
-          background: `linear-gradient(to right, ${hexToRgba(config.colorTo, 0.93)} 0%, ${hexToRgba(config.colorFrom, 0.82)} 30%, ${hexToRgba(config.colorFrom, 0.45)} 60%, transparent 100%)`,
+          background: `linear-gradient(to right, ${hexToRgba(config.colorFrom, 0.95)} 0%, ${hexToRgba(config.colorFrom, 0.82)} 30%, ${hexToRgba(config.colorFrom, 0.45)} 60%, transparent 100%)`,
         }}
       />
       {/* Content: single horizontal row, vertically centered */}
@@ -145,7 +145,7 @@ function VerticalLayout({ width, height, config, tokens }: PatternProps) {
       <div
         className="absolute inset-0"
         style={{
-          background: `linear-gradient(to bottom, transparent ${gradientStart}, ${hexToRgba(config.colorFrom, 0.4)} ${gradientMid}, ${hexToRgba(config.colorTo, 0.95)} 100%)`,
+          background: `linear-gradient(to bottom, transparent ${gradientStart}, ${hexToRgba(config.colorFrom, 0.4)} ${gradientMid}, ${hexToRgba(config.colorFrom, 0.95)} 100%)`,
         }}
       />
       {/* Content stacked at bottom */}
