@@ -101,8 +101,9 @@ export function computeBannerTokens(
   const scaleRatio = designTokens?.typography?.scale?.ratio ?? 1.25;
 
   // Scale factor: sqrt(area / reference) gives smooth sizing
-  // Clamp to prevent extremes on very small/large banners
-  const scaleFactor = Math.max(0.45, Math.min(2.5, Math.sqrt(area / REFERENCE_AREA)));
+  // Higher clamp for social/large formats (>500k px²) so text feels native
+  const scaleMax = area > 500_000 ? 3.5 : 2.5;
+  const scaleFactor = Math.max(0.45, Math.min(scaleMax, Math.sqrt(area / REFERENCE_AREA)));
 
   // Headline = scale step 2 (2xl equivalent) × scaleFactor
   const headlineRaw = modularScale(scaleBase, scaleRatio, 2) * scaleFactor;
