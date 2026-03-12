@@ -124,18 +124,35 @@ export function computeBannerTokens(
         ? width * 0.12
         : minDim * 0.10
   );
-  const headline = Math.round(Math.max(9, Math.min(headlineMaxForDim, 48, headlineRaw)));
-  // Subline & CTA must never exceed headline (hierarchy preservation)
-  const sublineMax = Math.min(20, Math.round(headline * 0.7));
+  // Dynamic headline cap: 48px for standard ads, scales up for social/large formats
+  // Social (1080px+) should feel like social posts, not tiny ad text
+  const headlineCap = area > 500_000 ? 72 : 48;
+  const headline = Math.round(Math.max(9, Math.min(headlineMaxForDim, headlineCap, headlineRaw)));
+
+  // Subline & CTA caps scale with headline for large formats
+  const sublineCap = area > 500_000 ? 32 : 20;
+  const sublineMax = Math.min(sublineCap, Math.round(headline * 0.7));
   const subline = Math.round(Math.max(7, Math.min(sublineMax, sublineRaw)));
-  const ctaMin = Math.max(7, Math.min(20, headline, Math.round(headline * 0.55)));
-  const cta = Math.round(Math.max(ctaMin, Math.min(20, headline, ctaRaw)));
-  const logo = Math.round(Math.max(12, Math.min(36, logoRaw)));
+
+  const ctaCap = area > 500_000 ? 28 : 20;
+  // CTA must stay below headline (max 85%) to preserve visual hierarchy
+  const ctaMax = Math.min(ctaCap, Math.round(headline * 0.85));
+  const ctaMin = Math.max(7, Math.min(ctaMax, Math.round(headline * 0.55)));
+  const cta = Math.round(Math.max(ctaMin, Math.min(ctaMax, ctaRaw)));
+
+  // Logo scales with format size
+  const logoCap = area > 500_000 ? 56 : 36;
+  const logo = Math.round(Math.max(12, Math.min(logoCap, logoRaw)));
 
   // ── Spacing (proportional to min dimension, capped) ──────
-  const padding = Math.round(Math.max(4, Math.min(24, minDim * 0.06)));
-  const gap = Math.round(Math.max(2, Math.min(10, minDim * 0.025)));
-  const ctaMarginTop = Math.round(Math.max(1, Math.min(8, minDim * 0.02)));
+  // Horizontal banners need more padding relative to their short height
+  const paddingFactor = isHorizontal ? 0.10 : 0.06;
+  const paddingMax = area > 500_000 ? 40 : 24;
+  const padding = Math.round(Math.max(6, Math.min(paddingMax, minDim * paddingFactor)));
+  const gapMax = area > 500_000 ? 16 : 10;
+  const gap = Math.round(Math.max(2, Math.min(gapMax, minDim * 0.025)));
+  const ctaMarginMax = area > 500_000 ? 14 : 8;
+  const ctaMarginTop = Math.round(Math.max(1, Math.min(ctaMarginMax, minDim * 0.02)));
 
   // ── Colors ────────────────────────────────────────────────
   const gradientFrom = config.colorFrom;

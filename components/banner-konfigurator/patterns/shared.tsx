@@ -63,8 +63,8 @@ export function CTAButton({
   tokens: BannerTokens;
 }) {
   // Scale padding proportionally to CTA font size
-  const py = Math.max(2, Math.round(tokens.fontSize.cta * 0.25));
-  const px = Math.max(4, Math.round(tokens.fontSize.cta * 0.7));
+  const py = Math.max(3, Math.round(tokens.fontSize.cta * 0.4));
+  const px = Math.max(6, Math.round(tokens.fontSize.cta * 0.9));
 
   return (
     <span
@@ -89,8 +89,8 @@ export function CTAButton({
 
 // Patterns will render CTA inline, so we export a style-only helper too:
 export function ctaStyle(tokens: BannerTokens): React.CSSProperties {
-  const py = Math.max(2, Math.round(tokens.fontSize.cta * 0.25));
-  const px = Math.max(4, Math.round(tokens.fontSize.cta * 0.7));
+  const py = Math.max(3, Math.round(tokens.fontSize.cta * 0.4));
+  const px = Math.max(6, Math.round(tokens.fontSize.cta * 0.9));
 
   return {
     display: 'inline-block',
