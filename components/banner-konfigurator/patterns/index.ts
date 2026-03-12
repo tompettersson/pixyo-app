@@ -18,13 +18,14 @@ export interface PatternMeta {
   component: React.ComponentType<PatternProps>;
 }
 
+// NOTE: Only P4 active during design QA — other patterns temporarily hidden
 export const PATTERNS: PatternMeta[] = [
-  { id: 'P1', labelDe: 'Split-Layout', labelEn: 'Split Layout', needsImage: true, component: PatternSplit },
-  { id: 'P3', labelDe: 'Kreis-Akzent', labelEn: 'Circle Accent', needsImage: false, component: PatternCircleAccent },
+  // { id: 'P1', labelDe: 'Split-Layout', labelEn: 'Split Layout', needsImage: true, component: PatternSplit },
+  // { id: 'P3', labelDe: 'Kreis-Akzent', labelEn: 'Circle Accent', needsImage: false, component: PatternCircleAccent },
   { id: 'P4', labelDe: 'Verlauf unten', labelEn: 'Bottom Fade', needsImage: true, component: PatternBottomFade },
-  { id: 'P5', labelDe: 'Minimaler Gradient', labelEn: 'Minimal Gradient', needsImage: false, component: PatternMinimalGradient },
-  { id: 'P6', labelDe: 'Foto-Overlay', labelEn: 'Photo Overlay', needsImage: true, component: PatternPhotoOverlay },
-  { id: 'P7', labelDe: 'Duotone', labelEn: 'Duotone', needsImage: true, component: PatternDuotone },
+  // { id: 'P5', labelDe: 'Minimaler Gradient', labelEn: 'Minimal Gradient', needsImage: false, component: PatternMinimalGradient },
+  // { id: 'P6', labelDe: 'Foto-Overlay', labelEn: 'Photo Overlay', needsImage: true, component: PatternPhotoOverlay },
+  // { id: 'P7', labelDe: 'Duotone', labelEn: 'Duotone', needsImage: true, component: PatternDuotone },
 ];
 
 // ─── Pattern lookup map ────────────────────────────────────────
