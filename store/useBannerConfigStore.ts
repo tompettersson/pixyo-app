@@ -75,7 +75,7 @@ export const BG_IMAGE_OPTIONS = [
 ];
 
 const DEFAULT_CONFIG: BannerConfig = {
-  activePattern: 'P1',
+  activePattern: 'P4',
   colorFrom: '#7c3aed',
   colorTo: '#4f46e5',
   accentColor: '#ffffff',
