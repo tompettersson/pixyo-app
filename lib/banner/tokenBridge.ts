@@ -111,20 +111,28 @@ export function computeBannerTokens(
   // CTA = between subline and headline
   const ctaRaw = modularScale(scaleBase, scaleRatio, -1) * scaleFactor;
   // Logo = relative to headline
-  const logoRaw = headlineRaw * 1.6;
+  const logoRaw = headlineRaw * 1.4;
 
-  // Additional constraint: headline must not exceed ~5% of min dimension
-  // This prevents large text on small banners where it overflows
-  const headlineMaxForDim = Math.round(minDim * 0.14);
+  // Headline constraint based on format orientation:
+  // Horizontal banners: height is the bottleneck (thin strip)
+  // Vertical banners: width is the bottleneck (narrow column)
+  // Square banners: balanced constraint on min dimension
+  const headlineMaxForDim = Math.round(
+    isHorizontal
+      ? height * 0.18
+      : isVertical
+        ? width * 0.09
+        : minDim * 0.10
+  );
   const headline = Math.round(Math.max(9, Math.min(headlineMaxForDim, 48, headlineRaw)));
-  const subline = Math.round(Math.max(7, Math.min(24, sublineRaw)));
-  const cta = Math.round(Math.max(7, Math.min(14, ctaRaw)));
-  const logo = Math.round(Math.max(14, Math.min(48, logoRaw)));
+  const subline = Math.round(Math.max(7, Math.min(20, sublineRaw)));
+  const cta = Math.round(Math.max(7, Math.min(20, ctaRaw)));
+  const logo = Math.round(Math.max(12, Math.min(36, logoRaw)));
 
-  // ── Spacing (proportional to min dimension) ───────────────
-  const padding = Math.round(Math.max(4, minDim * 0.06));
-  const gap = Math.round(Math.max(2, minDim * 0.025));
-  const ctaMarginTop = Math.round(Math.max(2, minDim * 0.02));
+  // ── Spacing (proportional to min dimension, capped) ──────
+  const padding = Math.round(Math.max(4, Math.min(24, minDim * 0.06)));
+  const gap = Math.round(Math.max(2, Math.min(10, minDim * 0.025)));
+  const ctaMarginTop = Math.round(Math.max(1, Math.min(8, minDim * 0.02)));
 
   // ── Colors ────────────────────────────────────────────────
   const gradientFrom = config.colorFrom;
@@ -171,8 +179,8 @@ export function computeBannerTokens(
 
   // ── Visibility flags ──────────────────────────────────────
   // Hide elements that don't fit in very small formats
-  const hideSubline = isTiny || isSmall || (isHorizontal && minDim < 70);
-  const hideLogo = isTiny;
+  const hideSubline = isTiny || isSmall || (isHorizontal && height < 120) || (isVertical && width < 150);
+  const hideLogo = isTiny || (isHorizontal && (height < 70 || width < 400));
   const hideCta = false; // always show CTA, but scale it down
 
   return {

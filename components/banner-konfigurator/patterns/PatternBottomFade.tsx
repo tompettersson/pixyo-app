@@ -6,31 +6,138 @@ import { hexToRgba } from '@/lib/banner/colorUtils';
 
 /**
  * P4: Bottom Gradient Fade
- * Full image background with gradient fade from bottom.
- * Universal pattern that works across all aspect ratios.
+ *
+ * Two layout modes based on banner proportions:
+ *
+ * 1) HORIZONTAL ROW (leaderboard-type, height <= 120 && ratio > 1.5):
+ *    Gradient left→right, content in a single row:
+ *    [Logo]  Headline  ————————  [CTA Button]
+ *    Photo peeks through on the right side.
+ *
+ * 2) VERTICAL STACK (rectangles, skyscrapers, social):
+ *    Gradient bottom→top, content stacked at bottom:
+ *    Photo on top, gradient fades into brand color,
+ *    Logo → Headline → Subline → CTA stacked vertically.
  */
 export default function PatternBottomFade({ width, height, config, tokens }: PatternProps) {
-  const { flags, spacing, fontSize, colors } = tokens;
+  const { flags } = tokens;
+
+  // Thin landscape banners get horizontal row layout
+  const useRowLayout = flags.isHorizontal && height <= 120;
+
+  if (useRowLayout) {
+    return <HorizontalLayout width={width} height={height} config={config} tokens={tokens} />;
+  }
+
+  return <VerticalLayout width={width} height={height} config={config} tokens={tokens} />;
+}
+
+// ─── Horizontal Row Layout ──────────────────────────────────────
+// Used for: B-01 (728×90), B-02 (970×90), B-03 (468×60),
+//           B-04 (320×50), B-05 (320×100)
+//
+// Layout: [Logo] | Headline (single line, ellipsis) | [CTA right-aligned]
+// Gradient: left (opaque brand) → right (transparent → photo visible)
+
+function HorizontalLayout({ config, tokens }: PatternProps) {
+  const { flags, spacing, fontSize } = tokens;
 
   return (
     <div className="relative w-full h-full overflow-hidden">
       {/* Background image */}
+      {config.bgImageUrl && (
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `url(${config.bgImageUrl})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        />
+      )}
+      {/* Gradient: left opaque → right transparent (photo peeks through right) */}
       <div
         className="absolute inset-0"
         style={{
-          backgroundImage: `url(${config.bgImageUrl})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          background: `linear-gradient(to right, ${hexToRgba(config.colorTo, 0.93)} 0%, ${hexToRgba(config.colorFrom, 0.82)} 30%, ${hexToRgba(config.colorFrom, 0.45)} 60%, transparent 100%)`,
         }}
       />
-      {/* Gradient fade from bottom — 3-stop for smooth transition */}
+      {/* Content: single horizontal row, vertically centered */}
+      <div
+        className="absolute inset-0 flex items-center overflow-hidden"
+        style={{
+          padding: spacing.padding,
+          gap: spacing.gap * 2,
+        }}
+      >
+        {!flags.hideLogo && (
+          <div className="flex-shrink-0">
+            <Logo url={config.logoUrl} size={fontSize.logo} />
+          </div>
+        )}
+        <p
+          className="flex-1 min-w-0"
+          style={{
+            ...headlineStyle(tokens),
+            textShadow: tokens.shadows.textShadow,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {config.headline}
+        </p>
+        <div className="flex-shrink-0">
+          <span
+            style={{
+              ...ctaStyle(tokens),
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {config.ctaText}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Vertical Stack Layout ──────────────────────────────────────
+// Used for: Rectangles (B-06..B-09), Skyscrapers (B-10..B-12),
+//           Social (B-13..B-16)
+//
+// Layout: Photo top portion, gradient fades to brand color,
+//         content stacked at bottom: Logo → Headline → Subline → CTA
+// Gradient: top (transparent) → bottom (opaque brand color)
+
+function VerticalLayout({ config, tokens }: PatternProps) {
+  const { flags, spacing, fontSize } = tokens;
+
+  // Skyscrapers: start gradient earlier so text area has solid background
+  const gradientStart = flags.isVertical ? '10%' : '25%';
+  const gradientMid = flags.isVertical ? '40%' : '55%';
+
+  return (
+    <div className="relative w-full h-full overflow-hidden">
+      {/* Background image */}
+      {config.bgImageUrl && (
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `url(${config.bgImageUrl})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center top',
+          }}
+        />
+      )}
+      {/* Gradient: top transparent → bottom opaque */}
       <div
         className="absolute inset-0"
         style={{
-          background: `linear-gradient(to bottom, transparent 20%, ${hexToRgba(config.colorFrom, 0.3)} 55%, ${hexToRgba(config.colorTo, 0.9)} 100%)`,
+          background: `linear-gradient(to bottom, transparent ${gradientStart}, ${hexToRgba(config.colorFrom, 0.4)} ${gradientMid}, ${hexToRgba(config.colorTo, 0.95)} 100%)`,
         }}
       />
-      {/* Content at bottom */}
+      {/* Content stacked at bottom */}
       <div
         className="absolute inset-0 flex flex-col justify-end overflow-hidden"
         style={{
@@ -41,11 +148,17 @@ export default function PatternBottomFade({ width, height, config, tokens }: Pat
         {!flags.hideLogo && (
           <Logo url={config.logoUrl} size={fontSize.logo} />
         )}
-        <p style={headlineStyle(tokens)}>
+        <p style={{
+          ...headlineStyle(tokens),
+          textShadow: tokens.shadows.textShadow,
+        }}>
           {config.headline}
         </p>
         {!flags.hideSubline && (
-          <p style={sublineStyle(tokens)}>
+          <p style={{
+            ...sublineStyle(tokens),
+            textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
+          }}>
             {config.subline}
           </p>
         )}
