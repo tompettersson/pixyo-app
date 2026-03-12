@@ -95,10 +95,13 @@ function isVertical(w: number, h: number) {
   return h / w > 1.5;
 }
 function isSmall(w: number, h: number) {
-  return w * h < 40000;
+  return w * h < 50000;
 }
 function isTiny(w: number, h: number) {
   return w * h < 25000;
+}
+function shouldHideSubline(w: number, h: number) {
+  return isTiny(w, h) || isSmall(w, h) || (isHorizontal(w, h) && Math.min(w, h) < 70);
 }
 
 function fontSizes(w: number, h: number) {
@@ -128,6 +131,7 @@ function PatternSplit({ width, height, config }: PatternProps) {
   const vert = isVertical(width, height);
   const fs = fontSizes(width, height);
   const splitPct = `${config.splitRatio * 100}%`;
+  const hideSub = shouldHideSubline(width, height);
 
   if (vert) {
     return (
@@ -147,13 +151,15 @@ function PatternSplit({ width, height, config }: PatternProps) {
             flex: `0 0 ${splitPct}`,
           }}
         >
-          <Logo url={config.logoUrl} size={fs.logo} fallbackColor={config.resolvedTextColor} />
+          {!isTiny(width, height) && <Logo url={config.logoUrl} size={fs.logo} fallbackColor={config.resolvedTextColor} />}
           <p style={headlineStyle(config, fs)} className="leading-tight text-center">
             {config.headline}
           </p>
-          <p style={{ fontSize: fs.sub, color: config.resolvedTextColor }} className="opacity-80 text-center">
-            {config.subline}
-          </p>
+          {!hideSub && (
+            <p style={{ fontSize: fs.sub, color: config.resolvedTextColor }} className="opacity-80 text-center">
+              {config.subline}
+            </p>
+          )}
           <div className="mt-1">
             <CTAButton config={config} />
           </div>
@@ -179,13 +185,15 @@ function PatternSplit({ width, height, config }: PatternProps) {
           flex: 1,
         }}
       >
-        <Logo url={config.logoUrl} size={fs.logo} fallbackColor={config.resolvedTextColor} />
+        {!isTiny(width, height) && <Logo url={config.logoUrl} size={fs.logo} fallbackColor={config.resolvedTextColor} />}
         <p style={headlineStyle(config, fs)} className="leading-tight">
           {config.headline}
         </p>
-        <p style={{ fontSize: fs.sub, color: config.resolvedTextColor }} className="opacity-80">
-          {config.subline}
-        </p>
+        {!hideSub && (
+          <p style={{ fontSize: fs.sub, color: config.resolvedTextColor }} className="opacity-80">
+            {config.subline}
+          </p>
+        )}
         <div className="mt-1">
           <CTAButton config={config} small={fs.cta} />
         </div>
@@ -400,6 +408,7 @@ function PatternMinimalGradient({ width, height, config }: PatternProps) {
 function PatternDarkened({ width, height, config }: PatternProps) {
   const fs = fontSizes(width, height);
   const tiny = isTiny(width, height);
+  const hideSub = shouldHideSubline(width, height);
   const vert = isVertical(width, height);
 
   return (
@@ -438,7 +447,7 @@ function PatternDarkened({ width, height, config }: PatternProps) {
         >
           {config.headline}
         </p>
-        {!tiny && (
+        {!hideSub && (
           <p style={{ fontSize: fs.sub }} className="text-white/80">
             {config.subline}
           </p>
@@ -456,6 +465,7 @@ function PatternDarkened({ width, height, config }: PatternProps) {
 // ═══════════════════════════════════════════════════════════════
 function PatternWave({ width, height, config }: PatternProps) {
   const fs = fontSizes(width, height);
+  const hideSub = shouldHideSubline(width, height);
 
   return (
     <div className="relative w-full h-full overflow-hidden">
@@ -486,13 +496,15 @@ function PatternWave({ width, height, config }: PatternProps) {
         />
       </svg>
       <div className="absolute top-0 left-0 right-0 flex flex-col justify-start items-center p-3 gap-0.5" style={{ height: '50%', justifyContent: 'center' }}>
-        <Logo url={config.logoUrl} size={fs.logo} fallbackColor={config.resolvedTextColor} />
+        {!isTiny(width, height) && <Logo url={config.logoUrl} size={fs.logo} fallbackColor={config.resolvedTextColor} />}
         <p style={headlineStyle(config, fs)} className="leading-tight text-center">
           {config.headline}
         </p>
-        <p style={{ fontSize: fs.sub, color: config.resolvedTextColor }} className="opacity-80 text-center">
-          {config.subline}
-        </p>
+        {!hideSub && (
+          <p style={{ fontSize: fs.sub, color: config.resolvedTextColor }} className="opacity-80 text-center">
+            {config.subline}
+          </p>
+        )}
         <div className="mt-1">
           <CTAButton config={config} small={fs.cta} />
         </div>
@@ -506,6 +518,7 @@ function PatternWave({ width, height, config }: PatternProps) {
 // ═══════════════════════════════════════════════════════════════
 function PatternSidePanel({ width, height, config }: PatternProps) {
   const fs = fontSizes(width, height);
+  const hideSub = shouldHideSubline(width, height);
   const panelPct = `${config.splitRatio * 100}%`;
 
   return (
@@ -517,13 +530,15 @@ function PatternSidePanel({ width, height, config }: PatternProps) {
           flex: `0 0 ${panelPct}`,
         }}
       >
-        <Logo url={config.logoUrl} size={fs.logo} fallbackColor={config.resolvedTextColor} />
+        {!isTiny(width, height) && <Logo url={config.logoUrl} size={fs.logo} fallbackColor={config.resolvedTextColor} />}
         <p style={headlineStyle(config, fs)} className="leading-tight text-center">
           {config.headline}
         </p>
-        <p style={{ fontSize: fs.sub, color: config.resolvedTextColor }} className="opacity-80 text-center">
-          {config.subline}
-        </p>
+        {!hideSub && (
+          <p style={{ fontSize: fs.sub, color: config.resolvedTextColor }} className="opacity-80 text-center">
+            {config.subline}
+          </p>
+        )}
         <div className="mt-1">
           <CTAButton config={config} small={fs.cta} />
         </div>
