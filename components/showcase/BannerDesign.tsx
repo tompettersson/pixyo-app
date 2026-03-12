@@ -363,6 +363,7 @@ function PatternBottomFade({ width, height, config }: PatternProps) {
 function PatternMinimalGradient({ width, height, config }: PatternProps) {
   const fs = fontSizes(width, height);
   const tiny = isTiny(width, height);
+  const hideSub = shouldHideSubline(width, height);
   const horiz = isHorizontal(width, height);
 
   return (
@@ -388,7 +389,7 @@ function PatternMinimalGradient({ width, height, config }: PatternProps) {
           <p style={headlineStyle(config, fs)} className="leading-tight">
             {config.headline}
           </p>
-          {!tiny && (
+          {!hideSub && (
             <p style={{ fontSize: fs.sub, color: config.resolvedTextColor }} className="opacity-80 mt-0.5">
               {config.subline}
             </p>
