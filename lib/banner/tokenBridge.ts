@@ -90,7 +90,7 @@ export function computeBannerTokens(
   const ratio = width / height;
 
   // ── Layout flags ──────────────────────────────────────────
-  const isSmall = area < 50_000;
+  const isSmall = area < 65_000;
   const isTiny = area < 25_000;
   const isHorizontal = ratio > 1.5;
   const isVertical = 1 / ratio > 1.5;
