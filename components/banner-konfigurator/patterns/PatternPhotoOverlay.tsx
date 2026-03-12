@@ -39,7 +39,7 @@ export default function PatternPhotoOverlay({ width, height, config, tokens }: P
       />
       {/* Content */}
       <div
-        className={`absolute inset-0 flex flex-col ${
+        className={`absolute inset-0 flex flex-col overflow-hidden ${
           flags.isVertical
             ? 'justify-center items-center text-center'
             : 'justify-center items-start'
@@ -60,7 +60,7 @@ export default function PatternPhotoOverlay({ width, height, config, tokens }: P
             {config.subline}
           </p>
         )}
-        <div style={{ marginTop: spacing.ctaMarginTop }}>
+        <div style={{ marginTop: spacing.ctaMarginTop, maxWidth: '100%' }}>
           <span style={ctaStyle(tokens)}>{config.ctaText}</span>
         </div>
       </div>

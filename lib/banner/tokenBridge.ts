@@ -113,10 +113,13 @@ export function computeBannerTokens(
   // Logo = relative to headline
   const logoRaw = headlineRaw * 1.6;
 
-  const headline = Math.round(Math.max(9, Math.min(72, headlineRaw)));
-  const subline = Math.round(Math.max(7, Math.min(28, sublineRaw)));
-  const cta = Math.round(Math.max(7, Math.min(16, ctaRaw)));
-  const logo = Math.round(Math.max(14, Math.min(64, logoRaw)));
+  // Additional constraint: headline must not exceed ~5% of min dimension
+  // This prevents large text on small banners where it overflows
+  const headlineMaxForDim = Math.round(minDim * 0.14);
+  const headline = Math.round(Math.max(9, Math.min(headlineMaxForDim, 48, headlineRaw)));
+  const subline = Math.round(Math.max(7, Math.min(24, sublineRaw)));
+  const cta = Math.round(Math.max(7, Math.min(14, ctaRaw)));
+  const logo = Math.round(Math.max(14, Math.min(48, logoRaw)));
 
   // ── Spacing (proportional to min dimension) ───────────────
   const padding = Math.round(Math.max(4, minDim * 0.06));

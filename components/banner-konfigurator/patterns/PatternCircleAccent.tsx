@@ -62,7 +62,7 @@ export default function PatternCircleAccent({ width, height, config, tokens }: P
 
       {/* Content */}
       <div
-        className={`relative z-10 flex ${
+        className={`relative z-10 flex overflow-hidden ${
           flags.isHorizontal
             ? 'flex-row items-center'
             : 'flex-col justify-center items-start'
@@ -76,7 +76,7 @@ export default function PatternCircleAccent({ width, height, config, tokens }: P
         {!flags.hideLogo && (
           <Logo url={config.logoUrl} size={fontSize.logo} />
         )}
-        <div className={flags.isHorizontal ? 'text-left flex-1' : ''}>
+        <div className={`overflow-hidden ${flags.isHorizontal ? 'text-left flex-1' : ''}`}>
           <p style={headlineStyle(tokens)}>
             {config.headline}
           </p>
@@ -86,7 +86,7 @@ export default function PatternCircleAccent({ width, height, config, tokens }: P
             </p>
           )}
         </div>
-        <div style={{ marginTop: flags.isHorizontal ? 0 : spacing.ctaMarginTop }}>
+        <div style={{ marginTop: flags.isHorizontal ? 0 : spacing.ctaMarginTop, maxWidth: '100%' }}>
           <span style={ctaStyle(tokens)}>{config.ctaText}</span>
         </div>
       </div>

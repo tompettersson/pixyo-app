@@ -30,7 +30,7 @@ export default function PatternMinimalGradient({ width, height, config, tokens }
         />
       )}
       <div
-        className={`relative z-10 flex ${
+        className={`relative z-10 flex overflow-hidden ${
           flags.isHorizontal
             ? 'flex-row items-center'
             : 'flex-col items-center'
@@ -38,6 +38,7 @@ export default function PatternMinimalGradient({ width, height, config, tokens }
         style={{
           padding: spacing.padding,
           gap: spacing.gap,
+          maxWidth: '100%',
         }}
       >
         {!flags.hideLogo && (

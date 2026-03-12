@@ -32,7 +32,7 @@ export default function PatternBottomFade({ width, height, config, tokens }: Pat
       />
       {/* Content at bottom */}
       <div
-        className="absolute inset-0 flex flex-col justify-end"
+        className="absolute inset-0 flex flex-col justify-end overflow-hidden"
         style={{
           padding: spacing.padding,
           gap: spacing.gap,
@@ -49,7 +49,7 @@ export default function PatternBottomFade({ width, height, config, tokens }: Pat
             {config.subline}
           </p>
         )}
-        <div style={{ marginTop: spacing.ctaMarginTop }}>
+        <div style={{ marginTop: spacing.ctaMarginTop, maxWidth: '100%' }}>
           <span style={ctaStyle(tokens)}>{config.ctaText}</span>
         </div>
       </div>

@@ -43,7 +43,7 @@ export default function PatternDuotone({ width, height, config, tokens }: Patter
       />
       {/* Content */}
       <div
-        className={`absolute inset-0 flex flex-col ${
+        className={`absolute inset-0 flex flex-col overflow-hidden ${
           flags.isVertical
             ? 'justify-end items-center text-center'
             : flags.isHorizontal
@@ -66,7 +66,7 @@ export default function PatternDuotone({ width, height, config, tokens }: Patter
             {config.subline}
           </p>
         )}
-        <div style={{ marginTop: spacing.ctaMarginTop }}>
+        <div style={{ marginTop: spacing.ctaMarginTop, maxWidth: '100%' }}>
           <span style={ctaStyle(tokens)}>{config.ctaText}</span>
         </div>
       </div>

@@ -22,6 +22,8 @@ export function headlineStyle(tokens: BannerTokens): React.CSSProperties {
     textTransform: tokens.typography.headlineUppercase ? 'uppercase' : 'none',
     lineHeight: tokens.typography.lineHeight,
     letterSpacing: tokens.typography.letterSpacing,
+    overflow: 'hidden',
+    wordBreak: 'break-word',
   };
 }
 
@@ -102,6 +104,9 @@ export function ctaStyle(tokens: BannerTokens): React.CSSProperties {
     padding: `${py}px ${px}px`,
     boxShadow: tokens.shadows.sm,
     whiteSpace: 'nowrap',
+    maxWidth: '100%',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
   };
 }
 
