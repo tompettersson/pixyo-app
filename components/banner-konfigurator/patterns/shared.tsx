@@ -103,10 +103,8 @@ export function ctaStyle(tokens: BannerTokens): React.CSSProperties {
     borderRadius: tokens.typography.ctaBorderRadius,
     padding: `${py}px ${px}px`,
     boxShadow: tokens.shadows.sm,
-    whiteSpace: 'nowrap',
     maxWidth: '100%',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
+    textAlign: 'center',
   };
 }
 
