@@ -71,6 +71,7 @@ export function CTAButton({
       style={{
         display: 'inline-block',
         fontSize: tokens.fontSize.cta,
+        fontFamily: `${tokens.typography.bodyFont}, ui-sans-serif, system-ui, sans-serif`,
         fontWeight: tokens.typography.ctaFontWeight,
         letterSpacing: 'normal',
         backgroundColor: tokens.colors.ctaBg,
@@ -95,6 +96,7 @@ export function ctaStyle(tokens: BannerTokens): React.CSSProperties {
   return {
     display: 'inline-block',
     fontSize: tokens.fontSize.cta,
+    fontFamily: `${tokens.typography.bodyFont}, ui-sans-serif, system-ui, sans-serif`,
     fontWeight: tokens.typography.ctaFontWeight,
     letterSpacing: 'normal',
     backgroundColor: tokens.colors.ctaBg,
