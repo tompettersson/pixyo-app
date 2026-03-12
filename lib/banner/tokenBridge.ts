@@ -119,9 +119,9 @@ export function computeBannerTokens(
   // Square banners: balanced constraint on min dimension
   const headlineMaxForDim = Math.round(
     isHorizontal
-      ? height * 0.18
+      ? height * 0.24
       : isVertical
-        ? width * 0.09
+        ? width * 0.12
         : minDim * 0.10
   );
   const headline = Math.round(Math.max(9, Math.min(headlineMaxForDim, 48, headlineRaw)));

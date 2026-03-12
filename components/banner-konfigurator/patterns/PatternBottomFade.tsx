@@ -110,12 +110,23 @@ function HorizontalLayout({ config, tokens }: PatternProps) {
 //         content stacked at bottom: Logo → Headline → Subline → CTA
 // Gradient: top (transparent) → bottom (opaque brand color)
 
-function VerticalLayout({ config, tokens }: PatternProps) {
+function VerticalLayout({ width, height, config, tokens }: PatternProps) {
   const { flags, spacing, fontSize } = tokens;
 
-  // Skyscrapers: start gradient earlier so text area has solid background
-  const gradientStart = flags.isVertical ? '10%' : '25%';
-  const gradientMid = flags.isVertical ? '40%' : '55%';
+  // Skyscrapers: gradient starts much earlier to create a generous branded zone
+  // Standard formats: gradient starts later to show more photo
+  const gradientStart = flags.isVertical ? '5%' : '25%';
+  const gradientMid = flags.isVertical ? '35%' : '55%';
+
+  // Skyscrapers need more padding to prevent content feeling cramped
+  const verticalPadding = flags.isVertical
+    ? Math.round(Math.max(spacing.padding * 2, height * 0.03))
+    : spacing.padding;
+
+  // Skyscrapers get more gap between elements for breathing room
+  const verticalGap = flags.isVertical
+    ? Math.round(spacing.gap * 1.8)
+    : spacing.gap;
 
   return (
     <div className="relative w-full h-full overflow-hidden">
@@ -141,8 +152,8 @@ function VerticalLayout({ config, tokens }: PatternProps) {
       <div
         className="absolute inset-0 flex flex-col justify-end overflow-hidden"
         style={{
-          padding: spacing.padding,
-          gap: spacing.gap,
+          padding: `${verticalPadding}px`,
+          gap: verticalGap,
         }}
       >
         {!flags.hideLogo && (
