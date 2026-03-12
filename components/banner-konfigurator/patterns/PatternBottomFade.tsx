@@ -162,6 +162,11 @@ function VerticalLayout({ width, height, config, tokens }: PatternProps) {
         <p style={{
           ...headlineStyle(tokens),
           textShadow: tokens.shadows.textShadow,
+          // Line clamp: prevent long headlines from dominating small formats
+          display: '-webkit-box',
+          WebkitBoxOrient: 'vertical' as const,
+          WebkitLineClamp: flags.isTiny ? 1 : flags.isSmall ? 2 : flags.isVertical ? 3 : 4,
+          textOverflow: 'ellipsis',
         }}>
           {config.headline}
         </p>
