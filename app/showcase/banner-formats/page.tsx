@@ -12,7 +12,7 @@ type BannerDef = {
   name: string;
   width: number;
   height: number;
-  pattern: 'P1' | 'P2' | 'P3' | 'P4' | 'P5' | 'P6' | 'P7' | 'P8';
+  pattern: 'P1' | 'P3' | 'P4' | 'P5' | 'P6' | 'P7' | 'P8';
   category: 'leaderboard' | 'rectangle' | 'skyscraper' | 'social';
   badge?: string;
 };
@@ -25,16 +25,16 @@ const BANNERS: BannerDef[] = [
   { id: 'B-04', name: 'Mobile Leaderboard', width: 320, height: 50, pattern: 'P5', category: 'leaderboard', badge: 'Mobile' },
   { id: 'B-05', name: 'Large Mobile Banner', width: 320, height: 100, pattern: 'P6', category: 'leaderboard', badge: 'Mobile' },
   // Rectangle
-  { id: 'B-06', name: 'Medium Rectangle', width: 300, height: 250, pattern: 'P2', category: 'rectangle', badge: '#1 Beliebtestes' },
+  { id: 'B-06', name: 'Medium Rectangle', width: 300, height: 250, pattern: 'P4', category: 'rectangle', badge: '#1 Beliebtestes' },
   { id: 'B-07', name: 'Large Rectangle', width: 336, height: 280, pattern: 'P4', category: 'rectangle' },
-  { id: 'B-08', name: 'Square', width: 250, height: 250, pattern: 'P2', category: 'rectangle' },
+  { id: 'B-08', name: 'Square', width: 250, height: 250, pattern: 'P6', category: 'rectangle' },
   { id: 'B-09', name: 'Small Square', width: 200, height: 200, pattern: 'P3', category: 'rectangle' },
   // Skyscraper
   { id: 'B-10', name: 'Wide Skyscraper', width: 160, height: 600, pattern: 'P1', category: 'skyscraper', badge: 'GDN Top 5' },
   { id: 'B-11', name: 'Skyscraper', width: 120, height: 600, pattern: 'P5', category: 'skyscraper' },
   { id: 'B-12', name: 'Half-Page', width: 300, height: 600, pattern: 'P4', category: 'skyscraper', badge: 'Premium' },
   // Social
-  { id: 'B-13', name: 'Instagram Post', width: 1080, height: 1080, pattern: 'P2', category: 'social', badge: '1:1' },
+  { id: 'B-13', name: 'Instagram Post', width: 1080, height: 1080, pattern: 'P4', category: 'social', badge: '1:1' },
   { id: 'B-14', name: 'Instagram Feed', width: 1080, height: 1350, pattern: 'P7', category: 'social', badge: '4:5' },
   { id: 'B-15', name: 'Story / Reels', width: 1080, height: 1920, pattern: 'P6', category: 'social', badge: '9:16' },
   { id: 'B-16', name: 'YouTube / LinkedIn', width: 1920, height: 1080, pattern: 'P8', category: 'social', badge: '16:9' },
@@ -88,7 +88,6 @@ const CATEGORIES = [
 // ─── Pattern label map ──────────────────────────────────────────
 const PATTERN_LABELS: Record<string, string> = {
   P1: 'Split Layout',
-  P2: 'Diagonale',
   P3: 'Cutout',
   P4: 'Bottom Fade',
   P5: 'Minimal Gradient',
@@ -146,7 +145,7 @@ export default function BannerFormatsKonfigurator() {
             </div>
             <div>
               <h1 className="text-lg font-bold leading-tight">Banner-Konfigurator</h1>
-              <p className="text-xs text-zinc-500">16 Formate &middot; 8 Design-Patterns &middot; Live-Vorschau</p>
+              <p className="text-xs text-zinc-500">16 Formate &middot; 7 Design-Patterns &middot; Live-Vorschau</p>
             </div>
           </div>
           <a
@@ -245,7 +244,7 @@ export default function BannerFormatsKonfigurator() {
             <footer className="border-t border-zinc-800 pt-6 pb-4">
               <div className="flex flex-wrap gap-6 text-xs text-zinc-500">
                 <span>{BANNERS.length} Formate</span>
-                <span>8 Design-Patterns</span>
+                <span>7 Design-Patterns</span>
                 <span>4 Kategorien</span>
                 <span className="text-zinc-600">Live-Konfigurator</span>
               </div>

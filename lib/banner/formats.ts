@@ -1,6 +1,6 @@
 // Banner format definitions and categories
 
-export type PatternId = 'P1' | 'P2' | 'P3' | 'P4' | 'P5' | 'P6' | 'P7';
+export type PatternId = 'P1' | 'P3' | 'P4' | 'P5' | 'P6' | 'P7';
 
 export interface BannerFormat {
   id: string;

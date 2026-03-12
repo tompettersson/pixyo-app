@@ -1,6 +1,5 @@
 import type { PatternId } from '@/lib/banner/formats';
 import PatternSplit from './PatternSplit';
-import PatternDiagonal from './PatternDiagonal';
 import PatternCircleAccent from './PatternCircleAccent';
 import PatternBottomFade from './PatternBottomFade';
 import PatternMinimalGradient from './PatternMinimalGradient';
@@ -21,7 +20,6 @@ export interface PatternMeta {
 
 export const PATTERNS: PatternMeta[] = [
   { id: 'P1', labelDe: 'Split-Layout', labelEn: 'Split Layout', needsImage: true, component: PatternSplit },
-  { id: 'P2', labelDe: 'Diagonale', labelEn: 'Diagonal', needsImage: true, component: PatternDiagonal },
   { id: 'P3', labelDe: 'Kreis-Akzent', labelEn: 'Circle Accent', needsImage: false, component: PatternCircleAccent },
   { id: 'P4', labelDe: 'Verlauf unten', labelEn: 'Bottom Fade', needsImage: true, component: PatternBottomFade },
   { id: 'P5', labelDe: 'Minimaler Gradient', labelEn: 'Minimal Gradient', needsImage: false, component: PatternMinimalGradient },

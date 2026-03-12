@@ -90,8 +90,8 @@ export function computeBannerTokens(
   const ratio = width / height;
 
   // ── Layout flags ──────────────────────────────────────────
-  const isSmall = area < 40_000;
-  const isTiny = area < 20_000;
+  const isSmall = area < 50_000;
+  const isTiny = area < 25_000;
   const isHorizontal = ratio > 1.5;
   const isVertical = 1 / ratio > 1.5;
 
@@ -115,7 +115,7 @@ export function computeBannerTokens(
 
   const headline = Math.round(Math.max(9, Math.min(72, headlineRaw)));
   const subline = Math.round(Math.max(7, Math.min(28, sublineRaw)));
-  const cta = Math.round(Math.max(7, Math.min(20, ctaRaw)));
+  const cta = Math.round(Math.max(7, Math.min(16, ctaRaw)));
   const logo = Math.round(Math.max(14, Math.min(64, logoRaw)));
 
   // ── Spacing (proportional to min dimension) ───────────────
@@ -168,7 +168,7 @@ export function computeBannerTokens(
 
   // ── Visibility flags ──────────────────────────────────────
   // Hide elements that don't fit in very small formats
-  const hideSubline = isTiny || (isHorizontal && minDim < 55);
+  const hideSubline = isTiny || isSmall || (isHorizontal && minDim < 70);
   const hideLogo = isTiny;
   const hideCta = false; // always show CTA, but scale it down
 

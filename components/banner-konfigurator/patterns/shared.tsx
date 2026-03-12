@@ -61,8 +61,8 @@ export function CTAButton({
   tokens: BannerTokens;
 }) {
   // Scale padding proportionally to CTA font size
-  const py = Math.max(2, Math.round(tokens.fontSize.cta * 0.35));
-  const px = Math.max(4, Math.round(tokens.fontSize.cta * 1.0));
+  const py = Math.max(2, Math.round(tokens.fontSize.cta * 0.25));
+  const px = Math.max(4, Math.round(tokens.fontSize.cta * 0.7));
 
   return (
     <span
@@ -70,7 +70,7 @@ export function CTAButton({
         display: 'inline-block',
         fontSize: tokens.fontSize.cta,
         fontWeight: tokens.typography.ctaFontWeight,
-        letterSpacing: '0.03em',
+        letterSpacing: 'normal',
         backgroundColor: tokens.colors.ctaBg,
         color: tokens.colors.ctaText,
         textTransform: tokens.typography.ctaUppercase ? 'uppercase' : 'none',
@@ -87,14 +87,14 @@ export function CTAButton({
 
 // Patterns will render CTA inline, so we export a style-only helper too:
 export function ctaStyle(tokens: BannerTokens): React.CSSProperties {
-  const py = Math.max(2, Math.round(tokens.fontSize.cta * 0.35));
-  const px = Math.max(4, Math.round(tokens.fontSize.cta * 1.0));
+  const py = Math.max(2, Math.round(tokens.fontSize.cta * 0.25));
+  const px = Math.max(4, Math.round(tokens.fontSize.cta * 0.7));
 
   return {
     display: 'inline-block',
     fontSize: tokens.fontSize.cta,
     fontWeight: tokens.typography.ctaFontWeight,
-    letterSpacing: '0.03em',
+    letterSpacing: 'normal',
     backgroundColor: tokens.colors.ctaBg,
     color: tokens.colors.ctaText,
     textTransform: tokens.typography.ctaUppercase ? 'uppercase' : 'none',

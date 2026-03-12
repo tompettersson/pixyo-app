@@ -75,7 +75,7 @@ function CTAButton({
 
   return (
     <span
-      className={`inline-block font-bold tracking-wide ${px} ${radius}`}
+      className={`inline-block font-bold ${px} ${radius}`}
       style={{
         backgroundColor: config.accentColor,
         color: ctaTextColor,
@@ -313,6 +313,7 @@ function PatternCutout({ width, height, config }: PatternProps) {
 // ═══════════════════════════════════════════════════════════════
 function PatternBottomFade({ width, height, config }: PatternProps) {
   const fs = fontSizes(width, height);
+  const small = isSmall(width, height);
 
   return (
     <div className="relative w-full h-full overflow-hidden">
@@ -331,13 +332,15 @@ function PatternBottomFade({ width, height, config }: PatternProps) {
         }}
       />
       <div className="absolute inset-0 flex flex-col justify-end p-3 gap-0.5">
-        <Logo url={config.logoUrl} size={fs.logo} fallbackColor={config.resolvedTextColor} />
+        {!small && <Logo url={config.logoUrl} size={fs.logo} fallbackColor={config.resolvedTextColor} />}
         <p style={headlineStyle(config, fs)} className="leading-tight">
           {config.headline}
         </p>
-        <p style={{ fontSize: fs.sub, color: config.resolvedTextColor }} className="opacity-90">
-          {config.subline}
-        </p>
+        {!small && (
+          <p style={{ fontSize: fs.sub, color: config.resolvedTextColor }} className="opacity-90">
+            {config.subline}
+          </p>
+        )}
         <div className="mt-1">
           <CTAButton config={config} small={fs.cta} />
         </div>
