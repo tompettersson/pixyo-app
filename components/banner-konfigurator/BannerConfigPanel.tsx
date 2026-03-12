@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useBannerConfigStore, BG_IMAGE_OPTIONS, type BannerConfig } from '@/store/useBannerConfigStore';
 import { AVAILABLE_FONTS } from '@/lib/stylePresets';
+import { loadGoogleFont } from '@/lib/brand-design/font-loader';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Slider } from '@/components/ui/Slider';
@@ -10,6 +11,7 @@ import { ColorPicker } from '@/components/ui/ColorPicker';
 import PatternSelector from './PatternSelector';
 import ProfileSwitcher from './ProfileSwitcher';
 import CollapsibleSection from './CollapsibleSection';
+import AssetLibraryPicker from './AssetLibraryPicker';
 import type { PatternId } from '@/lib/banner/formats';
 
 // ─── Section wrapper (non-collapsible) ─────────────────────────
@@ -46,6 +48,13 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
 export default function BannerConfigPanel() {
   const store = useBannerConfigStore();
   const update = store.updateConfig;
+
+  // Load Google Font when headlineFont changes
+  useEffect(() => {
+    if (store.headlineFont) {
+      loadGoogleFont(store.headlineFont);
+    }
+  }, [store.headlineFont]);
 
   // Build config snapshot for pattern selector
   const config: BannerConfig = {
@@ -239,29 +248,43 @@ export default function BannerConfigPanel() {
 
         {/* ═══ 6. Background (collapsible, default closed) ═══ */}
         <CollapsibleSection title="Hintergrund">
-          <div className="grid grid-cols-3 gap-2">
-            {BG_IMAGE_OPTIONS.map((opt) => (
-              <button
-                key={opt.label}
-                onClick={() => update({ bgImageUrl: opt.url })}
-                className={`relative rounded-lg overflow-hidden border-2 transition-all aspect-video ${
-                  store.bgImageUrl === opt.url
-                    ? 'border-violet-500 ring-1 ring-violet-500/50'
-                    : 'border-zinc-700 hover:border-zinc-600'
-                }`}
-              >
-                <img
-                  src={opt.thumb}
-                  alt={opt.label}
-                  className="w-full h-full object-cover"
-                  crossOrigin="anonymous"
-                />
-                <span className="absolute bottom-0 inset-x-0 bg-black/60 text-[9px] text-center text-zinc-300 py-0.5">
-                  {opt.label}
-                </span>
-              </button>
-            ))}
+          {/* Saved assets from Product Scenes */}
+          {store.profileId && (
+            <AssetLibraryPicker
+              profileId={store.profileId}
+              currentUrl={store.bgImageUrl}
+              onSelect={(url) => update({ bgImageUrl: url })}
+            />
+          )}
+
+          {/* Stock presets */}
+          <div>
+            <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1.5">Vorlagen</p>
+            <div className="grid grid-cols-3 gap-2">
+              {BG_IMAGE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.label}
+                  onClick={() => update({ bgImageUrl: opt.url })}
+                  className={`relative rounded-lg overflow-hidden border-2 transition-all aspect-video ${
+                    store.bgImageUrl === opt.url
+                      ? 'border-violet-500 ring-1 ring-violet-500/50'
+                      : 'border-zinc-700 hover:border-zinc-600'
+                  }`}
+                >
+                  <img
+                    src={opt.thumb}
+                    alt={opt.label}
+                    className="w-full h-full object-cover"
+                    crossOrigin="anonymous"
+                  />
+                  <span className="absolute bottom-0 inset-x-0 bg-black/60 text-[9px] text-center text-zinc-300 py-0.5">
+                    {opt.label}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
+
           <Input
             label="Eigene Bild-URL"
             value={store.bgImageUrl}

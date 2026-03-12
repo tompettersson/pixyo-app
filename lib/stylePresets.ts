@@ -124,15 +124,22 @@ export const getPresetById = (id: string): StylePreset | undefined => {
 
 // Available fonts list (for font picker)
 export const AVAILABLE_FONTS = [
+  // Sans-serif
   { value: 'Inter', label: 'Inter', category: 'sans-serif' },
-  { value: 'Brown', label: 'Brown', category: 'sans-serif' },
-  { value: 'Cera Basic', label: 'Cera Basic', category: 'sans-serif' },
   { value: 'Poppins', label: 'Poppins', category: 'sans-serif' },
+  { value: 'Montserrat', label: 'Montserrat', category: 'sans-serif' },
   { value: 'Space Grotesk', label: 'Space Grotesk', category: 'sans-serif' },
-  { value: 'Bebas Neue', label: 'Bebas Neue', category: 'display' },
+  { value: 'Oswald', label: 'Oswald', category: 'sans-serif' },
+  { value: 'Raleway', label: 'Raleway', category: 'sans-serif' },
+  { value: 'DM Sans', label: 'DM Sans', category: 'sans-serif' },
+  // Serif
+  { value: 'Crimson Text', label: 'Crimson Text', category: 'serif' },
   { value: 'Playfair Display', label: 'Playfair Display', category: 'serif' },
   { value: 'Lora', label: 'Lora', category: 'serif' },
-  { value: 'Oswald', label: 'Oswald', category: 'sans-serif' },
+  { value: 'Libre Baskerville', label: 'Libre Baskerville', category: 'serif' },
+  { value: 'DM Serif Display', label: 'DM Serif Display', category: 'serif' },
+  // Display
+  { value: 'Bebas Neue', label: 'Bebas Neue', category: 'display' },
   { value: 'Dancing Script', label: 'Dancing Script', category: 'cursive' },
 ];
 
