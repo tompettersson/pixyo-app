@@ -113,11 +113,6 @@ function HorizontalLayout({ config, tokens }: PatternProps) {
 function VerticalLayout({ width, height, config, tokens }: PatternProps) {
   const { flags, spacing, fontSize } = tokens;
 
-  // Skyscrapers: gradient starts much earlier to create a generous branded zone
-  // Standard formats: gradient starts later to show more photo
-  const gradientStart = flags.isVertical ? '5%' : '25%';
-  const gradientMid = flags.isVertical ? '35%' : '55%';
-
   // Skyscrapers need more padding to prevent content feeling cramped
   const verticalPadding = flags.isVertical
     ? Math.round(Math.max(spacing.padding * 2, height * 0.03))
@@ -127,6 +122,17 @@ function VerticalLayout({ width, height, config, tokens }: PatternProps) {
   const verticalGap = flags.isVertical
     ? Math.round(spacing.gap * 1.8)
     : spacing.gap;
+
+  // Smooth full-height gradient — like the Social Graphics overlay approach.
+  // Skyscrapers: stronger overall tint so logo + text both read well.
+  // Rectangles/Social: lighter top, stronger bottom.
+  const c = config.colorFrom;
+  const gradient = flags.isVertical
+    ? `linear-gradient(to bottom, ${hexToRgba(c, 0.55)} 0%, ${hexToRgba(c, 0.35)} 15%, ${hexToRgba(c, 0.18)} 30%, ${hexToRgba(c, 0.22)} 50%, ${hexToRgba(c, 0.55)} 70%, ${hexToRgba(c, 0.92)} 100%)`
+    : `linear-gradient(to bottom, ${hexToRgba(c, 0.45)} 0%, ${hexToRgba(c, 0.2)} 15%, ${hexToRgba(c, 0.08)} 30%, ${hexToRgba(c, 0.15)} 50%, ${hexToRgba(c, 0.5)} 70%, ${hexToRgba(c, 0.95)} 100%)`;
+
+  // Logo maxWidth: narrow skyscrapers need nearly full width
+  const logoMaxWidth = width < 200 ? '92%' : '85%';
 
   return (
     <div className="relative w-full h-full overflow-hidden">
@@ -141,12 +147,10 @@ function VerticalLayout({ width, height, config, tokens }: PatternProps) {
           }}
         />
       )}
-      {/* Gradient: top with logo scrim → bottom opaque */}
+      {/* Full-height gradient overlay — smooth from top to bottom, no hard edges */}
       <div
         className="absolute inset-0"
-        style={{
-          background: `linear-gradient(to bottom, ${hexToRgba(config.colorFrom, 0.35)} 0%, ${hexToRgba(config.colorFrom, 0.1)} 20%, transparent ${gradientStart}, ${hexToRgba(config.colorFrom, 0.4)} ${gradientMid}, ${hexToRgba(config.colorFrom, 0.95)} 100%)`,
-        }}
+        style={{ background: gradient }}
       />
       {/* Logo at top, centered */}
       {!flags.hideLogo && (
@@ -154,7 +158,7 @@ function VerticalLayout({ width, height, config, tokens }: PatternProps) {
           className="absolute inset-x-0 top-0 flex justify-center"
           style={{ padding: `${verticalPadding}px` }}
         >
-          <Logo url={config.logoUrl} size={fontSize.logo} invert={tokens.colors.text === '#ffffff'} />
+          <Logo url={config.logoUrl} size={fontSize.logo} maxWidth={logoMaxWidth} invert={tokens.colors.text === '#ffffff'} />
         </div>
       )}
       {/* Content stacked at bottom, centered */}
@@ -169,7 +173,6 @@ function VerticalLayout({ width, height, config, tokens }: PatternProps) {
           ...headlineStyle(tokens),
           textShadow: tokens.shadows.textShadow,
           textAlign: 'center',
-          // Line clamp: prevent long headlines from dominating small formats
           display: '-webkit-box',
           WebkitBoxOrient: 'vertical' as const,
           WebkitLineClamp: flags.isTiny ? 1 : flags.isSmall ? 2 : flags.isVertical ? 3 : 4,
@@ -187,7 +190,10 @@ function VerticalLayout({ width, height, config, tokens }: PatternProps) {
           </p>
         )}
         <div style={{ marginTop: spacing.ctaMarginTop, maxWidth: '100%' }}>
-          <span style={ctaStyle(tokens)}>{config.ctaText}</span>
+          <span style={{
+            ...ctaStyle(tokens),
+            whiteSpace: width < 200 ? 'normal' : 'nowrap',
+          }}>{config.ctaText}</span>
         </div>
       </div>
     </div>

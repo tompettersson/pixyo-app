@@ -42,10 +42,12 @@ export function Logo({
   url,
   size = 28,
   invert = false,
+  maxWidth = '80%',
 }: {
   url: string | null;
   size?: number;
   invert?: boolean;
+  maxWidth?: string;
 }) {
   if (!url) return null;
   return (
@@ -55,7 +57,7 @@ export function Logo({
       style={{
         height: size,
         width: 'auto',
-        maxWidth: '80%',
+        maxWidth,
         objectFit: 'contain',
         filter: invert ? 'brightness(0) invert(1)' : undefined,
       }}
