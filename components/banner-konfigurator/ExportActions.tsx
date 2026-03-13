@@ -87,7 +87,7 @@ export default function ExportActions({ config }: ExportActionsProps) {
     async (banner: BannerFormat) => {
       const blob = await renderBannerToBlob(banner);
       if (blob) {
-        const filename = `${banner.id}_${banner.name.replace(/\s+/g, '-').toLowerCase()}_${banner.width}x${banner.height}.jpg`;
+        const filename = `${banner.id}_${banner.name.replace(/[\s/]+/g, '-').toLowerCase()}_${banner.width}x${banner.height}.jpg`;
         downloadBlob(blob, filename);
       }
     },

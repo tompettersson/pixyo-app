@@ -54,7 +54,7 @@ export async function exportSingleBanner(
     console.error(`Failed to render banner ${banner.id}`);
     return;
   }
-  const filename = `${banner.id}_${banner.name.replace(/\s+/g, '-').toLowerCase()}_${banner.width}x${banner.height}.jpg`;
+  const filename = `${banner.id}_${banner.name.replace(/[\s/]+/g, '-').toLowerCase()}_${banner.width}x${banner.height}.jpg`;
   downloadBlob(blob, filename);
 }
 
@@ -76,7 +76,7 @@ export async function exportAllBannersAsZip(
     const banner = banners[i];
     const blob = await renderFn(banner);
     if (blob) {
-      const filename = `${banner.id}_${banner.name.replace(/\s+/g, '-').toLowerCase()}_${banner.width}x${banner.height}.jpg`;
+      const filename = `${banner.id}_${banner.name.replace(/[\s/]+/g, '-').toLowerCase()}_${banner.width}x${banner.height}.jpg`;
       zip.file(filename, blob);
     }
     onProgress?.((i + 1) / banners.length);
