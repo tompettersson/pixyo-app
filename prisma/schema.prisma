@@ -29,8 +29,9 @@ model Profile {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  assets       Asset[]
-  designs      Design[]
+  assets         Asset[]
+  designs        Design[]
+  bannerPresets  BannerPreset[]
 
   @@index([userId])
   @@index([slug])
@@ -95,6 +96,19 @@ model Design {
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+
+  @@index([profileId])
+}
+
+model BannerPreset {
+  id           String   @id @default(cuid())
+  profileId    String
+  profile      Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  name         String   @default("Unbenannt")
+  config       Json     // BannerConfig (pattern, colors, typography, content, etc.)
+  thumbnailUrl String?  // Vercel Blob URL
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@index([profileId])
 }

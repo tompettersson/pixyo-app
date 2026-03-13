@@ -4,6 +4,7 @@ import React, { useCallback } from 'react';
 import BannerConfigPanel from '@/components/banner-konfigurator/BannerConfigPanel';
 import BannerGrid from '@/components/banner-konfigurator/BannerGrid';
 import ExportActions from '@/components/banner-konfigurator/ExportActions';
+import BannerPresetBar from '@/components/banner-konfigurator/BannerPresetBar';
 import { useBannerConfigStore, getResolvedConfig, type BannerConfig } from '@/store/useBannerConfigStore';
 import { getPatternComponent } from '@/components/banner-konfigurator/patterns';
 import { downloadBlob } from '@/lib/banner/exportEngine';
@@ -112,6 +113,9 @@ export default function BannerKonfigurator() {
           </a>
         </div>
       </header>
+
+      {/* ── Preset Bar ──────────────────────────────────── */}
+      <BannerPresetBar />
 
       {/* ── Main: Panel + Banners ────────────────────────── */}
       <div className="flex flex-1 overflow-hidden">

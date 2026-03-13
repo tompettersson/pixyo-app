@@ -37,13 +37,41 @@ export interface BannerConfig {
   bgImageUrl: string;
 }
 
+// ─── Preset types ─────────────────────────────────────────────
+export interface BannerPresetMeta {
+  id: string;
+  name: string;
+  thumbnailUrl: string | null;
+  updatedAt: string;
+}
+
+export interface BannerPresetFull extends BannerPresetMeta {
+  config: BannerConfig;
+}
+
 interface BannerConfigState extends BannerConfig {
   profileId: string | null;
   designTokens: DesignTokens | null;
 
+  // Preset management
+  activePresetId: string | null;
+  presets: BannerPresetMeta[];
+  isDirty: boolean;
+  isLoadingPreset: boolean;
+
   // Single updater — replaces all individual setters
   updateConfig: (partial: Partial<BannerConfig>) => void;
   loadFromProfile: (profile: Customer) => void;
+
+  // Preset actions
+  loadPreset: (preset: BannerPresetFull) => void;
+  markClean: () => void;
+  markDirty: () => void;
+  setPresets: (presets: BannerPresetMeta[]) => void;
+  setActivePresetId: (id: string | null) => void;
+  setIsLoadingPreset: (loading: boolean) => void;
+  updatePresetInList: (id: string, data: Partial<BannerPresetMeta>) => void;
+  removePresetFromList: (id: string) => void;
 }
 
 // ─── Resolve text color based on gradient luminance ──────────
@@ -96,6 +124,31 @@ const DEFAULT_CONFIG: BannerConfig = {
   bgImageUrl: BG_IMAGES.city,
 };
 
+// Extract BannerConfig fields from any state object
+export function extractBannerConfig(state: BannerConfig): BannerConfig {
+  return {
+    activePattern: state.activePattern,
+    colorFrom: state.colorFrom,
+    colorTo: state.colorTo,
+    accentColor: state.accentColor,
+    textColor: state.textColor,
+    headlineFont: state.headlineFont,
+    headlineWeight: state.headlineWeight,
+    headlineUppercase: state.headlineUppercase,
+    ctaStyle: state.ctaStyle,
+    ctaUppercase: state.ctaUppercase,
+    headline: state.headline,
+    subline: state.subline,
+    ctaText: state.ctaText,
+    logoUrl: state.logoUrl,
+    gradientAngle: state.gradientAngle,
+    overlayStrength: state.overlayStrength,
+    showDecoElements: state.showDecoElements,
+    splitRatio: state.splitRatio,
+    bgImageUrl: state.bgImageUrl,
+  };
+}
+
 export const useBannerConfigStore = create<BannerConfigState>()(
   temporal(
     (set) => ({
@@ -103,12 +156,17 @@ export const useBannerConfigStore = create<BannerConfigState>()(
       profileId: null,
       designTokens: null,
 
-      updateConfig: (partial) => set(partial),
+      // Preset management
+      activePresetId: null,
+      presets: [],
+      isDirty: false,
+      isLoadingPreset: false,
+
+      updateConfig: (partial) => set({ ...partial, isDirty: true }),
 
       loadFromProfile: (profile: Customer) => {
         const dt = profile.designTokens;
         if (dt && typeof dt === 'object') {
-          // Use design tokens (new system)
           const radius = parseInt(dt.borders?.radius?.default || '8');
           set({
             profileId: profile.id,
@@ -121,9 +179,12 @@ export const useBannerConfigStore = create<BannerConfigState>()(
             headlineWeight: String(dt.typography?.fontWeights?.bold ?? profile.fonts.headline.weight ?? '700'),
             headlineUppercase: dt.typography?.headingUppercase ?? profile.fonts.headline.uppercase ?? false,
             ctaStyle: radius >= 999 ? 'pill' : radius >= 8 ? 'rounded' : 'square',
+            // Reset preset state on profile switch
+            activePresetId: null,
+            presets: [],
+            isDirty: false,
           });
         } else {
-          // Legacy profile fields
           set({
             profileId: profile.id,
             designTokens: null,
@@ -140,13 +201,49 @@ export const useBannerConfigStore = create<BannerConfigState>()(
                 : profile.layout.button.radius >= 8
                   ? 'rounded'
                   : 'square',
+            activePresetId: null,
+            presets: [],
+            isDirty: false,
           });
         }
       },
+
+      loadPreset: (preset: BannerPresetFull) => {
+        set({
+          isLoadingPreset: true,
+          activePresetId: preset.id,
+          ...preset.config,
+          isDirty: false,
+        });
+        // Clear loading flag after state is applied
+        // Using setTimeout to ensure Zundo doesn't record these intermediate states
+        setTimeout(() => {
+          set({ isLoadingPreset: false });
+          // Clear undo history for clean state
+          useBannerConfigStore.temporal.getState().clear();
+        }, 0);
+      },
+
+      markClean: () => set({ isDirty: false }),
+      markDirty: () => set({ isDirty: true }),
+
+      setPresets: (presets) => set({ presets }),
+      setActivePresetId: (id) => set({ activePresetId: id }),
+      setIsLoadingPreset: (loading) => set({ isLoadingPreset: loading }),
+
+      updatePresetInList: (id, data) =>
+        set((state) => ({
+          presets: state.presets.map((p) => (p.id === id ? { ...p, ...data } : p)),
+        })),
+
+      removePresetFromList: (id) =>
+        set((state) => ({
+          presets: state.presets.filter((p) => p.id !== id),
+          activePresetId: state.activePresetId === id ? null : state.activePresetId,
+        })),
     }),
     {
       limit: 50,
-      // Only track BannerConfig fields, not actions
       equality: (pastState, currentState) => {
         const keys: (keyof BannerConfig)[] = [
           'activePattern', 'colorFrom', 'colorTo', 'accentColor', 'textColor',
