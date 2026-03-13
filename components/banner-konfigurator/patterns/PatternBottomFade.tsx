@@ -148,7 +148,16 @@ function VerticalLayout({ width, height, config, tokens }: PatternProps) {
           background: `linear-gradient(to bottom, transparent ${gradientStart}, ${hexToRgba(config.colorFrom, 0.4)} ${gradientMid}, ${hexToRgba(config.colorFrom, 0.95)} 100%)`,
         }}
       />
-      {/* Content stacked at bottom, centered for non-horizontal */}
+      {/* Logo at top, centered */}
+      {!flags.hideLogo && (
+        <div
+          className="absolute inset-x-0 top-0 flex justify-center"
+          style={{ padding: `${verticalPadding}px` }}
+        >
+          <Logo url={config.logoUrl} size={fontSize.logo} invert={tokens.colors.text === '#ffffff'} />
+        </div>
+      )}
+      {/* Content stacked at bottom, centered */}
       <div
         className="absolute inset-0 flex flex-col justify-end items-center text-center overflow-hidden"
         style={{
@@ -156,9 +165,6 @@ function VerticalLayout({ width, height, config, tokens }: PatternProps) {
           gap: verticalGap,
         }}
       >
-        {!flags.hideLogo && (
-          <Logo url={config.logoUrl} size={fontSize.logo} invert={tokens.colors.text === '#ffffff'} />
-        )}
         <p style={{
           ...headlineStyle(tokens),
           textShadow: tokens.shadows.textShadow,

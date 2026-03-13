@@ -113,8 +113,8 @@ export function computeBannerTokens(
   const sublineRaw = modularScale(scaleBase, scaleRatio, 0) * scaleFactor;
   // CTA = between subline and headline
   const ctaRaw = modularScale(scaleBase, scaleRatio, -1) * scaleFactor;
-  // Logo = relative to headline
-  const logoRaw = headlineRaw * 1.4;
+  // Logo = generous sizing relative to headline for brand prominence
+  const logoRaw = headlineRaw * 2.0;
 
   // Headline constraint based on format orientation:
   // Horizontal banners: height is the bottleneck (thin strip)
@@ -143,9 +143,9 @@ export function computeBannerTokens(
   const ctaMin = Math.max(7, Math.min(ctaMax, Math.round(headline * 0.55)));
   const cta = Math.round(Math.max(ctaMin, Math.min(ctaMax, ctaRaw)));
 
-  // Logo scales with format size — generous for social so brand is visible
-  const logoCap = area > 1_500_000 ? 80 : area > 500_000 ? 56 : 36;
-  const logo = Math.round(Math.max(12, Math.min(logoCap, logoRaw)));
+  // Logo scales with format size — generous for brand prominence
+  const logoCap = area > 1_500_000 ? 120 : area > 500_000 ? 80 : 48;
+  const logo = Math.round(Math.max(14, Math.min(logoCap, logoRaw)));
 
   // ── Spacing (proportional to min dimension, capped) ──────
   // Horizontal banners need more padding relative to their short height
@@ -203,7 +203,7 @@ export function computeBannerTokens(
   // ── Visibility flags ──────────────────────────────────────
   // Hide elements that don't fit in very small formats
   const hideSubline = isTiny || isSmall || (isHorizontal && height < 120) || (isVertical && width < 150);
-  const hideLogo = isTiny || (isHorizontal && (height < 70 || width < 400));
+  const hideLogo = isTiny || (isHorizontal && height < 45);
   const hideCta = false; // always show CTA, but scale it down
 
   return {
