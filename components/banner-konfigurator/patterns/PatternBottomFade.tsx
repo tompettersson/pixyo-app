@@ -141,11 +141,11 @@ function VerticalLayout({ width, height, config, tokens }: PatternProps) {
           }}
         />
       )}
-      {/* Gradient: top transparent → bottom opaque */}
+      {/* Gradient: top with logo scrim → bottom opaque */}
       <div
         className="absolute inset-0"
         style={{
-          background: `linear-gradient(to bottom, transparent ${gradientStart}, ${hexToRgba(config.colorFrom, 0.4)} ${gradientMid}, ${hexToRgba(config.colorFrom, 0.95)} 100%)`,
+          background: `linear-gradient(to bottom, ${hexToRgba(config.colorFrom, 0.35)} 0%, ${hexToRgba(config.colorFrom, 0.1)} 20%, transparent ${gradientStart}, ${hexToRgba(config.colorFrom, 0.4)} ${gradientMid}, ${hexToRgba(config.colorFrom, 0.95)} 100%)`,
         }}
       />
       {/* Logo at top, centered */}

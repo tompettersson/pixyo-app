@@ -113,8 +113,8 @@ export function computeBannerTokens(
   const sublineRaw = modularScale(scaleBase, scaleRatio, 0) * scaleFactor;
   // CTA = between subline and headline
   const ctaRaw = modularScale(scaleBase, scaleRatio, -1) * scaleFactor;
-  // Logo = generous sizing relative to headline for brand prominence
-  const logoRaw = headlineRaw * 2.0;
+  // Logo = large and prominent — the brand anchor of the banner
+  const logoRaw = headlineRaw * 2.5;
 
   // Headline constraint based on format orientation:
   // Generous limits — text should fill the available space
@@ -140,9 +140,9 @@ export function computeBannerTokens(
   const ctaMin = Math.max(8, Math.min(ctaMax, Math.round(headline * 0.55)));
   const cta = Math.round(Math.max(ctaMin, Math.min(ctaMax, ctaRaw)));
 
-  // Logo scales with format size — generous for brand prominence
-  const logoCap = area > 1_500_000 ? 140 : area > 500_000 ? 96 : 60;
-  const logo = Math.round(Math.max(16, Math.min(logoCap, logoRaw)));
+  // Logo scales with format size — big and prominent
+  const logoCap = area > 1_500_000 ? 160 : area > 500_000 ? 110 : 72;
+  const logo = Math.round(Math.max(18, Math.min(logoCap, logoRaw)));
 
   // ── Spacing (proportional to min dimension, capped) ──────
   // Horizontal banners need more padding relative to their short height
@@ -187,7 +187,7 @@ export function computeBannerTokens(
   const ctaFontWeight = designTokens?.components?.button?.primary?.fontWeight ?? 700;
   const ctaBorderRadius = designTokens?.components?.button?.primary?.borderRadius
     ?? (config.ctaStyle === 'pill' ? '9999px' : config.ctaStyle === 'rounded' ? '8px' : '0px');
-  const lineHeight = designTokens?.typography?.lineHeight?.tight ?? 1.2;
+  const lineHeight = designTokens?.typography?.lineHeight?.tight ?? 1.1;
   const letterSpacing = designTokens?.typography?.letterSpacing?.tight ?? '-0.02em';
 
   // ── Shadows ───────────────────────────────────────────────
