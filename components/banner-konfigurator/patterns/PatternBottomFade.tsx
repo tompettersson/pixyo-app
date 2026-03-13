@@ -72,7 +72,7 @@ function HorizontalLayout({ config, tokens }: PatternProps) {
       >
         {!flags.hideLogo && (
           <div className="flex-shrink-0">
-            <Logo url={config.logoUrl} size={fontSize.logo} />
+            <Logo url={config.logoUrl} size={fontSize.logo} invert={tokens.colors.text === '#ffffff'} />
           </div>
         )}
         <p
@@ -157,7 +157,7 @@ function VerticalLayout({ width, height, config, tokens }: PatternProps) {
         }}
       >
         {!flags.hideLogo && (
-          <Logo url={config.logoUrl} size={fontSize.logo} />
+          <Logo url={config.logoUrl} size={fontSize.logo} invert={tokens.colors.text === '#ffffff'} />
         )}
         <p style={{
           ...headlineStyle(tokens),

@@ -56,7 +56,7 @@ export default function PatternDuotone({ width, height, config, tokens }: Patter
         }}
       >
         {!flags.hideLogo && (
-          <Logo url={config.logoUrl} size={fontSize.logo} />
+          <Logo url={config.logoUrl} size={fontSize.logo} invert={tokens.colors.text === '#ffffff'} />
         )}
         <p style={{ ...headlineStyle(tokens), textShadow: tokens.shadows.textShadow }}>
           {config.headline}

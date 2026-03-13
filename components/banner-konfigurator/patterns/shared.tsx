@@ -41,9 +41,11 @@ export function sublineStyle(tokens: BannerTokens): React.CSSProperties {
 export function Logo({
   url,
   size = 28,
+  invert = false,
 }: {
   url: string | null;
   size?: number;
+  invert?: boolean;
 }) {
   if (!url) return null;
   return (
@@ -55,6 +57,7 @@ export function Logo({
         width: 'auto',
         maxWidth: '80%',
         objectFit: 'contain',
+        filter: invert ? 'brightness(0) invert(1)' : undefined,
       }}
       crossOrigin="anonymous"
     />

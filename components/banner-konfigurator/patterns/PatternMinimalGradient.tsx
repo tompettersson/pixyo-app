@@ -42,7 +42,7 @@ export default function PatternMinimalGradient({ width, height, config, tokens }
         }}
       >
         {!flags.hideLogo && (
-          <Logo url={config.logoUrl} size={fontSize.logo} />
+          <Logo url={config.logoUrl} size={fontSize.logo} invert={tokens.colors.text === '#ffffff'} />
         )}
         <div className={flags.isHorizontal ? 'text-left' : 'text-center'}>
           <p style={headlineStyle(tokens)}>

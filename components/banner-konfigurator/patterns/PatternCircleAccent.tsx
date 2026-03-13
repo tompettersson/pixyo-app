@@ -74,7 +74,7 @@ export default function PatternCircleAccent({ width, height, config, tokens }: P
         }}
       >
         {!flags.hideLogo && (
-          <Logo url={config.logoUrl} size={fontSize.logo} />
+          <Logo url={config.logoUrl} size={fontSize.logo} invert={tokens.colors.text === '#ffffff'} />
         )}
         <div className={`overflow-hidden ${flags.isHorizontal ? 'text-left flex-1' : ''}`}>
           <p style={headlineStyle(tokens)}>

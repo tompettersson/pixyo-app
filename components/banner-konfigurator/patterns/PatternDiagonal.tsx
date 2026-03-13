@@ -60,7 +60,7 @@ export default function PatternDiagonal({ width, height, config, tokens }: Patte
         }}
       >
         {!flags.hideLogo && (
-          <Logo url={config.logoUrl} size={fontSize.logo} />
+          <Logo url={config.logoUrl} size={fontSize.logo} invert={tokens.colors.text === '#ffffff'} />
         )}
         <p style={headlineStyle(tokens)}>
           {config.headline}

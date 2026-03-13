@@ -50,7 +50,7 @@ export default function PatternPhotoOverlay({ width, height, config, tokens }: P
         }}
       >
         {!flags.hideLogo && (
-          <Logo url={config.logoUrl} size={fontSize.logo} />
+          <Logo url={config.logoUrl} size={fontSize.logo} invert={tokens.colors.text === '#ffffff'} />
         )}
         <p style={{ ...headlineStyle(tokens), textShadow: tokens.shadows.textShadow }}>
           {config.headline}

@@ -44,7 +44,7 @@ export default function PatternSplit({ width, height, config, tokens }: PatternP
           }}
         >
           {!flags.hideLogo && (
-            <Logo url={config.logoUrl} size={fontSize.logo} />
+            <Logo url={config.logoUrl} size={fontSize.logo} invert={tokens.colors.text === '#ffffff'} />
           )}
           <p style={headlineStyle(tokens)} className="text-center">
             {config.headline}
@@ -82,7 +82,7 @@ export default function PatternSplit({ width, height, config, tokens }: PatternP
         }}
       >
         {!flags.hideLogo && (
-          <Logo url={config.logoUrl} size={fontSize.logo} />
+          <Logo url={config.logoUrl} size={fontSize.logo} invert={tokens.colors.text === '#ffffff'} />
         )}
         <p style={headlineStyle(tokens)}>
           {config.headline}
