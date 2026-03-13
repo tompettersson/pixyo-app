@@ -148,9 +148,9 @@ function VerticalLayout({ width, height, config, tokens }: PatternProps) {
           background: `linear-gradient(to bottom, transparent ${gradientStart}, ${hexToRgba(config.colorFrom, 0.4)} ${gradientMid}, ${hexToRgba(config.colorFrom, 0.95)} 100%)`,
         }}
       />
-      {/* Content stacked at bottom */}
+      {/* Content stacked at bottom, centered for non-horizontal */}
       <div
-        className="absolute inset-0 flex flex-col justify-end overflow-hidden"
+        className="absolute inset-0 flex flex-col justify-end items-center text-center overflow-hidden"
         style={{
           padding: `${verticalPadding}px`,
           gap: verticalGap,
@@ -162,6 +162,7 @@ function VerticalLayout({ width, height, config, tokens }: PatternProps) {
         <p style={{
           ...headlineStyle(tokens),
           textShadow: tokens.shadows.textShadow,
+          textAlign: 'center',
           // Line clamp: prevent long headlines from dominating small formats
           display: '-webkit-box',
           WebkitBoxOrient: 'vertical' as const,
@@ -174,6 +175,7 @@ function VerticalLayout({ width, height, config, tokens }: PatternProps) {
           <p style={{
             ...sublineStyle(tokens),
             textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
+            textAlign: 'center',
           }}>
             {config.subline}
           </p>
