@@ -50,7 +50,12 @@ export function Logo({
     <img
       src={url}
       alt="Logo"
-      style={{ width: size, height: size, objectFit: 'contain' }}
+      style={{
+        height: size,
+        width: 'auto',
+        maxWidth: '80%',
+        objectFit: 'contain',
+      }}
       crossOrigin="anonymous"
     />
   );
@@ -93,6 +98,9 @@ export function ctaStyle(tokens: BannerTokens): React.CSSProperties {
   const py = Math.max(3, Math.round(tokens.fontSize.cta * 0.4));
   const px = Math.max(6, Math.round(tokens.fontSize.cta * 0.9));
 
+  // When text is white (dark background), add subtle border for CTA definition
+  const needsBorder = tokens.colors.text === '#ffffff';
+
   return {
     display: 'inline-block',
     fontSize: tokens.fontSize.cta,
@@ -105,8 +113,12 @@ export function ctaStyle(tokens: BannerTokens): React.CSSProperties {
     borderRadius: tokens.typography.ctaBorderRadius,
     padding: `${py}px ${px}px`,
     boxShadow: tokens.shadows.sm,
+    border: needsBorder ? '1px solid rgba(255, 255, 255, 0.18)' : 'none',
     maxWidth: '100%',
     textAlign: 'center',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
   };
 }
 

@@ -100,9 +100,11 @@ export function computeBannerTokens(
   const scaleBase = designTokens?.typography?.scale?.base ?? 16;
   const scaleRatio = designTokens?.typography?.scale?.ratio ?? 1.25;
 
-  // Scale factor: sqrt(area / reference) gives smooth sizing
-  // Higher clamp for social/large formats (>500k px²) so text feels native
-  const scaleMax = area > 500_000 ? 3.5 : 2.5;
+  // Three-tier scaling:
+  // - Standard ads (<500k px²): conservative sizes for display networks
+  // - Large ads (500k–1.5M px²): moderately larger for half-page, Instagram
+  // - Social/hero (>1.5M px²): bold typography for stories, YouTube, LinkedIn
+  const scaleMax = area > 1_500_000 ? 4.5 : area > 500_000 ? 3.5 : 2.5;
   const scaleFactor = Math.max(0.45, Math.min(scaleMax, Math.sqrt(area / REFERENCE_AREA)));
 
   // Headline = scale step 2 (2xl equivalent) × scaleFactor
@@ -122,37 +124,37 @@ export function computeBannerTokens(
     isHorizontal
       ? height * 0.24
       : isVertical
-        ? width * 0.12
-        : minDim * 0.10
+        ? width * 0.14
+        : minDim * 0.12
   );
-  // Dynamic headline cap: 48px for standard ads, scales up for social/large formats
-  // Social (1080px+) should feel like social posts, not tiny ad text
-  const headlineCap = area > 500_000 ? 72 : 48;
+  // Dynamic headline cap per tier:
+  // Social/hero formats need text that commands attention in a feed
+  const headlineCap = area > 1_500_000 ? 108 : area > 500_000 ? 72 : 48;
   const headline = Math.round(Math.max(9, Math.min(headlineMaxForDim, headlineCap, headlineRaw)));
 
-  // Subline & CTA caps scale with headline for large formats
-  const sublineCap = area > 500_000 ? 32 : 20;
+  // Subline & CTA caps scale with tier
+  const sublineCap = area > 1_500_000 ? 44 : area > 500_000 ? 32 : 20;
   const sublineMax = Math.min(sublineCap, Math.round(headline * 0.7));
   const subline = Math.round(Math.max(7, Math.min(sublineMax, sublineRaw)));
 
-  const ctaCap = area > 500_000 ? 28 : 20;
+  const ctaCap = area > 1_500_000 ? 36 : area > 500_000 ? 28 : 20;
   // CTA must stay below headline (max 85%) to preserve visual hierarchy
   const ctaMax = Math.min(ctaCap, Math.round(headline * 0.85));
   const ctaMin = Math.max(7, Math.min(ctaMax, Math.round(headline * 0.55)));
   const cta = Math.round(Math.max(ctaMin, Math.min(ctaMax, ctaRaw)));
 
-  // Logo scales with format size
-  const logoCap = area > 500_000 ? 56 : 36;
+  // Logo scales with format size — generous for social so brand is visible
+  const logoCap = area > 1_500_000 ? 80 : area > 500_000 ? 56 : 36;
   const logo = Math.round(Math.max(12, Math.min(logoCap, logoRaw)));
 
   // ── Spacing (proportional to min dimension, capped) ──────
   // Horizontal banners need more padding relative to their short height
   const paddingFactor = isHorizontal ? 0.10 : 0.06;
-  const paddingMax = area > 500_000 ? 40 : 24;
+  const paddingMax = area > 1_500_000 ? 56 : area > 500_000 ? 40 : 24;
   const padding = Math.round(Math.max(6, Math.min(paddingMax, minDim * paddingFactor)));
-  const gapMax = area > 500_000 ? 16 : 10;
+  const gapMax = area > 1_500_000 ? 22 : area > 500_000 ? 16 : 10;
   const gap = Math.round(Math.max(2, Math.min(gapMax, minDim * 0.025)));
-  const ctaMarginMax = area > 500_000 ? 14 : 8;
+  const ctaMarginMax = area > 1_500_000 ? 20 : area > 500_000 ? 14 : 8;
   const ctaMarginTop = Math.round(Math.max(1, Math.min(ctaMarginMax, minDim * 0.02)));
 
   // ── Colors ────────────────────────────────────────────────
